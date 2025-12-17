@@ -43,14 +43,15 @@ public class UserController {
 
         var basicRole = roleRepository.findByName(Role.Values.basic.name());
 
-        var userExists = userRepository.findByUsername(dto.username());
+        var userExists = userRepository.findByEmail(dto.email());
 
         if (userExists.isPresent()) {
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_CONTENT, "User with given username already exists");
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_CONTENT, "User with given email already exists");
         }
 
         var user = new User();
         user.setUsername(dto.username());
+        user.setEmail(dto.email());
         user.setPassword(passwordEncoder.encode(dto.password()));
         user.setRoles(Set.of(basicRole));
 

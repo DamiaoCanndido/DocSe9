@@ -27,7 +27,7 @@ public class Tweet {
     private String content;
 
     @CreationTimestamp
-    private String creationTimestamp;
+    private String createdAt;
 
     public Long getTweetId() {
         return tweetId;
@@ -53,11 +53,11 @@ public class Tweet {
         this.content = content;
     }
 
-    public String getCreationTimestamp() {
-        return creationTimestamp;
+    public String getCreatedAt() {
+        return createdAt;
     }
 
-    public void setCreationTimestamp(String creationTimestamp) {
-        this.creationTimestamp = creationTimestamp;
+    public void setCreatedAt(String createdAt) {
+        this.createdAt = createdAt;
     }
 }
