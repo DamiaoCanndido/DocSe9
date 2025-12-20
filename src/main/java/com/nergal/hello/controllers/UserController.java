@@ -15,6 +15,8 @@ import com.nergal.hello.controllers.dto.RegisterUserDTO;
 import com.nergal.hello.entities.User;
 import com.nergal.hello.services.UserService;
 
+import jakarta.validation.Valid;
+
 @RestController
 public class UserController {
 
@@ -25,7 +27,7 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<Void> register(@RequestBody RegisterUserDTO dto) {
+    public ResponseEntity<Void> register(@Valid @RequestBody RegisterUserDTO dto) {
         userService.register(dto);
         return ResponseEntity.ok().build();
     }

@@ -47,10 +47,11 @@ public class UserService {
     @Transactional
     public void register(RegisterUserDTO dto) {
 
-        if (userRepository.findByEmail(dto.email()).isPresent()) {
+        if (userRepository.findByEmail(dto.email()).isPresent() || 
+            userRepository.findByUsername(dto.username()).isPresent()) {
             throw new ResponseStatusException(
                     HttpStatus.UNPROCESSABLE_CONTENT,
-                    "User with given email already exists"
+                    "User with given email or username already exists"
             );
         }
 
