@@ -3,6 +3,7 @@ package com.nergal.hello.services;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
@@ -11,6 +12,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -20,6 +22,7 @@ import com.nergal.hello.controllers.dto.RegisterUserDTO;
 import com.nergal.hello.entities.Role;
 import com.nergal.hello.entities.Township;
 import com.nergal.hello.entities.User;
+import com.nergal.hello.exception.NotFoundException;
 import com.nergal.hello.repositories.RoleRepository;
 import com.nergal.hello.repositories.TownshipRepository;
 import com.nergal.hello.repositories.UserRepository;
@@ -110,5 +113,23 @@ public class UserService {
     @Transactional(readOnly = true)
     public List<User> listUsers() {
         return userRepository.findAll();
+    }
+
+    @Transactional
+    public void deleteUser(UUID userId, JwtAuthenticationToken token){
+        var user = userRepository.findById(UUID.fromString(token.getName()));
+
+        var isAdmin = user.get().getRoles()
+            .stream()
+            .anyMatch(role -> role.getName().equalsIgnoreCase(Role.Values.admin.name()));
+
+        var userToDelete = userRepository.findById(userId)
+            .orElseThrow(() -> new NotFoundException("User not found"));
+
+        if (isAdmin || userToDelete.getUserId().equals(UUID.fromString(token.getName()))) {
+            userRepository.deleteById(userId);
+        } else {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
     }
 }
