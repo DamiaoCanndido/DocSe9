@@ -37,5 +37,14 @@ public class GlobalExceptionHandler {
                 put("error", ex.getMessage());
             }});
     }
+
+    @ExceptionHandler(UnprocessableContentException.class)
+    public ResponseEntity<Map<String, String>> handleUnprocessableContent(UnprocessableContentException ex) {
+        return ResponseEntity
+            .status(HttpStatus.UNPROCESSABLE_CONTENT)
+            .body(new HashMap<>() {{
+                put("error", ex.getMessage());
+            }});
+    }
 }
 

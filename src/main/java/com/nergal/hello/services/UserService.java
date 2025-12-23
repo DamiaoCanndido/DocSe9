@@ -23,6 +23,7 @@ import com.nergal.hello.entities.Role;
 import com.nergal.hello.entities.Township;
 import com.nergal.hello.entities.User;
 import com.nergal.hello.exception.NotFoundException;
+import com.nergal.hello.exception.UnprocessableContentException;
 import com.nergal.hello.repositories.RoleRepository;
 import com.nergal.hello.repositories.TownshipRepository;
 import com.nergal.hello.repositories.UserRepository;
@@ -57,10 +58,7 @@ public class UserService {
 
         if (userRepository.findByEmail(dto.email()).isPresent() || 
             userRepository.findByUsername(dto.username()).isPresent()) {
-            throw new ResponseStatusException(
-                    HttpStatus.UNPROCESSABLE_CONTENT,
-                    "User with given email or username already exists"
-            );
+            throw new UnprocessableContentException("user already exists");
         }
 
         var basicRole = roleRepository.findByName(Role.Values.basic.name());
