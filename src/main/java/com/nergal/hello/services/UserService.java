@@ -1,7 +1,6 @@
 package com.nergal.hello.services;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -19,6 +18,9 @@ import org.springframework.web.server.ResponseStatusException;
 import com.nergal.hello.controllers.dto.LoginRequest;
 import com.nergal.hello.controllers.dto.LoginResponse;
 import com.nergal.hello.controllers.dto.RegisterUserDTO;
+import com.nergal.hello.controllers.dto.RoleItemDTO;
+import com.nergal.hello.controllers.dto.UserDTO;
+import com.nergal.hello.controllers.dto.UserItemDTO;
 import com.nergal.hello.entities.Role;
 import com.nergal.hello.entities.Township;
 import com.nergal.hello.entities.User;
@@ -109,8 +111,24 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public List<User> listUsers() {
-        return userRepository.findAll();
+    public UserDTO listUsers() {
+        var users = userRepository.findAll()
+            .stream()   
+            .map(user -> 
+                new UserItemDTO(
+                    user.getUserId(),
+                    user.getUsername(),
+                    user.getEmail(),
+                    user.getRoles()
+                        .stream()
+                        .map(role -> new RoleItemDTO(
+                            role.getRoleId(), 
+                            role.getName()
+                        ))
+                        .collect(Collectors.toList()),
+                    user.getCreatedAt()
+                ));
+        return new UserDTO(users.collect(Collectors.toList()));
     }
 
     @Transactional

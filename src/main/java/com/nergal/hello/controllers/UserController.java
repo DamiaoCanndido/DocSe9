@@ -1,6 +1,5 @@
 package com.nergal.hello.controllers;
 
-import java.util.List;
 import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
@@ -16,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.nergal.hello.controllers.dto.LoginRequest;
 import com.nergal.hello.controllers.dto.LoginResponse;
 import com.nergal.hello.controllers.dto.RegisterUserDTO;
-import com.nergal.hello.entities.User;
+import com.nergal.hello.controllers.dto.UserDTO;
 import com.nergal.hello.services.UserService;
 
 import jakarta.validation.Valid;
@@ -39,7 +38,7 @@ public class UserController {
 
     @GetMapping("/users")
     @PreAuthorize("hasAuthority('SCOPE_admin')")
-    public ResponseEntity<List<User>> listUsers() {
+    public ResponseEntity<UserDTO> listUsers() {
         return ResponseEntity.ok(userService.listUsers());
     }
 
