@@ -5,6 +5,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -112,9 +114,8 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public UserDTO listUsers() {
-        var users = userRepository.findAll()
-            .stream()   
+    public UserDTO listUsers(int page, int pageSize){
+        var users = userRepository.findAll(PageRequest.of(page, pageSize, Sort.Direction.ASC, "username"))   
             .map(user -> 
                 new UserItemDTO(
                     user.getUserId(),
@@ -125,8 +126,7 @@ public class UserService {
                         .map(role -> new RoleItemDTO(
                             role.getRoleId(), 
                             role.getName()
-                        ))
-                        .collect(Collectors.toList()),
+                        )).collect(Collectors.toList()),
                     user.getTownship() != null ? new TownshipItemDTO(
                         user.getTownship().getTownshipId(),
                         user.getTownship().getName(),
@@ -135,7 +135,14 @@ public class UserService {
                     ) : null,
                     user.getCreatedAt()
                 ));
-        return new UserDTO(users.collect(Collectors.toList()));
+
+        return new UserDTO(
+            users.getContent(),
+            page,
+            pageSize,
+            users.getTotalPages(),
+            users.getTotalElements()
+        );
     }
 
     @Transactional
