@@ -1,5 +1,7 @@
 package com.nergal.docseq.entities;
 
+import java.time.LocalDateTime;
+
 import org.hibernate.annotations.CreationTimestamp;
 
 import jakarta.persistence.Column;
@@ -27,7 +29,7 @@ public class Tweet {
     private String content;
 
     @CreationTimestamp
-    private String createdAt;
+    private LocalDateTime createdAt;
 
     public Long getTweetId() {
         return tweetId;
@@ -53,11 +55,11 @@ public class Tweet {
         this.content = content;
     }
 
-    public String getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(String createdAt) {
+    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 }

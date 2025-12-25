@@ -1,5 +1,6 @@
 package com.nergal.docseq.entities;
 
+import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.UUID;
 
@@ -43,7 +44,7 @@ public class User {
     private Township township;
 
     @CreationTimestamp
-    private String createdAt;
+    private LocalDateTime createdAt;
 
     public UUID getUserId() {
         return userId;
@@ -93,11 +94,11 @@ public class User {
         this.township = township;
     }
 
-    public String getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(String createdAt) {
+    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 
