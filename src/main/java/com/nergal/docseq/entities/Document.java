@@ -38,5 +38,54 @@ public abstract class Document {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
     private User createdBy;
+
+    public UUID getId() {
+        return id;
+    }
+
+    public Integer getOrder() {
+        return order;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public Township getTownship() {
+        return township;
+    }
+
+    public User getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
+    public void setOrder(Integer order) {
+        this.order = order;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public void setTownship(Township township) {
+        this.township = township;
+    }
+
+    public void setCreatedBy(User createdBy) {
+        this.createdBy = createdBy;
+    }
+    
 }
 
