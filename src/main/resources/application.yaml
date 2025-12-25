@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: hello
+    name: docseq
   datasource:
     url: jdbc:postgresql://localhost:5432/hello-java
     username: postgres
