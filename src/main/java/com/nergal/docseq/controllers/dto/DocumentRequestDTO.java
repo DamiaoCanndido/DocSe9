@@ -4,7 +4,7 @@ import java.util.UUID;
 
 import jakarta.validation.constraints.NotBlank;
 
-public record DocumentDTO(
+public record DocumentRequestDTO(
 
     Integer order,
 
