@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.nergal.docseq.controllers.dto.PermissionRequestDTO;
 import com.nergal.docseq.entities.UserPermission;
 import com.nergal.docseq.exception.ConflictException;
+import com.nergal.docseq.exception.NotFoundException;
 import com.nergal.docseq.repositories.PermissionRepository;
 import com.nergal.docseq.repositories.UserRepository;
 
@@ -27,9 +28,13 @@ public class PermissionService {
         var user = userRepository.findById(UUID.fromString(dto.userId()));
         var permission = new UserPermission();
 
-        var exists = permissionRepository.existsByNameAndUser_UserId(dto.name(), UUID.fromString(dto.userId()));
+        var existsPermission = permissionRepository.existsByNameAndUser_UserId(dto.name(), UUID.fromString(dto.userId()));
 
-        if (exists) {
+        if (user.isEmpty()) {
+            throw new NotFoundException("user not found");
+        }
+
+        if (existsPermission) {
             throw new ConflictException("permission already exists for user");
         }
 
