@@ -70,8 +70,16 @@ public abstract class DocumentService<T extends Document> {
 
     protected void applyUpdates(T entity, UpdateDocumentDTO dto) {
 
-        if (dto.orderDoc() != null) {
-            entity.setOrder(dto.orderDoc());
+        if (dto.order() != null) {
+            var exists = repository.findByOrder(dto.order());
+
+            if (exists != null && !exists.getOrder().equals(entity.getOrder())) {
+                throw new ConflictException(
+                    "Document with order " + dto.order() + " already exists."
+                );
+            }
+
+            entity.setOrder(dto.order());
         }
 
         if (dto.description() != null) {

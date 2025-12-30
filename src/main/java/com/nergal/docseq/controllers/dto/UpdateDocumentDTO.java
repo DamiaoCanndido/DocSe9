@@ -1,6 +1,6 @@
 package com.nergal.docseq.controllers.dto;
 
 public record UpdateDocumentDTO(
-    Integer orderDoc,
+    Integer order,
     String description
 ) { }
