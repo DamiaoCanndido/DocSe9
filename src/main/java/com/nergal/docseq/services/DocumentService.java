@@ -7,8 +7,10 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.transaction.annotation.Transactional;
 
 import com.nergal.docseq.controllers.dto.DocumentRequestDTO;
+import com.nergal.docseq.controllers.dto.UpdateDocumentDTO;
 import com.nergal.docseq.entities.Document;
 import com.nergal.docseq.exception.ConflictException;
+import com.nergal.docseq.exception.NotFoundException;
 import com.nergal.docseq.repositories.DocumentRepository;
 import com.nergal.docseq.repositories.UserRepository;
 
@@ -64,6 +66,28 @@ public abstract class DocumentService<T extends Document> {
         document.setOrder(dto.order());
 
         return repository.save(document);
+    }
+
+    protected void applyUpdates(T entity, UpdateDocumentDTO dto) {
+
+        if (dto.orderDoc() != null) {
+            entity.setOrder(dto.orderDoc());
+        }
+
+        if (dto.description() != null) {
+            entity.setDescription(dto.description());
+        }
+    }
+
+    public T update(UUID id, UpdateDocumentDTO dto) {
+        T entity = repository.findById(id)
+            .orElseThrow(() -> new NotFoundException(
+                    "Document not found"
+            ));
+
+        applyUpdates(entity, dto);
+
+        return repository.save(entity);
     }
 }
 
