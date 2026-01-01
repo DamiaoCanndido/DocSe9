@@ -1,5 +1,6 @@
 package com.nergal.docseq.services;
 
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Supplier;
 
@@ -26,6 +27,12 @@ public abstract class DocumentService<T extends Document> {
     ) {
         this.repository = repository;
         this.userRepository = userRepository;
+    }
+
+    protected List<T> listDocumentsByTownship(JwtAuthenticationToken token) {
+        var township_id = userRepository.findById(UUID.fromString(token.getName()))
+            .get().getTownship().getTownshipId();
+        return repository.findByTownship_TownshipIdOrderByOrderDesc(township_id);
     }
 
     protected T createBase(
