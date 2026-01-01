@@ -104,5 +104,14 @@ public abstract class DocumentService<T extends Document> {
 
         return repository.save(entity);
     }
+
+    public void deleteDocument(UUID documentId) {
+        var document = repository.findById(documentId)
+            .orElseThrow(() -> new NotFoundException(
+                    "Document not found"
+            ));
+
+        repository.delete(document);
+    }
 }
 

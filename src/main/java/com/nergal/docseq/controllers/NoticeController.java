@@ -7,6 +7,7 @@ import java.util.UUID;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -53,6 +54,13 @@ public class NoticeController {
             @RequestBody UpdateDocumentDTO dto
     ) {
         noticeService.update(id, dto);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('SCOPE_NOTICE_DELETE')")
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        noticeService.deleteDocument(id);
         return ResponseEntity.ok().build();
     }
 }
