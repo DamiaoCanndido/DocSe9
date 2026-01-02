@@ -1,6 +1,9 @@
 package com.nergal.docseq.services;
 
 import org.springframework.data.domain.Sort;
+
+import java.util.UUID;
+
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -9,6 +12,7 @@ import com.nergal.docseq.controllers.dto.TownshipDTO;
 import com.nergal.docseq.controllers.dto.TownshipItemDTO;
 import com.nergal.docseq.controllers.dto.TownshipRequestDTO;
 import com.nergal.docseq.entities.Township;
+import com.nergal.docseq.exception.NotFoundException;
 import com.nergal.docseq.repositories.TownshipRepository;
 
 @Service
@@ -50,5 +54,14 @@ public class TownshipService {
         township.setUf(dto.uf());
         township.setImageUrl(dto.imageUrl());
         townshipRepo.save(township);
+    }
+
+    @Transactional
+    public void deleteTownship(UUID townshipId){
+        townshipRepo.findById(townshipId)
+        .orElseThrow(() -> new NotFoundException(
+            "Township not found"
+        ));
+        townshipRepo.deleteById(townshipId);
     }
 }

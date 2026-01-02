@@ -76,7 +76,9 @@ public class UserService {
         Township township = null;
 
         if (dto.townshipId() != null) {
-            township = townshipRepository.findByTownshipId(dto.townshipId()).get();    
+            township = townshipRepository.findByTownshipId(dto.townshipId()).orElseThrow(
+                () -> new NotFoundException("Township not found")
+            );    
         }
 
         var user = new User();

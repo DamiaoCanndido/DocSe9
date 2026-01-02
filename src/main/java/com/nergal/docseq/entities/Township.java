@@ -1,12 +1,15 @@
 package com.nergal.docseq.entities;
 
+import java.util.List;
 import java.util.UUID;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
@@ -21,11 +24,18 @@ public class Township {
     @Column
     private String name;
 
-    @Column(unique = true, length = 2)
+    @Column(length = 2)
     private String uf;
 
     @Column(name = "image_url")
     private String imageUrl;
+
+    @OneToMany(
+        mappedBy = "township",
+        cascade = CascadeType.REMOVE,
+        orphanRemoval = true
+    )
+    private List<User> users;
 
     public UUID getTownshipId() {
         return townshipId;
