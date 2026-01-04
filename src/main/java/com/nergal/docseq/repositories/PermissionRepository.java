@@ -2,6 +2,7 @@ package com.nergal.docseq.repositories;
 
 import org.springframework.stereotype.Repository;
 
+import com.nergal.docseq.entities.PermissionEnum;
 import com.nergal.docseq.entities.UserPermission;
 
 import java.util.List;
@@ -24,7 +25,7 @@ public interface PermissionRepository extends JpaRepository<UserPermission, Long
 
     Page<UserPermission> findByUser_UserId(UUID userId, Pageable pageable);
 
-    boolean existsByNameAndUser_UserId(String name, UUID userId);
+    boolean existsByNameAndUser_UserId(PermissionEnum name, UUID userId);
 
-    void deleteByUser_UserIdAndName(UUID userId, String name);
+    void deleteByUser_UserIdAndName(UUID userId, PermissionEnum name);
 }

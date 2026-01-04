@@ -2,12 +2,18 @@ package com.nergal.docseq.controllers.dto;
 
 import org.hibernate.validator.constraints.UUID;
 
+import com.nergal.docseq.entities.PermissionEnum;
+
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 public record PermissionRequestDTO(
 
-    @NotBlank(message = "permission name is required")
-    String name,
+    @Enumerated(EnumType.STRING)
+    @NotNull(message = "permission name is required")
+    PermissionEnum name,
 
     @UUID(message = "invalid user id format")
     @NotBlank(message = "user id is required")

@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.nergal.docseq.controllers.dto.PermissionDTO;
 import com.nergal.docseq.controllers.dto.PermissionRequestDTO;
+import com.nergal.docseq.entities.PermissionEnum;
 import com.nergal.docseq.services.PermissionService;
 
 import jakarta.validation.Valid;
@@ -50,7 +51,7 @@ public class PermissionController {
     @PreAuthorize("hasAuthority('SCOPE_admin')")
     public ResponseEntity<Void> deletePermission(
             @PathVariable UUID userId,
-            @RequestParam String name
+            @RequestParam PermissionEnum name
     ) {
         permissionService.deletePermission(userId, name);
         return ResponseEntity.ok().build();

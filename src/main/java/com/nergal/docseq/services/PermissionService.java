@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.nergal.docseq.controllers.dto.PermissionDTO;
 import com.nergal.docseq.controllers.dto.PermissionItemDTO;
 import com.nergal.docseq.controllers.dto.PermissionRequestDTO;
+import com.nergal.docseq.entities.PermissionEnum;
 import com.nergal.docseq.entities.UserPermission;
 import com.nergal.docseq.exception.ConflictException;
 import com.nergal.docseq.exception.NotFoundException;
@@ -76,7 +77,7 @@ public class PermissionService {
     }
 
     @Transactional
-    public void deletePermission(UUID userId, String permissionName){
+    public void deletePermission(UUID userId, PermissionEnum permissionName){
         var user = userRepository.findById(userId);
 
         if (user.isEmpty()) {
