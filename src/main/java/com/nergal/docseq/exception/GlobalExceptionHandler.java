@@ -2,11 +2,15 @@ package com.nergal.docseq.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
+import tools.jackson.databind.exc.InvalidFormatException;
+
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -77,6 +81,26 @@ public class GlobalExceptionHandler {
             .body(new HashMap<>() {{
                 put("error", ex.getMessage());
             }});
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<Object> handleJsonErrors(HttpMessageNotReadableException ex) {
+        if (ex.getCause() instanceof InvalidFormatException) {
+            InvalidFormatException ife = (InvalidFormatException) ex.getCause();
+            
+            if (ife.getTargetType().isEnum()) {
+                String message = String.format("O valor '%s' é inválido. Opções aceitas: %s", 
+                    ife.getValue(), 
+                    Arrays.toString(ife.getTargetType().getEnumConstants()));
+                
+                return ResponseEntity.badRequest()
+                    .body(new HashMap<>() {{
+                        put("error", message);
+                }});
+            }
+        }
+        
+        return ResponseEntity.badRequest().body("Erro na leitura do JSON: " + ex.getLocalizedMessage());
     }
 }
 
