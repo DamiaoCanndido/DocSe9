@@ -1,0 +1,77 @@
+package com.nergal.docseq.entities;
+
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "tb_folders")
+public class Folder {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "folder_id")
+    private UUID folderId;
+
+    @Column(nullable = false)
+    private String name;
+
+    @Column(nullable = false)
+    private Boolean favorite = false;
+
+    /* ======================
+       Folder hierarchy
+       ====================== */
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id")
+    private Folder parent;
+
+    @OneToMany(mappedBy = "parent")
+    private List<Folder> children = new ArrayList<>();
+
+    /* ======================
+       Organizational scope
+       ====================== */
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "township_id", nullable = false)
+    private Township township;
+
+    /* ======================
+       User audit
+       ====================== */
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by")
+    private User createdBy;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "updated_by")
+    private User updatedBy;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "deleted_by")
+    private User deletedBy;
+
+    /* ======================
+       Dates
+       ====================== */
+
+    @CreationTimestamp
+    private Instant createdAt;
+
+    @UpdateTimestamp
+    private Instant updatedAt;
+
+    // Thrash (soft delete)
+    @Column
+    private Instant deletedAt;
+}
+
