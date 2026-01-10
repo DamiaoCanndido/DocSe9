@@ -1,4 +1,4 @@
-package com.nergal.docseq.controllers.dto.thrash;
+package com.nergal.docseq.controllers.dto.trash;
 
 import java.time.Instant;
 import java.util.UUID;
