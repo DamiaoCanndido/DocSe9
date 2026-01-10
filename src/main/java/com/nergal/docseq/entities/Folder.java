@@ -73,5 +73,87 @@ public class Folder {
     // Thrash (soft delete)
     @Column
     private Instant deletedAt;
+
+    // getters and setters
+
+    public UUID getFolderId() {
+       return folderId;
+    }
+
+    public String getName() {
+       return name;
+    }
+
+    public Boolean getFavorite() {
+       return favorite;
+    }
+
+    public Folder getParent() {
+       return parent;
+    }
+
+    public List<Folder> getChildren() {
+       return children;
+    }
+
+    public Township getTownship() {
+       return township;
+    }
+
+    public User getCreatedBy() {
+       return createdBy;
+    }
+
+    public User getUpdatedBy() {
+       return updatedBy;
+    }
+
+    public User getDeletedBy() {
+       return deletedBy;
+    }
+
+    public Instant getCreatedAt() {
+       return createdAt;
+    }
+
+    public Instant getUpdatedAt() {
+       return updatedAt;
+    }
+
+    public Instant getDeletedAt() {
+       return deletedAt;
+    }
+
+    public void setName(String name) {
+       this.name = name;
+    }
+
+    public void setFavorite(Boolean favorite) {
+       this.favorite = favorite;
+    }
+
+    public void setParent(Folder parent) {
+       this.parent = parent;
+    }
+
+    public void setTownship(Township township) {
+       this.township = township;
+    }
+
+    public void setCreatedBy(User createdBy) {
+       this.createdBy = createdBy;
+    }
+
+    public void setUpdatedBy(User updatedBy) {
+       this.updatedBy = updatedBy;
+    }
+
+    public void setDeletedBy(User deletedBy) {
+       this.deletedBy = deletedBy;
+    }
+
+    public void setDeletedAt(Instant deletedAt) {
+       this.deletedAt = deletedAt;
+    }
 }
 
