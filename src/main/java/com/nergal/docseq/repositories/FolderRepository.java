@@ -26,6 +26,8 @@ public interface FolderRepository extends JpaRepository<Folder, UUID> {
         Pageable page
     );
 
+    List<Folder> findByParentFolderIdAndDeletedAtIsNull(UUID parentFolderId);
+
     // Search ALL folders in the organization (full tree)
     List<Folder> findByTownshipTownshipIdAndDeletedAtIsNull(
         UUID townshipId
