@@ -147,6 +147,53 @@ public class FolderService {
         if (dto.favorite() != null) folder.setFavorite(dto.favorite());
     }
 
+    // move folder
+    @Transactional
+    public void move(UUID folderId, UUID targetFolderId, JwtAuthenticationToken token) {
+
+        var userId = UUID.fromString(token.getName());
+
+        Folder folder = folderRepository.findById(folderId)
+                .orElseThrow(() -> new NotFoundException("Folder not found"));
+
+        Folder target = folderRepository.findById(targetFolderId)
+                .orElseThrow(() -> new NotFoundException("Target folder not found"));
+
+        if (folder.getFolderId().equals(target.getFolderId())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Folder cannot be its own parent");
+        }
+
+        if (!folder.getTownship().getTownshipId()
+                .equals(target.getTownship().getTownshipId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Different organizations");
+        }
+
+        if (folder.getDeletedAt() != null || target.getDeletedAt() != null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot move deleted folders");
+        }
+
+        if (isDescendant(folder, target)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot move folder into its own subtree");
+        }
+
+        folder.setParent(target);
+        folder.setUpdatedBy(userRepository.getReferenceById(userId));
+
+        folderRepository.save(folder);
+    }
+
+    private boolean isDescendant(Folder source, Folder target) {
+        Folder current = target.getParent();
+
+        while (current != null) {
+            if (current.getFolderId().equals(source.getFolderId())) {
+                return true;
+            }
+            current = current.getParent();
+        }
+        return false;
+    }
+
     // Soft delete
     @Transactional
     public void delete(UUID folderId, JwtAuthenticationToken token) {
@@ -179,6 +226,37 @@ public class FolderService {
             softDeleteRecursively(child, deletedBy);
         }
     }
+
+    // permanent delete
+    @Transactional
+    public void permanentDelete(UUID folderId, JwtAuthenticationToken token) {
+
+        Folder folder = folderRepository.findById(folderId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Folder not found"));
+
+        if (folder.getDeletedAt() == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Folder must be in trash before permanent delete"
+            );
+        }
+        permanentDeleteRecursively(folder);
+    }
+
+    private void permanentDeleteRecursively(Folder folder) {
+
+        fileRepository.deleteByFolderFolderId(folder.getFolderId());
+
+        List<Folder> children =
+                folderRepository.findByParentFolderId(folder.getFolderId());
+
+        for (Folder child : children) {
+            permanentDeleteRecursively(child);
+        }
+
+        folderRepository.delete(folder);
+    }
+
 
     // List trash can
     @Transactional(readOnly = true)

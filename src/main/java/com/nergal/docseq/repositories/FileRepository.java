@@ -57,4 +57,6 @@ public interface FileRepository extends JpaRepository<File, UUID> {
     List<File> findByFolderAndDeletedAtIsNull(Folder folder);
 
     List<File> findByFolderFolderIdAndDeletedAtIsNotNull(UUID folderId);
+
+    void deleteByFolderFolderId(UUID folderId);
 }
