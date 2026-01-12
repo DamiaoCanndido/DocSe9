@@ -1,8 +1,6 @@
 package com.nergal.docseq.services;
 
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -45,6 +43,6 @@ public class LocalStorageService implements StorageService {
 
     @Override
     public String generateTemporaryUrl(String storageKey) {
-        return "http://localhost:9090/files/view?path=" + URLEncoder.encode(storageKey, StandardCharsets.UTF_8);
+        return "http://localhost:9090/" + storageKey;
     }
 }

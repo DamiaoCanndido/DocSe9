@@ -22,7 +22,6 @@ import com.nergal.docseq.entities.File;
 import com.nergal.docseq.entities.Folder;
 import com.nergal.docseq.entities.User;
 import com.nergal.docseq.exception.BadRequestException;
-import com.nergal.docseq.exception.ForbiddenException;
 import com.nergal.docseq.exception.NotFoundException;
 import com.nergal.docseq.repositories.FileRepository;
 import com.nergal.docseq.repositories.FolderRepository;
@@ -131,7 +130,7 @@ public class FileService {
         File file = fileRepository
             .findByFileIdAndTownshipTownshipIdAndDeletedAtIsNull(fileId, township_id)
             .orElseThrow(
-                () -> new ForbiddenException("you don't have permission") 
+                () -> new NotFoundException("file not found") 
             );
 
         Path path = Paths.get(file.getObjectKey());

@@ -41,6 +41,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers(HttpMethod.POST, "/login")
                 .permitAll()
+                .requestMatchers(HttpMethod.GET, "/uploads/**")
+                .permitAll()
                 .anyRequest()
                 .authenticated())
             // enable CSRF protection in production
