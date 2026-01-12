@@ -20,6 +20,9 @@ public interface FolderRepository extends JpaRepository<Folder, UUID> {
         Pageable page
     );
 
+    // find by parent than delete at is not null
+    List<Folder> findByParentAndDeletedAtIsNotNull(Folder folder);
+
     // Search for subfolders within a folder
     Page<Folder> findByParentFolderIdAndDeletedAtIsNull(
         UUID parentId,

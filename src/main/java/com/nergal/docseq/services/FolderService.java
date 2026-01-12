@@ -1,6 +1,7 @@
 package com.nergal.docseq.services;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -34,15 +35,18 @@ public class FolderService {
     private final FolderRepository folderRepository;
     private final FileRepository fileRepository;
     private final UserRepository userRepository;
+    private final StorageService storageService;
 
     public FolderService(
         FolderRepository folderRepository, 
         FileRepository fileRepository,
-        UserRepository userRepository
+        UserRepository userRepository,
+        StorageService storageService
     ) {
         this.folderRepository = folderRepository;
         this.fileRepository = fileRepository;
         this.userRepository = userRepository;
+        this.storageService = storageService;
     }
 
     // List root folders
@@ -222,7 +226,7 @@ public class FolderService {
 
     // Soft delete
     @Transactional
-    public void delete(UUID folderId, JwtAuthenticationToken token) {
+    public void softDelete(UUID folderId, JwtAuthenticationToken token) {
         var user = getUser(token);
 
         Folder folder = folderRepository
@@ -235,21 +239,43 @@ public class FolderService {
         softDeleteRecursively(folder, user);
     }
 
+    private void collectForSoftDelete(
+        Folder folder,
+        List<Folder> folders,
+        List<File> files
+    ) {
+        if (folder.getDeletedAt() != null) return;
+
+        folders.add(folder);
+        files.addAll(fileRepository.findByFolderAndDeletedAtIsNull(folder));
+
+        List<Folder> children =
+                folderRepository.findByParentAndDeletedAtIsNull(folder);
+
+        for (Folder child : children) {
+            collectForSoftDelete(child, folders, files);
+        }
+    }
+
+
     @Transactional
-    public void softDeleteRecursively(Folder folder, User deletedBy) {
+    public void softDeleteRecursively(Folder root, User deletedBy) {
 
-        folder.setDeletedAt(Instant.now());
-        folder.setDeletedBy(deletedBy);
+        Instant now = Instant.now();
 
-        List<File> files = fileRepository.findByFolderAndDeletedAtIsNull(folder);
-        for (File file : files) {
-            file.setDeletedAt(Instant.now());
-            file.setDeletedBy(deletedBy);
+        List<Folder> folders = new ArrayList<>();
+        List<File> files = new ArrayList<>();
+
+        collectForSoftDelete(root, folders, files);
+
+        for (Folder folder : folders) {
+            folder.setDeletedAt(now);
+            folder.setDeletedBy(deletedBy);
         }
 
-        List<Folder> children = folderRepository.findByParentAndDeletedAtIsNull(folder);
-        for (Folder child : children) {
-            softDeleteRecursively(child, deletedBy);
+        for (File file : files) {
+            file.setDeletedAt(now);
+            file.setDeletedBy(deletedBy);
         }
     }
 
@@ -269,18 +295,44 @@ public class FolderService {
         permanentDeleteRecursively(folder);
     }
 
-    private void permanentDeleteRecursively(Folder folder) {
+    private void collectForPermanentDelete(
+        Folder root,
+        List<Folder> folders,
+        List<File> files
+    ) {
+        folders.add(root);
 
-        fileRepository.deleteByFolderFolderId(folder.getFolderId());
+        files.addAll(
+            fileRepository.findByFolderFolderId(root.getFolderId())
+        );
 
         List<Folder> children =
-                folderRepository.findByParentFolderId(folder.getFolderId());
+                folderRepository.findByParentFolderId(root.getFolderId());
 
         for (Folder child : children) {
-            permanentDeleteRecursively(child);
+            collectForPermanentDelete(child, folders, files);
         }
+    }
 
-        folderRepository.delete(folder);
+
+    @Transactional
+    public void permanentDeleteRecursively(Folder root) {
+
+        List<Folder> folders = new ArrayList<>();
+        List<File> files = new ArrayList<>();
+
+        collectForPermanentDelete(root, folders, files);
+
+        fileRepository.deleteAll(files);
+        folderRepository.deleteAll(folders);
+
+        for (File file : files) {
+            try {
+                storageService.delete(file.getObjectKey());
+            } catch (Exception e) {
+                System.out.println("Failed to delete file from storage");
+            }
+        }
     }
 
 
@@ -327,16 +379,45 @@ public class FolderService {
         restoreRecursively(folder);
     }
 
-    private void restoreRecursively(Folder folder) {
-        folder.setDeletedAt(null);
-        folder.setDeletedBy(null);
+    private void collectForRestore(
+        Folder folder,
+        List<Folder> folders,
+        List<File> files
+    ) {
+        if (folder.getDeletedAt() == null) return;
 
-        folder.getChildren().forEach(this::restoreRecursively);
-        fileRepository.findByFolderFolderIdAndDeletedAtIsNotNull(folder.getFolderId())
-                .forEach(file -> {
-                    file.setDeletedAt(null);
-                    file.setDeletedBy(null);
-                });
+        folders.add(folder);
+
+        files.addAll(
+            fileRepository.findByFolderAndDeletedAtIsNotNull(folder)
+        );
+
+        List<Folder> children =
+            folderRepository.findByParentAndDeletedAtIsNotNull(folder);
+
+        for (Folder child : children) {
+            collectForRestore(child, folders, files);
+        }
+    }
+
+
+    @Transactional
+    public void restoreRecursively(Folder root) {
+
+        List<Folder> folders = new ArrayList<>();
+        List<File> files = new ArrayList<>();
+
+        collectForRestore(root, folders, files);
+
+        for (Folder folder : folders) {
+            folder.setDeletedAt(null);
+            folder.setDeletedBy(null);
+        }
+
+        for (File file : files) {
+            file.setDeletedAt(null);
+            file.setDeletedBy(null);
+        }
     }
 
     // Favorite

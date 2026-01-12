@@ -124,7 +124,7 @@ public class FolderController {
             @PathVariable UUID folderId,
             JwtAuthenticationToken token
     ) {
-        folderService.delete(folderId, token);
+        folderService.softDelete(folderId, token);
         return ResponseEntity.noContent().build();
     }
 

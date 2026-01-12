@@ -21,6 +21,12 @@ public interface FileRepository extends JpaRepository<File, UUID> {
         Pageable page
     );
 
+    // List files by folder id
+    List<File> findByFolderFolderId(UUID folderId);
+
+    // List files than delete at not null
+    List<File> findByFolderAndDeletedAtIsNotNull(Folder folder);
+
     // List files in the root directory.
     Page<File> findByFolderIsNullAndTownshipTownshipIdAndDeletedAtIsNull(
         UUID townshipId,
