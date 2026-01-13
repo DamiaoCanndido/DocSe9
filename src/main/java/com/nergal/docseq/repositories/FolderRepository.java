@@ -61,8 +61,9 @@ public interface FolderRepository extends JpaRepository<Folder, UUID> {
     );
     
     // Search for "restore" in the trash can.
-    Optional<Folder> findByFolderIdAndDeletedAtIsNotNull(
-        UUID folderId
+    Optional<Folder> findByFolderIdAndTownshipTownshipIdAndDeletedAtIsNotNull(
+        UUID folderId,
+        UUID towshipId
     );
 
     List<Folder> findByParentAndDeletedAtIsNull(Folder parent);

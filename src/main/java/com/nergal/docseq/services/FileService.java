@@ -105,7 +105,12 @@ public class FileService {
 
         User user = getUser(token);
 
-        File file = getFileBelongsOrganization(fileId, user.getTownship().getTownshipId());
+        File file = fileRepository
+            .findByFileIdAndTownshipTownshipIdAndDeletedAtIsNotNull(
+                fileId, 
+                user.getTownship().getTownshipId()
+            )
+            .orElseThrow(() -> new NotFoundException("File not found"));
 
         if (file.getDeletedAt() == null) {
             throw new BadRequestException("File must be in trash");

@@ -139,7 +139,8 @@ public class FolderService {
             parent = folderRepository.findByFolderIdAndTownshipTownshipIdAndDeletedAtIsNull(
                     dto.parentId(),
                     user.getTownship().getTownshipId()
-            ).orElseThrow(() -> new NotFoundException("parent folder not found"));
+            )
+            .orElseThrow(() -> new NotFoundException("parent folder not found"));
         }
 
         if (folderRepository.existsByNameAndParentAndDeletedAtIsNull(dto.name(), parent)) {
@@ -185,12 +186,19 @@ public class FolderService {
     public void move(UUID folderId, UUID targetFolderId, JwtAuthenticationToken token) {
 
         var userId = UUID.fromString(token.getName());
+        UUID townshipId = getTownshipId(token);
 
-        Folder folder = folderRepository.findById(folderId)
-                .orElseThrow(() -> new NotFoundException("Folder not found"));
+        Folder folder = folderRepository
+            .findByFolderIdAndTownshipTownshipIdAndDeletedAtIsNull(
+                folderId, townshipId
+            )
+            .orElseThrow(() -> new NotFoundException("Folder not found"));
 
-        Folder target = folderRepository.findById(targetFolderId)
-                .orElseThrow(() -> new NotFoundException("Target folder not found"));
+        Folder target = folderRepository
+            .findByFolderIdAndTownshipTownshipIdAndDeletedAtIsNull(
+                targetFolderId, townshipId
+            )
+            .orElseThrow(() -> new NotFoundException("Target folder not found"));
 
         if (folder.getFolderId().equals(target.getFolderId())) {
             throw new BadRequestException("Folder cannot be its own parent");
@@ -286,8 +294,12 @@ public class FolderService {
     @Transactional
     public void permanentDelete(UUID folderId, JwtAuthenticationToken token) {
 
-        Folder folder = folderRepository.findById(folderId)
-                .orElseThrow(() -> new NotFoundException("Folder not found"));
+        UUID townshipId = getTownshipId(token);
+
+        Folder folder = folderRepository.findByFolderIdAndTownshipTownshipIdAndDeletedAtIsNotNull(
+            folderId, townshipId
+        )
+        .orElseThrow(() -> new NotFoundException("Folder not found"));
 
         if (folder.getDeletedAt() == null) {
             throw new BadRequestException("Folder must be in trash before permanent delete");
@@ -371,9 +383,12 @@ public class FolderService {
     // Restore folder with children
     @Transactional
     public void restore(UUID folderId, JwtAuthenticationToken token) {
+        UUID townshipId = getTownshipId(token); 
 
         Folder folder = folderRepository
-                .findByFolderIdAndDeletedAtIsNotNull(folderId)
+                .findByFolderIdAndTownshipTownshipIdAndDeletedAtIsNotNull(
+                    folderId, townshipId
+                )
                 .orElseThrow(() -> new NotFoundException("folder not found"));
 
         restoreRecursively(folder);
