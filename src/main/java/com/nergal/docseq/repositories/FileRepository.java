@@ -51,6 +51,18 @@ public interface FileRepository extends JpaRepository<File, UUID> {
         UUID townshipId
     );
 
+    // Search for files soft deleted
+    Optional<File> findByFileIdAndTownshipTownshipIdAndDeletedAtIsNotNull(
+        UUID fileId,
+        UUID townshipId
+    );
+
+    // Search for folder id and township id
+    Optional<File> findByFolderFolderIdAndTownshipTownshipIdAndDeletedAtIsNull(
+        UUID folderId,
+        UUID townshipId
+    );
+
     // Check for duplicate names in the same folder
     boolean existsByNameAndFolderAndDeletedAtIsNull(
         String name,

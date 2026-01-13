@@ -52,7 +52,7 @@ public class FileController {
             @PathVariable UUID fileId,
             JwtAuthenticationToken token
     ) {
-        fileService.restore(fileId);
+        fileService.restore(fileId, token);
         return ResponseEntity.noContent().build();
     }
 
@@ -62,7 +62,7 @@ public class FileController {
             @PathVariable UUID fileId,
             JwtAuthenticationToken token
     ) {
-        fileService.permanentDelete(fileId);
+        fileService.permanentDelete(fileId, token);
         return ResponseEntity.noContent().build();
     }
 
@@ -72,14 +72,17 @@ public class FileController {
             @PathVariable UUID fileId,
             JwtAuthenticationToken token
     ) {
-        fileService.toggleFavorite(fileId);
+        fileService.toggleFavorite(fileId, token);
         return ResponseEntity.ok().build();
     }
 
     
     @GetMapping("/{fileId}/view-url")
-    public Map<String, String> generateUrl(@PathVariable UUID fileId) {
-        String url = fileService.generateViewUrl(fileId);
+    public Map<String, String> generateUrl(
+        @PathVariable UUID fileId, 
+        JwtAuthenticationToken token
+    ) {
+        String url = fileService.generateViewUrl(fileId, token);
         return Map.of("url", url);
     }
 }

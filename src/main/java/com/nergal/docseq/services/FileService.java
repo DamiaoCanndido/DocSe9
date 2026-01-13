@@ -55,11 +55,14 @@ public class FileService {
 
         validatePdf(file);
 
-        UUID userId = UUID.fromString(token.getName());
-        User user = userRepository.getReferenceById(userId);
+        User user = getUser(token);
 
-        Folder folder = folderRepository.findById(folderId)
-                .orElseThrow(() -> new NotFoundException("Folder not found"));
+        Folder folder = folderRepository
+            .findByFolderIdAndTownshipTownshipIdAndDeletedAtIsNull(
+                folderId, 
+                user.getTownship().getTownshipId()
+            )
+            .orElseThrow(() -> new NotFoundException("Folder not found"));
 
         File entity = new File();
         entity.setName(file.getOriginalFilename());
@@ -82,23 +85,35 @@ public class FileService {
     @Transactional
     public void softDelete(UUID fileId, JwtAuthenticationToken token) {
 
-        File file = getFile(fileId);
+        User user = getUser(token);
+
+        File file = getFileBelongsOrganization(fileId, user.getTownship().getTownshipId());
 
         file.setDeletedAt(Instant.now());
         file.setDeletedBy(getUser(token));
     }
 
     @Transactional
-    public void restore(UUID fileId) {
-        File file = getFile(fileId);
+    public void restore(UUID fileId, JwtAuthenticationToken token) {
+        User user = getUser(token);
+
+        File file = fileRepository
+            .findByFileIdAndTownshipTownshipIdAndDeletedAtIsNotNull(
+                fileId, 
+                user.getTownship().getTownshipId()
+            )
+            .orElseThrow(() -> new NotFoundException("File not found"));
+
         file.setDeletedAt(null);
         file.setDeletedBy(null);
     }
 
     @Transactional
-    public void permanentDelete(UUID fileId) {
+    public void permanentDelete(UUID fileId, JwtAuthenticationToken token) {
 
-        File file = getFile(fileId);
+        User user = getUser(token);
+
+        File file = getFileBelongsOrganization(fileId, user.getTownship().getTownshipId());
 
         if (file.getDeletedAt() == null) {
             throw new BadRequestException("File must be in trash");
@@ -109,14 +124,18 @@ public class FileService {
     }
 
     @Transactional
-    public void toggleFavorite(UUID fileId) {
-        File file = getFile(fileId);
+    public void toggleFavorite(UUID fileId, JwtAuthenticationToken token) {
+        User user = getUser(token);
+
+        File file = getFileBelongsOrganization(fileId, user.getTownship().getTownshipId());
         file.setFavorite(!file.getFavorite());
     }
 
     @Transactional
-    public String generateViewUrl(UUID fileId) {
-        File file = getFile(fileId);
+    public String generateViewUrl(UUID fileId, JwtAuthenticationToken token) {
+        User user = getUser(token);
+
+        File file = getFileBelongsOrganization(fileId, user.getTownship().getTownshipId());
         file.setLastSeen(Instant.now());
         return storageService.generateTemporaryUrl(file.getObjectKey());
     }
@@ -167,9 +186,12 @@ public class FileService {
         }
     }
 
-    private File getFile(UUID fileId) {
-        return fileRepository.findById(fileId)
-                .orElseThrow(() -> new NotFoundException("File not found"));
+    private File getFileBelongsOrganization(UUID fileId, UUID townshipId) {
+        return fileRepository
+            .findByFileIdAndTownshipTownshipIdAndDeletedAtIsNull(
+                fileId, townshipId
+            )
+            .orElseThrow(() -> new NotFoundException("File not found"));
     }
 
     private User getUser(JwtAuthenticationToken token) {
