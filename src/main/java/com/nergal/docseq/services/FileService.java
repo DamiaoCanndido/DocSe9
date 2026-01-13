@@ -1,22 +1,14 @@
 package com.nergal.docseq.services;
 
-import java.net.MalformedURLException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.UUID;
 
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.nergal.docseq.controllers.dto.files.FileResponseDTO;
-import com.nergal.docseq.controllers.dto.files.FileStream;
 import com.nergal.docseq.controllers.dto.mappers.FileMapper;
 import com.nergal.docseq.entities.File;
 import com.nergal.docseq.entities.Folder;
@@ -138,37 +130,6 @@ public class FileService {
         File file = getFileBelongsOrganization(fileId, user.getTownship().getTownshipId());
         file.setLastSeen(Instant.now());
         return storageService.generateTemporaryUrl(file.getObjectKey());
-    }
-
-    public FileStream streamFile(UUID fileId, JwtAuthenticationToken token) {
-
-        var township_id = userRepository
-            .findById(UUID.fromString(token.getName()))
-            .get().getTownship().getTownshipId();
-
-        File file = fileRepository
-            .findByFileIdAndTownshipTownshipIdAndDeletedAtIsNull(fileId, township_id)
-            .orElseThrow(
-                () -> new NotFoundException("file not found") 
-            );
-
-        Path path = Paths.get(file.getObjectKey());
-
-        try {
-            Resource resource = new UrlResource(path.toUri());
-
-            return new FileStream(
-                    resource,
-                    file.getContentType(),
-                    file.getName()
-            );
-
-        } catch (MalformedURLException e) {
-            throw new ResponseStatusException(
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Unable to load file"
-            );
-        }
     }
 
     /* ========================= */

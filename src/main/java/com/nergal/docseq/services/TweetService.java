@@ -4,17 +4,17 @@ import java.util.UUID;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.nergal.docseq.controllers.dto.CreateTweetDTO;
 import com.nergal.docseq.controllers.dto.FeedDTO;
 import com.nergal.docseq.controllers.dto.FeedItemDTO;
 import com.nergal.docseq.entities.Role;
 import com.nergal.docseq.entities.Tweet;
+import com.nergal.docseq.exception.ForbiddenException;
+import com.nergal.docseq.exception.NotFoundException;
 import com.nergal.docseq.repositories.TweetRepository;
 import com.nergal.docseq.repositories.UserRepository;
 
@@ -66,12 +66,12 @@ public class TweetService {
             .anyMatch(role -> role.getName().name().equalsIgnoreCase(Role.Values.admin.name()));
 
         var tweet = tweetRepository.findById(tweetId)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+            .orElseThrow(() -> new NotFoundException("tweet not found"));
 
         if (isAdmin || tweet.getUser().getUserId().equals(UUID.fromString(token.getName()))) {
             tweetRepository.deleteById(tweetId);
         } else {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+            throw new ForbiddenException("forbidden");
         }
     }
 }

@@ -6,11 +6,9 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.nergal.docseq.controllers.dto.folders.CreateFolderRequestDTO;
 import com.nergal.docseq.controllers.dto.folders.FolderContentResponse;
@@ -23,7 +21,9 @@ import com.nergal.docseq.controllers.dto.mappers.PageMapper;
 import com.nergal.docseq.entities.File;
 import com.nergal.docseq.entities.Folder;
 import com.nergal.docseq.entities.User;
+import com.nergal.docseq.exception.BadRequestException;
 import com.nergal.docseq.exception.ConflictException;
+import com.nergal.docseq.exception.ForbiddenException;
 import com.nergal.docseq.exception.NotFoundException;
 import com.nergal.docseq.repositories.FileRepository;
 import com.nergal.docseq.repositories.FolderRepository;
@@ -90,8 +90,10 @@ public class FolderService {
         var township_id = getTownshipId(token);
 
         var folder = folderRepository.findByFolderIdAndTownshipTownshipIdAndDeletedAtIsNull(
-                parentId, township_id)
-                .orElseThrow(() -> new NotFoundException("folder not found"));
+                parentId, 
+                township_id
+            )
+            .orElseThrow(() -> new NotFoundException("folder not found"));
 
         var folderPage = folderRepository
                 .findByParentFolderIdAndDeletedAtIsNull(parentId, pageable)
@@ -101,7 +103,8 @@ public class FolderService {
             .findByFolderFolderIdAndDeletedAtIsNull(
                 folder.getFolderId(), 
                 pageable
-            ).map(FileMapper::toResponse);
+            )
+            .map(FileMapper::toResponse);
 
         return new FolderContentResponse(
             PageMapper.toPageResponse(
@@ -190,20 +193,20 @@ public class FolderService {
                 .orElseThrow(() -> new NotFoundException("Target folder not found"));
 
         if (folder.getFolderId().equals(target.getFolderId())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Folder cannot be its own parent");
+            throw new BadRequestException("Folder cannot be its own parent");
         }
 
         if (!folder.getTownship().getTownshipId()
                 .equals(target.getTownship().getTownshipId())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Different organizations");
+            throw new ForbiddenException("Different organizations");
         }
 
         if (folder.getDeletedAt() != null || target.getDeletedAt() != null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot move deleted folders");
+            throw new BadRequestException("Cannot move deleted folders");
         }
 
         if (isDescendant(folder, target)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot move folder into its own subtree");
+            throw new BadRequestException("Cannot move folder into its own subtree");
         }
 
         folder.setParent(target);
@@ -284,13 +287,10 @@ public class FolderService {
     public void permanentDelete(UUID folderId, JwtAuthenticationToken token) {
 
         Folder folder = folderRepository.findById(folderId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Folder not found"));
+                .orElseThrow(() -> new NotFoundException("Folder not found"));
 
         if (folder.getDeletedAt() == null) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "Folder must be in trash before permanent delete"
-            );
+            throw new BadRequestException("Folder must be in trash before permanent delete");
         }
         permanentDeleteRecursively(folder);
     }
@@ -438,7 +438,7 @@ public class FolderService {
     // Auxiliary methods
     private User getUser(JwtAuthenticationToken token) {
         return userRepository.findById(UUID.fromString(token.getName()))
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+                .orElseThrow(() -> new NotFoundException("user not found"));
     }
 
     private UUID getTownshipId(JwtAuthenticationToken token) {

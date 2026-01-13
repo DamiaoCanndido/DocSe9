@@ -7,7 +7,6 @@ import java.util.stream.Collectors;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
@@ -15,7 +14,6 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.nergal.docseq.controllers.dto.LoginRequest;
 import com.nergal.docseq.controllers.dto.LoginResponse;
@@ -28,6 +26,7 @@ import com.nergal.docseq.controllers.dto.UserItemDTO;
 import com.nergal.docseq.entities.Role;
 import com.nergal.docseq.entities.Township;
 import com.nergal.docseq.entities.User;
+import com.nergal.docseq.exception.ForbiddenException;
 import com.nergal.docseq.exception.NotFoundException;
 import com.nergal.docseq.exception.UnprocessableContentException;
 import com.nergal.docseq.repositories.PermissionRepository;
@@ -207,7 +206,7 @@ public class UserService {
         if (isAdmin || userToDelete.getUserId().equals(UUID.fromString(token.getName()))) {
             userRepository.deleteById(userId);
         } else {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+            throw new ForbiddenException("You do not have permission to delete this user.");
         }
     }
 }
