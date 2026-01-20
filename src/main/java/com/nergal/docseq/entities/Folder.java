@@ -41,8 +41,8 @@ public class Folder {
        ====================== */
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "township_id", nullable = false)
-    private Township township;
+    @JoinColumn(name = "town_id", nullable = false)
+    private Town town;
 
     /* ======================
        User audit
@@ -96,8 +96,8 @@ public class Folder {
        return children;
     }
 
-    public Township getTownship() {
-       return township;
+    public Town getTown() {
+       return town;
     }
 
     public User getCreatedBy() {
@@ -136,8 +136,8 @@ public class Folder {
        this.parent = parent;
     }
 
-    public void setTownship(Township township) {
-       this.township = township;
+    public void setTown(Town town) {
+       this.town = town;
     }
 
     public void setCreatedBy(User createdBy) {

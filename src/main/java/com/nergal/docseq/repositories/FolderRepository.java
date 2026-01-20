@@ -15,8 +15,8 @@ import com.nergal.docseq.entities.Folder;
 public interface FolderRepository extends JpaRepository<Folder, UUID> {
 
     // Search for root folders (initial explorer)
-    Page<Folder> findByTownshipTownshipIdAndParentIsNullAndDeletedAtIsNull(
-        UUID townshipId,
+    Page<Folder> findByTownTownIdAndParentIsNullAndDeletedAtIsNull(
+        UUID townId,
         Pageable page
     );
 
@@ -32,19 +32,19 @@ public interface FolderRepository extends JpaRepository<Folder, UUID> {
     List<Folder> findByParentFolderIdAndDeletedAtIsNull(UUID parentFolderId);
 
     // Search ALL folders in the organization (full tree)
-    List<Folder> findByTownshipTownshipIdAndDeletedAtIsNull(
-        UUID townshipId
+    List<Folder> findByTownTownIdAndDeletedAtIsNull(
+        UUID townId
     );
 
     // Find favorite folders
-    Page<Folder> findByTownshipTownshipIdAndFavoriteTrueAndDeletedAtIsNull(
-        UUID townshipId,
+    Page<Folder> findByTownTownIdAndFavoriteTrueAndDeletedAtIsNull(
+        UUID townId,
         Pageable page
     );
 
     // Recycle Bin – List deleted folders
-    Page<Folder> findByTownshipTownshipIdAndDeletedAtIsNotNull(
-        UUID townshipId,
+    Page<Folder> findByTownTownIdAndDeletedAtIsNotNull(
+        UUID townId,
         Pageable page
     );
 
@@ -55,13 +55,13 @@ public interface FolderRepository extends JpaRepository<Folder, UUID> {
     );
 
     // Search for specific folder
-    Optional<Folder> findByFolderIdAndTownshipTownshipIdAndDeletedAtIsNull(
+    Optional<Folder> findByFolderIdAndTownTownIdAndDeletedAtIsNull(
         UUID folderId,
-        UUID townshipId
+        UUID townId
     );
     
     // Search for "restore" in the trash can.
-    Optional<Folder> findByFolderIdAndTownshipTownshipIdAndDeletedAtIsNotNull(
+    Optional<Folder> findByFolderIdAndTownTownIdAndDeletedAtIsNotNull(
         UUID folderId,
         UUID towshipId
     );

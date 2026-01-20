@@ -1,6 +1,6 @@
 package com.nergal.docseq.controllers;
 
-import com.nergal.docseq.controllers.dto.files.FileResponseDTO;
+import com.nergal.docseq.dto.files.FileResponseDTO;
 import com.nergal.docseq.services.FileService;
 
 import org.springframework.http.MediaType;

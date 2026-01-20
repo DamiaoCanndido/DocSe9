@@ -41,8 +41,8 @@ public class File {
     private Folder folder;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "township_id", nullable = false)
-    private Township township;
+    @JoinColumn(name = "town_id", nullable = false)
+    private Town town;
 
     /* ======================
        Users audit
@@ -106,8 +106,8 @@ public class File {
        return folder;
     }
 
-    public Township getTownship() {
-       return township;
+    public Town getTown() {
+       return town;
     }
 
     public User getUploadedBy() {
@@ -162,8 +162,8 @@ public class File {
        this.folder = folder;
     }
 
-    public void setTownship(Township township) {
-       this.township = township;
+    public void setTown(Town town) {
+       this.town = town;
     }
 
     public void setUploadedBy(User uploadedBy) {

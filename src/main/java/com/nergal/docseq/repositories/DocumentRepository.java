@@ -14,9 +14,9 @@ import com.nergal.docseq.entities.Document;
 public interface DocumentRepository<T extends Document>
         extends JpaRepository<T, UUID> {
 
-    // Find documents by township ID ordered by 'order' field in descending order
-    Page<T> findByTownship_TownshipIdAndCreatedAtBetweenOrderByOrderDesc(
-        UUID townshipId, 
+    // Find documents by town ID ordered by 'order' field in descending order
+    Page<T> findByTown_TownIdAndCreatedAtBetweenOrderByOrderDesc(
+        UUID townId, 
         LocalDateTime startTimestamp, 
         LocalDateTime endTimestamp,
         Pageable pageable
@@ -25,7 +25,7 @@ public interface DocumentRepository<T extends Document>
     // Find a document by its 'order' field
     T findByOrderAndCreatedAtBetween(Integer order, LocalDateTime startTimestamp, LocalDateTime endTimestamp);
 
-    // Count documents by township ID and created between two timestamps
-    long countByTownship_TownshipIdAndCreatedAtBetween(UUID townshipId, LocalDateTime startTimestamp, LocalDateTime endTimestamp);
+    // Count documents by town ID and created between two timestamps
+    long countByTown_TownIdAndCreatedAtBetween(UUID townId, LocalDateTime startTimestamp, LocalDateTime endTimestamp);
 }
 

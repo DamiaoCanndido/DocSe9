@@ -9,11 +9,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.nergal.docseq.controllers.dto.DocumentDTO;
-import com.nergal.docseq.controllers.dto.DocumentItemDTO;
-import com.nergal.docseq.controllers.dto.DocumentRequestDTO;
-import com.nergal.docseq.controllers.dto.UpdateDocumentDTO;
-import com.nergal.docseq.controllers.helpers.DateRange;
+import com.nergal.docseq.helpers.DateRange;
+import com.nergal.docseq.dto.documents.DocumentDTO;
+import com.nergal.docseq.dto.documents.DocumentItemDTO;
+import com.nergal.docseq.dto.documents.DocumentRequestDTO;
+import com.nergal.docseq.dto.documents.DocumentUpdateDTO;
 import com.nergal.docseq.entities.Document;
 import com.nergal.docseq.exception.ConflictException;
 import com.nergal.docseq.exception.NotFoundException;
@@ -34,21 +34,21 @@ public abstract class DocumentService<T extends Document> {
         this.userRepository = userRepository;
     }
 
-    protected DocumentDTO listDocumentsByTownship(
+    protected DocumentDTO listDocumentsByTown(
         int page,
         int pageSize,
         Integer year,
         JwtAuthenticationToken token) {
 
         var pageable = PageRequest.of(page, pageSize, Sort.Direction.DESC, "order");
-        var township_id = userRepository.findById(UUID.fromString(token.getName()))
-            .get().getTownship().getTownshipId();
+        var town_id = userRepository.findById(UUID.fromString(token.getName()))
+            .get().getTown().getTownId();
 
             var dateRange = new DateRange(year);
             var initialDateTime = dateRange.getInitialDateTime();
             var endDateTime = dateRange.getEndDateTime();
-            var documents = repository.findByTownship_TownshipIdAndCreatedAtBetweenOrderByOrderDesc(
-                township_id, 
+            var documents = repository.findByTown_TownIdAndCreatedAtBetweenOrderByOrderDesc(
+                town_id, 
                 initialDateTime, 
                 endDateTime, 
                 pageable
@@ -94,37 +94,37 @@ public abstract class DocumentService<T extends Document> {
             );
         }
 
-        int lastNoticeOrderByTownship = 0;
+        int lastNoticeOrderByTown = 0;
         
             var initialDateTime = dateRange.getInitialDateTime();
             var endDateTime = dateRange.getEndDateTime();
         var pageable = PageRequest.of(0, 10, Sort.Direction.ASC, "order");
 
-        var noticeList = repository.findByTownship_TownshipIdAndCreatedAtBetweenOrderByOrderDesc(
-            user.get().getTownship().getTownshipId(), initialDateTime, endDateTime, pageable).getContent();
+        var noticeList = repository.findByTown_TownIdAndCreatedAtBetweenOrderByOrderDesc(
+            user.get().getTown().getTownId(), initialDateTime, endDateTime, pageable).getContent();
 
         if (!noticeList.isEmpty()) {
-            lastNoticeOrderByTownship = noticeList.get(0).getOrder();
+            lastNoticeOrderByTown = noticeList.get(0).getOrder();
         }
 
         if (dto.order() == null) {
             dto = new DocumentRequestDTO(
-                lastNoticeOrderByTownship + 1,
+                lastNoticeOrderByTown + 1,
                 dto.description(),
-                dto.townshipId()
+                dto.townId()
             );
         }
 
         var document = factory.get();
         document.setCreatedBy(user.get());
-        document.setTownship(user.get().getTownship());
+        document.setTown(user.get().getTown());
         document.setDescription(dto.description());
         document.setOrder(dto.order());
 
         return repository.save(document);
     }
 
-    protected void applyUpdates(T entity, UpdateDocumentDTO dto, Integer year) {
+    protected void applyUpdates(T entity, DocumentUpdateDTO dto, Integer year) {
 
         if (dto.order() != null) {
             var dateRange = new DateRange(year);
@@ -148,7 +148,7 @@ public abstract class DocumentService<T extends Document> {
         }
     }
 
-    public T update(UUID id, UpdateDocumentDTO dto) {
+    public T update(UUID id, DocumentUpdateDTO dto) {
         T entity = repository.findById(id)
             .orElseThrow(() -> new NotFoundException(
                     "Document not found"

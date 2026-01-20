@@ -15,9 +15,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.nergal.docseq.controllers.dto.DocumentDTO;
-import com.nergal.docseq.controllers.dto.DocumentRequestDTO;
-import com.nergal.docseq.controllers.dto.UpdateDocumentDTO;
+import com.nergal.docseq.dto.documents.DocumentDTO;
+import com.nergal.docseq.dto.documents.DocumentRequestDTO;
+import com.nergal.docseq.dto.documents.DocumentUpdateDTO;
 import com.nergal.docseq.services.NoticeService;
 
 import jakarta.validation.Valid;
@@ -35,13 +35,13 @@ public class NoticeController {
 
     @PreAuthorize("hasAuthority('SCOPE_NOTICE_READ')")
     @GetMapping("")
-    public ResponseEntity<DocumentDTO> listNoticesByTownship(
+    public ResponseEntity<DocumentDTO> listNoticesByTown(
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "10") int pageSize,
         @RequestParam(required = false) Integer year,
         JwtAuthenticationToken token) {
 
-        var notices = noticeService.listNoticesByTownship(page, pageSize, token, year);
+        var notices = noticeService.listNoticesByTown(page, pageSize, token, year);
         return ResponseEntity.ok(notices);
     }
 
@@ -58,7 +58,7 @@ public class NoticeController {
     public ResponseEntity<Void> update(
             @PathVariable UUID id,
             @Valid
-            @RequestBody UpdateDocumentDTO dto
+            @RequestBody DocumentUpdateDTO dto
     ) {
         noticeService.update(id, dto);
         return ResponseEntity.ok().build();

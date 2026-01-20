@@ -28,39 +28,39 @@ public interface FileRepository extends JpaRepository<File, UUID> {
     List<File> findByFolderAndDeletedAtIsNotNull(Folder folder);
 
     // List files in the root directory.
-    Page<File> findByFolderIsNullAndTownshipTownshipIdAndDeletedAtIsNull(
-        UUID townshipId,
+    Page<File> findByFolderIsNullAndTownTownIdAndDeletedAtIsNull(
+        UUID townId,
         Pageable page
     );
 
     // Search for favorite files
-    Page<File> findByTownshipTownshipIdAndFavoriteTrueAndDeletedAtIsNull(
-        UUID townshipId,
+    Page<File> findByTownTownIdAndFavoriteTrueAndDeletedAtIsNull(
+        UUID townId,
         Pageable page
     );
 
     // Recycle Bin – Deleted Files
-    Page<File> findByTownshipTownshipIdAndDeletedAtIsNotNull(
-        UUID townshipId,
+    Page<File> findByTownTownIdAndDeletedAtIsNotNull(
+        UUID townId,
         Pageable page
     );
 
     // Search for files securely
-    Optional<File> findByFileIdAndTownshipTownshipIdAndDeletedAtIsNull(
+    Optional<File> findByFileIdAndTownTownIdAndDeletedAtIsNull(
         UUID fileId,
-        UUID townshipId
+        UUID townId
     );
 
     // Search for files soft deleted
-    Optional<File> findByFileIdAndTownshipTownshipIdAndDeletedAtIsNotNull(
+    Optional<File> findByFileIdAndTownTownIdAndDeletedAtIsNotNull(
         UUID fileId,
-        UUID townshipId
+        UUID townId
     );
 
-    // Search for folder id and township id
-    Optional<File> findByFolderFolderIdAndTownshipTownshipIdAndDeletedAtIsNull(
+    // Search for folder id and town id
+    Optional<File> findByFolderFolderIdAndTownTownIdAndDeletedAtIsNull(
         UUID folderId,
-        UUID townshipId
+        UUID townId
     );
 
     // Check for duplicate names in the same folder

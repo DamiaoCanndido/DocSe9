@@ -8,13 +8,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.nergal.docseq.controllers.dto.files.FileResponseDTO;
-import com.nergal.docseq.controllers.dto.mappers.FileMapper;
+import com.nergal.docseq.dto.files.FileResponseDTO;
 import com.nergal.docseq.entities.File;
 import com.nergal.docseq.entities.Folder;
 import com.nergal.docseq.entities.User;
 import com.nergal.docseq.exception.BadRequestException;
 import com.nergal.docseq.exception.NotFoundException;
+import com.nergal.docseq.helpers.mappers.FileMapper;
 import com.nergal.docseq.repositories.FileRepository;
 import com.nergal.docseq.repositories.FolderRepository;
 import com.nergal.docseq.repositories.UserRepository;
@@ -50,9 +50,9 @@ public class FileService {
         User user = getUser(token);
 
         Folder folder = folderRepository
-            .findByFolderIdAndTownshipTownshipIdAndDeletedAtIsNull(
+            .findByFolderIdAndTownTownIdAndDeletedAtIsNull(
                 folderId, 
-                user.getTownship().getTownshipId()
+                user.getTown().getTownId()
             )
             .orElseThrow(() -> new NotFoundException("Folder not found"));
 
@@ -60,7 +60,7 @@ public class FileService {
         entity.setName(file.getOriginalFilename());
         entity.setSize(file.getSize());
         entity.setObjectKey(file.getOriginalFilename());
-        entity.setTownship(user.getTownship());
+        entity.setTown(user.getTown());
         entity.setContentType(file.getContentType());
         entity.setFolder(folder);
         entity.setUploadedBy(user);
@@ -79,7 +79,7 @@ public class FileService {
 
         User user = getUser(token);
 
-        File file = getFileBelongsOrganization(fileId, user.getTownship().getTownshipId());
+        File file = getFileBelongsOrganization(fileId, user.getTown().getTownId());
 
         file.setDeletedAt(Instant.now());
         file.setDeletedBy(getUser(token));
@@ -90,9 +90,9 @@ public class FileService {
         User user = getUser(token);
 
         File file = fileRepository
-            .findByFileIdAndTownshipTownshipIdAndDeletedAtIsNotNull(
+            .findByFileIdAndTownTownIdAndDeletedAtIsNotNull(
                 fileId, 
-                user.getTownship().getTownshipId()
+                user.getTown().getTownId()
             )
             .orElseThrow(() -> new NotFoundException("File not found"));
 
@@ -106,9 +106,9 @@ public class FileService {
         User user = getUser(token);
 
         File file = fileRepository
-            .findByFileIdAndTownshipTownshipIdAndDeletedAtIsNotNull(
+            .findByFileIdAndTownTownIdAndDeletedAtIsNotNull(
                 fileId, 
-                user.getTownship().getTownshipId()
+                user.getTown().getTownId()
             )
             .orElseThrow(() -> new NotFoundException("File not found"));
 
@@ -124,7 +124,7 @@ public class FileService {
     public void toggleFavorite(UUID fileId, JwtAuthenticationToken token) {
         User user = getUser(token);
 
-        File file = getFileBelongsOrganization(fileId, user.getTownship().getTownshipId());
+        File file = getFileBelongsOrganization(fileId, user.getTown().getTownId());
         file.setFavorite(!file.getFavorite());
     }
 
@@ -132,7 +132,7 @@ public class FileService {
     public String generateViewUrl(UUID fileId, JwtAuthenticationToken token) {
         User user = getUser(token);
 
-        File file = getFileBelongsOrganization(fileId, user.getTownship().getTownshipId());
+        File file = getFileBelongsOrganization(fileId, user.getTown().getTownId());
         file.setLastSeen(Instant.now());
         return storageService.generateTemporaryUrl(file.getObjectKey());
     }
@@ -152,10 +152,10 @@ public class FileService {
         }
     }
 
-    private File getFileBelongsOrganization(UUID fileId, UUID townshipId) {
+    private File getFileBelongsOrganization(UUID fileId, UUID townId) {
         return fileRepository
-            .findByFileIdAndTownshipTownshipIdAndDeletedAtIsNull(
-                fileId, townshipId
+            .findByFileIdAndTownTownIdAndDeletedAtIsNull(
+                fileId, townId
             )
             .orElseThrow(() -> new NotFoundException("File not found"));
     }

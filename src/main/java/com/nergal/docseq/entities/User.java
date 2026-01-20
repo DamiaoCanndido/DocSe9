@@ -8,7 +8,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.nergal.docseq.controllers.dto.LoginRequest;
+import com.nergal.docseq.dto.users.LoginRequest;
 
 // javax not found
 import jakarta.persistence.*;
@@ -40,8 +40,8 @@ public class User {
     private Set<Role> roles;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "township_id")
-    private Township township;
+    @JoinColumn(name = "town_id")
+    private Town town;
 
     @OneToMany(
         mappedBy = "user",
@@ -93,12 +93,20 @@ public class User {
         this.roles = roles;
     }
 
-    public Township getTownship() {
-        return township;
+    public void addRole(Role newRole) {
+        this.roles.add(newRole);
     }
 
-    public void setTownship(Township township) {
-        this.township = township;
+    public void removeRole(Role role) {
+        this.roles.remove(role);
+    }
+
+    public Town getTown() {
+        return town;
+    }
+
+    public void setTown(Town town) {
+        this.town = town;
     }
 
     public LocalDateTime getCreatedAt() {

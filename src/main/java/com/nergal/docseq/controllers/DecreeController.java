@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.nergal.docseq.controllers.dto.DocumentRequestDTO;
-import com.nergal.docseq.controllers.dto.UpdateDocumentDTO;
+import com.nergal.docseq.dto.documents.DocumentRequestDTO;
+import com.nergal.docseq.dto.documents.DocumentUpdateDTO;
 import com.nergal.docseq.services.DecreeService;
 import jakarta.validation.Valid;
 
@@ -41,7 +41,7 @@ public class DecreeController {
     @PreAuthorize("hasAuthority('SCOPE_DECREE_UPDATE')")
     public ResponseEntity<Void> update(
             @PathVariable UUID id,
-            @Valid @RequestBody UpdateDocumentDTO dto
+            @Valid @RequestBody DocumentUpdateDTO dto
     ) {
         decreeService.update(id, dto);
         return ResponseEntity.ok().build();

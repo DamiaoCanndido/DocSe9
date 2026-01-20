@@ -15,10 +15,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.nergal.docseq.controllers.dto.folders.CreateFolderRequestDTO;
-import com.nergal.docseq.controllers.dto.folders.FolderContentResponse;
-import com.nergal.docseq.controllers.dto.folders.FolderTreeResponseDTO;
-import com.nergal.docseq.controllers.dto.folders.UpdateFolderRequestDTO;
+import com.nergal.docseq.dto.folders.FolderRequestDTO;
+import com.nergal.docseq.dto.folders.FolderContentResponse;
+import com.nergal.docseq.dto.folders.FolderTreeResponseDTO;
+import com.nergal.docseq.dto.folders.FolderUpdateDTO;
 import com.nergal.docseq.services.FolderService;
 
 import jakarta.validation.Valid;
@@ -38,7 +38,7 @@ public class FolderController {
      */
     @PostMapping
     public ResponseEntity<Void> create(
-            @Valid @RequestBody CreateFolderRequestDTO dto,
+            @Valid @RequestBody FolderRequestDTO dto,
             JwtAuthenticationToken token
     ) {
         folderService.create(dto, token);
@@ -51,7 +51,7 @@ public class FolderController {
     @PatchMapping("/{folderId}")
     public ResponseEntity<Void> update(
             @PathVariable UUID folderId,
-            @Valid @RequestBody UpdateFolderRequestDTO dto,
+            @Valid @RequestBody FolderUpdateDTO dto,
             JwtAuthenticationToken token
     ) {
         folderService.update(folderId, dto, token);

@@ -3,7 +3,7 @@ package com.nergal.docseq.services;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 
-import com.nergal.docseq.controllers.dto.DocumentRequestDTO;
+import com.nergal.docseq.dto.documents.DocumentRequestDTO;
 import com.nergal.docseq.entities.Decree;
 import com.nergal.docseq.repositories.DecreeRepository;
 import com.nergal.docseq.repositories.UserRepository;

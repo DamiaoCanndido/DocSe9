@@ -7,9 +7,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.nergal.docseq.controllers.dto.PermissionDTO;
-import com.nergal.docseq.controllers.dto.PermissionItemDTO;
-import com.nergal.docseq.controllers.dto.PermissionRequestDTO;
+import com.nergal.docseq.dto.permissions.PermissionDTO;
+import com.nergal.docseq.dto.permissions.PermissionItemDTO;
+import com.nergal.docseq.dto.permissions.PermissionRequestDTO;
 import com.nergal.docseq.entities.PermissionEnum;
 import com.nergal.docseq.entities.UserPermission;
 import com.nergal.docseq.exception.ConflictException;

@@ -99,7 +99,7 @@ public class GlobalExceptionHandler {
             InvalidFormatException ife = (InvalidFormatException) ex.getCause();
             
             if (ife.getTargetType().isEnum()) {
-                String message = String.format("O valor '%s' é inválido. Opções aceitas: %s", 
+                String message = String.format("The value '%s' is invalid. Accepted options: %s", 
                     ife.getValue(), 
                     Arrays.toString(ife.getTargetType().getEnumConstants()));
                 
@@ -110,7 +110,9 @@ public class GlobalExceptionHandler {
             }
         }
         
-        return ResponseEntity.badRequest().body("Erro na leitura do JSON: " + ex.getLocalizedMessage());
+        return ResponseEntity.badRequest().body(new HashMap<>() {{
+                put("error", "Error reading JSON");
+            }});
     }
 }
 

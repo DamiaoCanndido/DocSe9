@@ -10,14 +10,10 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.nergal.docseq.controllers.dto.folders.CreateFolderRequestDTO;
-import com.nergal.docseq.controllers.dto.folders.FolderContentResponse;
-import com.nergal.docseq.controllers.dto.folders.FolderTreeResponseDTO;
-import com.nergal.docseq.controllers.dto.folders.UpdateFolderRequestDTO;
-import com.nergal.docseq.controllers.dto.mappers.FileMapper;
-import com.nergal.docseq.controllers.dto.mappers.FolderMapper;
-import com.nergal.docseq.controllers.dto.mappers.FolderTreeBuilder;
-import com.nergal.docseq.controllers.dto.mappers.PageMapper;
+import com.nergal.docseq.dto.folders.FolderRequestDTO;
+import com.nergal.docseq.dto.folders.FolderContentResponse;
+import com.nergal.docseq.dto.folders.FolderTreeResponseDTO;
+import com.nergal.docseq.dto.folders.FolderUpdateDTO;
 import com.nergal.docseq.entities.File;
 import com.nergal.docseq.entities.Folder;
 import com.nergal.docseq.entities.User;
@@ -25,6 +21,10 @@ import com.nergal.docseq.exception.BadRequestException;
 import com.nergal.docseq.exception.ConflictException;
 import com.nergal.docseq.exception.ForbiddenException;
 import com.nergal.docseq.exception.NotFoundException;
+import com.nergal.docseq.helpers.mappers.FileMapper;
+import com.nergal.docseq.helpers.mappers.FolderMapper;
+import com.nergal.docseq.helpers.mappers.FolderTreeBuilder;
+import com.nergal.docseq.helpers.mappers.PageMapper;
 import com.nergal.docseq.repositories.FileRepository;
 import com.nergal.docseq.repositories.FolderRepository;
 import com.nergal.docseq.repositories.UserRepository;
@@ -55,11 +55,11 @@ public class FolderService {
             Pageable pageable,
             JwtAuthenticationToken token
     ) {
-        var township_id = getTownshipId(token);
+        var town_id = getTownId(token);
 
         var folderPage = folderRepository
-            .findByTownshipTownshipIdAndParentIsNullAndDeletedAtIsNull(
-                    township_id,
+            .findByTownTownIdAndParentIsNullAndDeletedAtIsNull(
+                    town_id,
                     pageable
             )
             .map(FolderMapper::toDTO);
@@ -87,11 +87,11 @@ public class FolderService {
             Pageable pageable,
             JwtAuthenticationToken token
     ) {
-        var township_id = getTownshipId(token);
+        var town_id = getTownId(token);
 
-        var folder = folderRepository.findByFolderIdAndTownshipTownshipIdAndDeletedAtIsNull(
+        var folder = folderRepository.findByFolderIdAndTownTownIdAndDeletedAtIsNull(
                 parentId, 
-                township_id
+                town_id
             )
             .orElseThrow(() -> new NotFoundException("folder not found"));
 
@@ -121,24 +121,24 @@ public class FolderService {
     public List<FolderTreeResponseDTO> getFolderTree(
             JwtAuthenticationToken token
     ) {
-        var townshipId = getTownshipId(token);
+        var townId = getTownId(token);
 
         var folders = folderRepository
-                .findByTownshipTownshipIdAndDeletedAtIsNull(townshipId);
+                .findByTownTownIdAndDeletedAtIsNull(townId);
 
         return FolderTreeBuilder.build(folders);
     }
 
     // Create folder
     @Transactional
-    public void create(CreateFolderRequestDTO dto, JwtAuthenticationToken token) {
+    public void create(FolderRequestDTO dto, JwtAuthenticationToken token) {
         var user = getUser(token);
         
         Folder parent = null;
         if (dto.parentId() != null) {
-            parent = folderRepository.findByFolderIdAndTownshipTownshipIdAndDeletedAtIsNull(
+            parent = folderRepository.findByFolderIdAndTownTownIdAndDeletedAtIsNull(
                     dto.parentId(),
-                    user.getTownship().getTownshipId()
+                    user.getTown().getTownId()
             )
             .orElseThrow(() -> new NotFoundException("parent folder not found"));
         }
@@ -150,7 +150,7 @@ public class FolderService {
         Folder folder = new Folder();
         folder.setName(dto.name());
         folder.setParent(parent);
-        folder.setTownship(user.getTownship());
+        folder.setTown(user.getTown());
         folder.setCreatedBy(user);
 
         folderRepository.save(folder);
@@ -160,15 +160,15 @@ public class FolderService {
     @Transactional
     public void update(
             UUID folderId,
-            UpdateFolderRequestDTO dto,
+            FolderUpdateDTO dto,
             JwtAuthenticationToken token
     ) {
         var user = getUser(token);
 
         Folder folder = folderRepository
-                .findByFolderIdAndTownshipTownshipIdAndDeletedAtIsNull(
+                .findByFolderIdAndTownTownIdAndDeletedAtIsNull(
                         folderId,
-                        user.getTownship().getTownshipId()
+                        user.getTown().getTownId()
                 )
                 .orElseThrow(() -> new NotFoundException("folder not found"));
 
@@ -186,17 +186,17 @@ public class FolderService {
     public void move(UUID folderId, UUID targetFolderId, JwtAuthenticationToken token) {
 
         var userId = UUID.fromString(token.getName());
-        UUID townshipId = getTownshipId(token);
+        UUID townId = getTownId(token);
 
         Folder folder = folderRepository
-            .findByFolderIdAndTownshipTownshipIdAndDeletedAtIsNull(
-                folderId, townshipId
+            .findByFolderIdAndTownTownIdAndDeletedAtIsNull(
+                folderId, townId
             )
             .orElseThrow(() -> new NotFoundException("Folder not found"));
 
         Folder target = folderRepository
-            .findByFolderIdAndTownshipTownshipIdAndDeletedAtIsNull(
-                targetFolderId, townshipId
+            .findByFolderIdAndTownTownIdAndDeletedAtIsNull(
+                targetFolderId, townId
             )
             .orElseThrow(() -> new NotFoundException("Target folder not found"));
 
@@ -204,8 +204,8 @@ public class FolderService {
             throw new BadRequestException("Folder cannot be its own parent");
         }
 
-        if (!folder.getTownship().getTownshipId()
-                .equals(target.getTownship().getTownshipId())) {
+        if (!folder.getTown().getTownId()
+                .equals(target.getTown().getTownId())) {
             throw new ForbiddenException("Different organizations");
         }
 
@@ -241,9 +241,9 @@ public class FolderService {
         var user = getUser(token);
 
         Folder folder = folderRepository
-                .findByFolderIdAndTownshipTownshipIdAndDeletedAtIsNull(
+                .findByFolderIdAndTownTownIdAndDeletedAtIsNull(
                         folderId,
-                        user.getTownship().getTownshipId()
+                        user.getTown().getTownId()
                 )
                 .orElseThrow(() -> new NotFoundException("folder not found"));
 
@@ -294,10 +294,10 @@ public class FolderService {
     @Transactional
     public void permanentDelete(UUID folderId, JwtAuthenticationToken token) {
 
-        UUID townshipId = getTownshipId(token);
+        UUID townId = getTownId(token);
 
-        Folder folder = folderRepository.findByFolderIdAndTownshipTownshipIdAndDeletedAtIsNotNull(
-            folderId, townshipId
+        Folder folder = folderRepository.findByFolderIdAndTownTownIdAndDeletedAtIsNotNull(
+            folderId, townId
         )
         .orElseThrow(() -> new NotFoundException("Folder not found"));
 
@@ -354,18 +354,18 @@ public class FolderService {
             Pageable pageable,
             JwtAuthenticationToken token
     ) {
-        var townshipId = getTownshipId(token);
+        var townId = getTownId(token);
 
         var folderPage = folderRepository
-            .findByTownshipTownshipIdAndDeletedAtIsNotNull(
-                townshipId,
+            .findByTownTownIdAndDeletedAtIsNotNull(
+                townId,
                 pageable
             )
             .map(FolderMapper::toDTO);
 
         var filePage = fileRepository
-            .findByTownshipTownshipIdAndDeletedAtIsNotNull(
-                townshipId,
+            .findByTownTownIdAndDeletedAtIsNotNull(
+                townId,
                 pageable
             )
             .map(FileMapper::toResponse);
@@ -383,11 +383,11 @@ public class FolderService {
     // Restore folder with children
     @Transactional
     public void restore(UUID folderId, JwtAuthenticationToken token) {
-        UUID townshipId = getTownshipId(token); 
+        UUID townId = getTownId(token); 
 
         Folder folder = folderRepository
-                .findByFolderIdAndTownshipTownshipIdAndDeletedAtIsNotNull(
-                    folderId, townshipId
+                .findByFolderIdAndTownTownIdAndDeletedAtIsNotNull(
+                    folderId, townId
                 )
                 .orElseThrow(() -> new NotFoundException("folder not found"));
 
@@ -441,9 +441,9 @@ public class FolderService {
         var user = getUser(token);
 
         Folder folder = folderRepository
-                .findByFolderIdAndTownshipTownshipIdAndDeletedAtIsNull(
+                .findByFolderIdAndTownTownIdAndDeletedAtIsNull(
                         folderId,
-                        user.getTownship().getTownshipId()
+                        user.getTown().getTownId()
                 )
                 .orElseThrow(() -> new NotFoundException("folder not found"));
 
@@ -456,7 +456,7 @@ public class FolderService {
                 .orElseThrow(() -> new NotFoundException("user not found"));
     }
 
-    private UUID getTownshipId(JwtAuthenticationToken token) {
-        return getUser(token).getTownship().getTownshipId();
+    private UUID getTownId(JwtAuthenticationToken token) {
+        return getUser(token).getTown().getTownId();
     }
 }

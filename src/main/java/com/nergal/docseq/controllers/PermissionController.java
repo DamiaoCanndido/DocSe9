@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.nergal.docseq.controllers.dto.PermissionDTO;
-import com.nergal.docseq.controllers.dto.PermissionRequestDTO;
+import com.nergal.docseq.dto.permissions.PermissionDTO;
+import com.nergal.docseq.dto.permissions.PermissionRequestDTO;
 import com.nergal.docseq.entities.PermissionEnum;
 import com.nergal.docseq.services.PermissionService;
 

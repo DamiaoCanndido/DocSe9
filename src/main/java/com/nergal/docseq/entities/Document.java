@@ -38,8 +38,8 @@ public abstract class Document {
     private Instant updatedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "township_id")
-    private Township township;
+    @JoinColumn(name = "town_id")
+    private Town town;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
@@ -61,8 +61,8 @@ public abstract class Document {
         return createdAt;
     }
 
-    public Township getTownship() {
-        return township;
+    public Town getTown() {
+        return town;
     }
 
     public User getCreatedBy() {
@@ -85,8 +85,8 @@ public abstract class Document {
         this.createdAt = createdAt;
     }
 
-    public void setTownship(Township township) {
-        this.township = township;
+    public void setTown(Town town) {
+        this.town = town;
     }
 
     public void setCreatedBy(User createdBy) {

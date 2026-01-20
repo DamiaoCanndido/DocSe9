@@ -14,11 +14,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.nergal.docseq.controllers.dto.LoginRequest;
-import com.nergal.docseq.controllers.dto.LoginResponse;
-import com.nergal.docseq.controllers.dto.RegisterUserDTO;
-import com.nergal.docseq.controllers.dto.UpdateUserDTO;
-import com.nergal.docseq.controllers.dto.UserDTO;
+import com.nergal.docseq.dto.users.LoginRequest;
+import com.nergal.docseq.dto.users.LoginResponse;
+import com.nergal.docseq.dto.users.RegisterUserDTO;
+import com.nergal.docseq.dto.users.UserDTO;
+import com.nergal.docseq.dto.users.UserUpdateDTO;
 import com.nergal.docseq.services.UserService;
 
 import jakarta.validation.Valid;
@@ -53,7 +53,7 @@ public class UserController {
 
     @PatchMapping("/user/{id}")
     @PreAuthorize("hasAuthority('SCOPE_admin')")
-    public ResponseEntity<Void> updateUser(@PathVariable("id") UUID userId, @Valid @RequestBody UpdateUserDTO dto){
+    public ResponseEntity<Void> updateUser(@PathVariable("id") UUID userId, @Valid @RequestBody UserUpdateDTO dto){
         userService.updateUser(userId, dto);
         return ResponseEntity.ok().build();
     }

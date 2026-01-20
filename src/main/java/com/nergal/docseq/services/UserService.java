@@ -15,23 +15,23 @@ import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 
-import com.nergal.docseq.controllers.dto.LoginRequest;
-import com.nergal.docseq.controllers.dto.LoginResponse;
-import com.nergal.docseq.controllers.dto.RegisterUserDTO;
-import com.nergal.docseq.controllers.dto.RoleItemDTO;
-import com.nergal.docseq.controllers.dto.TownshipItemDTO;
-import com.nergal.docseq.controllers.dto.UpdateUserDTO;
-import com.nergal.docseq.controllers.dto.UserDTO;
-import com.nergal.docseq.controllers.dto.UserItemDTO;
+import com.nergal.docseq.dto.roles.RoleItemDTO;
+import com.nergal.docseq.dto.towns.TownItemDTO;
+import com.nergal.docseq.dto.users.LoginRequest;
+import com.nergal.docseq.dto.users.LoginResponse;
+import com.nergal.docseq.dto.users.RegisterUserDTO;
+import com.nergal.docseq.dto.users.UserDTO;
+import com.nergal.docseq.dto.users.UserItemDTO;
+import com.nergal.docseq.dto.users.UserUpdateDTO;
 import com.nergal.docseq.entities.Role;
-import com.nergal.docseq.entities.Township;
+import com.nergal.docseq.entities.Town;
 import com.nergal.docseq.entities.User;
 import com.nergal.docseq.exception.ForbiddenException;
 import com.nergal.docseq.exception.NotFoundException;
 import com.nergal.docseq.exception.UnprocessableContentException;
 import com.nergal.docseq.repositories.PermissionRepository;
 import com.nergal.docseq.repositories.RoleRepository;
-import com.nergal.docseq.repositories.TownshipRepository;
+import com.nergal.docseq.repositories.TownRepository;
 import com.nergal.docseq.repositories.UserRepository;
 
 import org.springframework.transaction.annotation.Transactional;
@@ -42,21 +42,21 @@ public class UserService {
     private final PermissionRepository permissionRepository;
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
-    private final TownshipRepository townshipRepository;
+    private final TownRepository townRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final JwtEncoder jwtEncoder;
 
     public UserService(
             UserRepository userRepository,
             RoleRepository roleRepository,
-            TownshipRepository townshipRepository,
+            TownRepository townRepository,
             PermissionRepository permissionRepository,
             BCryptPasswordEncoder passwordEncoder,
             JwtEncoder jwtEncoder) {
 
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
-        this.townshipRepository = townshipRepository;
+        this.townRepository = townRepository;
         this.permissionRepository = permissionRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtEncoder = jwtEncoder;
@@ -72,11 +72,11 @@ public class UserService {
 
         var basicRole = roleRepository.findByName(Role.Values.basic);
 
-        Township township = null;
+        Town town = null;
 
-        if (dto.townshipId() != null) {
-            township = townshipRepository.findByTownshipId(dto.townshipId()).orElseThrow(
-                () -> new NotFoundException("Township not found")
+        if (dto.townId() != null) {
+            town = townRepository.findByTownId(dto.townId()).orElseThrow(
+                () -> new NotFoundException("Town not found")
             );    
         }
 
@@ -85,7 +85,7 @@ public class UserService {
         user.setEmail(dto.email());
         user.setPassword(passwordEncoder.encode(dto.password()));
         user.setRoles(Set.of(basicRole));
-        user.setTownship(township);
+        user.setTown(town);
 
         userRepository.save(user);
     }
@@ -140,11 +140,11 @@ public class UserService {
                             role.getRoleId(), 
                             role.getName()
                         )).collect(Collectors.toList()),
-                    user.getTownship() != null ? new TownshipItemDTO(
-                        user.getTownship().getTownshipId(),
-                        user.getTownship().getName(),
-                        user.getTownship().getUf(),
-                        user.getTownship().getImageUrl()
+                    user.getTown() != null ? new TownItemDTO(
+                        user.getTown().getTownId(),
+                        user.getTown().getName(),
+                        user.getTown().getUf(),
+                        user.getTown().getImageUrl()
                     ) : null,
                     user.getCreatedAt()
                 ));
@@ -158,32 +158,25 @@ public class UserService {
         );
     }
 
-    protected void applyUpdates(User entity, UpdateUserDTO dto) {
+    protected void applyUpdates(User entity, UserUpdateDTO dto) {
         if (dto.username() != null) {
             entity.setUsername(dto.username());
         }
         if (dto.email() != null) {
             entity.setEmail(dto.email());
         }
-        if (dto.role() != null) {
-            var role = roleRepository.findByName(dto.role());
-            if (role == null) {
-                throw new NotFoundException("Role not found");
-            }
-            entity.setRoles(Set.of(role));
-        }
         if (dto.password() != null && !dto.password().isEmpty()) {
             entity.setPassword(passwordEncoder.encode(dto.password()));
         }
-        if (dto.townshipId() != null) {
-            var township = townshipRepository.findByTownshipId(dto.townshipId())
-                .orElseThrow(() -> new NotFoundException("Township not found"));
-            entity.setTownship(township);
+        if (dto.townId() != null) {
+            var town = townRepository.findByTownId(dto.townId())
+                .orElseThrow(() -> new NotFoundException("Town not found"));
+            entity.setTown(town);
         }
     }
 
     @Transactional
-    public void updateUser(UUID userId, UpdateUserDTO dto){
+    public void updateUser(UUID userId, UserUpdateDTO dto){
         var user = userRepository.findById(userId)
             .orElseThrow(() -> new NotFoundException("User not found"));
 
