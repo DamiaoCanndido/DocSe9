@@ -1,0 +1,22 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: postgres-doc-se9
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: docse9
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data_docse9:/var/lib/postgresql/data
+    networks:
+      - backend
+
+volumes:
+  postgres_data_docse9:
+
+networks:
+  backend:
+    driver: bridge

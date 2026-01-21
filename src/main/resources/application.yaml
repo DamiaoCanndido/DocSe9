@@ -11,7 +11,7 @@ spring:
   application:
     name: docseq
   datasource:
-    url: jdbc:postgresql://localhost:5432/hello-java
+    url: jdbc:postgresql://localhost:5432/docse9
     username: postgres
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
