@@ -18,14 +18,19 @@ public class AdminUserConfig implements CommandLineRunner {
     private RoleRepository roleRepository;
     private UserRepository userRepository;
     private BCryptPasswordEncoder passwordEncoder;
+    private AdminEnvsConfig adminEnvConfig;
     
 
-    public AdminUserConfig( RoleRepository roleRepository, 
-                            UserRepository userRepository,
-                            BCryptPasswordEncoder passwordEncoder) {
+    public AdminUserConfig( 
+        RoleRepository roleRepository, 
+        UserRepository userRepository,
+        BCryptPasswordEncoder passwordEncoder,
+        AdminEnvsConfig adminEnvConfig
+    ) {
         this.roleRepository = roleRepository;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.adminEnvConfig = adminEnvConfig;
     }
 
 
@@ -33,7 +38,7 @@ public class AdminUserConfig implements CommandLineRunner {
     @Transactional
     public void run(String... args) throws Exception {
         var roleAdmin = roleRepository.findByName(Role.Values.admin);
-        var userAdmin = userRepository.findByEmail("admin@admin.com");
+        var userAdmin = userRepository.findByEmail(adminEnvConfig.getEmail());
 
          userAdmin.ifPresentOrElse(
                 user -> {
@@ -41,9 +46,9 @@ public class AdminUserConfig implements CommandLineRunner {
                 },
                 () -> {
                     var user = new User();
-                    user.setUsername("admin");
-                    user.setEmail("admin@admin.com");
-                    user.setPassword(passwordEncoder.encode("123456"));
+                    user.setUsername(adminEnvConfig.getUsername());
+                    user.setEmail(adminEnvConfig.getEmail());
+                    user.setPassword(passwordEncoder.encode(adminEnvConfig.getPassword()));
                     user.setRoles(Set.of(roleAdmin));
                     userRepository.save(user);
                 }

@@ -34,3 +34,8 @@ jwt:
     key: classpath:app.pub
   private:
     key: classpath:app.key
+
+admin:
+  username: ${ADM_USERNAME}
+  email: ${ADM_EMAIL}
+  password: ${ADM_PASSWORD}
