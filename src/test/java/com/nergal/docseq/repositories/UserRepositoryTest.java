@@ -28,16 +28,28 @@ class UserRepositoryTest {
     private RoleRepository roleRepository;
 
     private User user;
-    private Role role;
+    private Role roleBasic;
+    private Role roleAdmin;
 
     @BeforeEach
     void setUp(){
         user = new User();
-        role = roleRepository.findByName(Role.Values.basic);
+
+        roleBasic = new Role();
+        roleAdmin = new Role();
+
+        roleBasic.setName(Role.Values.basic);
+
+        roleAdmin.setName(Role.Values.admin);
+
+        roleRepository.save(roleBasic);
+        roleRepository.save(roleAdmin);
+
+        var userRole = roleRepository.findByName(Role.Values.basic);
         user.setEmail("teste@email.com");
         user.setUsername("João Silva");
         user.setPassword("123456");
-        user.setRoles(Set.of(role));
+        user.setRoles(Set.of(userRole));
     }
 
     @Test
@@ -46,10 +58,10 @@ class UserRepositoryTest {
         
         userRepository.save(user);
         
-        Optional<User> resultado = userRepository.findByEmail("teste@email.com");
+        Optional<User> result = userRepository.findByEmail("teste@email.com");
         
-        assertTrue(resultado.isPresent());
-        assertEquals("teste@email.com", resultado.get().getEmail());
-        assertEquals("João Silva", resultado.get().getUsername());
+        assertTrue(result.isPresent());
+        assertEquals("teste@email.com", result.get().getEmail());
+        assertEquals("João Silva", result.get().getUsername());
     }
 }
