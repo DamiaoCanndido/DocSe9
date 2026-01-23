@@ -2,6 +2,7 @@ package com.nergal.docseq.controllers;
 
 import java.util.UUID;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -11,13 +12,12 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.nergal.docseq.dto.users.LoginRequest;
 import com.nergal.docseq.dto.users.LoginResponse;
 import com.nergal.docseq.dto.users.RegisterUserDTO;
-import com.nergal.docseq.dto.users.UserDTO;
+import com.nergal.docseq.dto.users.UserContentResponse;
 import com.nergal.docseq.dto.users.UserUpdateDTO;
 import com.nergal.docseq.services.UserService;
 
@@ -41,9 +41,10 @@ public class UserController {
 
     @GetMapping("/users")
     @PreAuthorize("hasAuthority('SCOPE_admin')")
-    public ResponseEntity<UserDTO> listUsers(@RequestParam(defaultValue = "0") int page,
-                                           @RequestParam(defaultValue = "10") int pageSize) {
-        return ResponseEntity.ok(userService.listUsers(page, pageSize));
+    public ResponseEntity<UserContentResponse> listUsers(
+        Pageable pageable
+    ) {
+        return ResponseEntity.ok(userService.listUsers(pageable));
     }
 
     @PostMapping("/login")

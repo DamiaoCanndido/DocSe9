@@ -2,6 +2,7 @@ package com.nergal.docseq.controllers;
 
 import java.util.UUID;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -9,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.nergal.docseq.dto.towns.TownDTO;
+import com.nergal.docseq.dto.towns.TownContentResponse;
 import com.nergal.docseq.dto.towns.TownRequestDTO;
 import com.nergal.docseq.dto.towns.TownUpdateDTO;
 import com.nergal.docseq.services.TownService;
@@ -20,7 +21,6 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
 
 
 @RestController
@@ -35,9 +35,8 @@ public class TownController {
 
     @GetMapping("")
     @PreAuthorize("hasAuthority('SCOPE_admin')")
-    public ResponseEntity<TownDTO> getTowns(@RequestParam(defaultValue = "0") int page,
-                                           @RequestParam(defaultValue = "10") int pageSize) {
-        return ResponseEntity.ok(townService.getAllTowns(page, pageSize));
+    public ResponseEntity<TownContentResponse> getTowns(Pageable pageable) {
+        return ResponseEntity.ok(townService.getAllTowns(pageable));
     }
     
 

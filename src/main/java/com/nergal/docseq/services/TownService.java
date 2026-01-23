@@ -1,20 +1,18 @@
 package com.nergal.docseq.services;
 
-import org.springframework.data.domain.Sort;
-
 import java.util.UUID;
 
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.RequestParam;
 
-import com.nergal.docseq.dto.towns.TownDTO;
+import com.nergal.docseq.dto.towns.TownContentResponse;
 import com.nergal.docseq.dto.towns.TownItemDTO;
 import com.nergal.docseq.dto.towns.TownRequestDTO;
 import com.nergal.docseq.dto.towns.TownUpdateDTO;
 import com.nergal.docseq.entities.Town;
 import com.nergal.docseq.exception.NotFoundException;
+import com.nergal.docseq.helpers.mappers.PageMapper;
 import com.nergal.docseq.repositories.TownRepository;
 
 @Service
@@ -27,25 +25,20 @@ public class TownService {
     }
 
     @Transactional(readOnly = true)
-    public TownDTO getAllTowns(@RequestParam(defaultValue = "0") int page,@RequestParam(defaultValue = "10") int pageSize) {
-        var pageable = PageRequest.of(page, pageSize, Sort.Direction.ASC, "name");
+    public TownContentResponse getAllTowns(Pageable pageable) {
+        
         var townPage = townRepo.findAll(pageable);
 
-        var townItems = townPage.getContent().stream()
+        var townItems = townPage
             .map(town -> new TownItemDTO(
                 town.getTownId(),
                 town.getName(),
                 town.getUf(),
                 town.getImageUrl()
-            ))
-            .toList();
+            ));
         
-        return new TownDTO(
-            townItems,
-            townPage.getNumber(),
-            townPage.getSize(),
-            townPage.getTotalPages(),
-            townPage.getTotalElements()
+        return new TownContentResponse(
+            PageMapper.toPageResponse(townItems)
         );
     }
 

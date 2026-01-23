@@ -5,8 +5,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
@@ -20,7 +19,7 @@ import com.nergal.docseq.dto.towns.TownItemDTO;
 import com.nergal.docseq.dto.users.LoginRequest;
 import com.nergal.docseq.dto.users.LoginResponse;
 import com.nergal.docseq.dto.users.RegisterUserDTO;
-import com.nergal.docseq.dto.users.UserDTO;
+import com.nergal.docseq.dto.users.UserContentResponse;
 import com.nergal.docseq.dto.users.UserItemDTO;
 import com.nergal.docseq.dto.users.UserUpdateDTO;
 import com.nergal.docseq.entities.Role;
@@ -29,6 +28,7 @@ import com.nergal.docseq.entities.User;
 import com.nergal.docseq.exception.ForbiddenException;
 import com.nergal.docseq.exception.NotFoundException;
 import com.nergal.docseq.exception.UnprocessableContentException;
+import com.nergal.docseq.helpers.mappers.PageMapper;
 import com.nergal.docseq.repositories.PermissionRepository;
 import com.nergal.docseq.repositories.RoleRepository;
 import com.nergal.docseq.repositories.TownRepository;
@@ -127,8 +127,8 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public UserDTO listUsers(int page, int pageSize){
-        var users = userRepository.findAll(PageRequest.of(page, pageSize, Sort.Direction.ASC, "username"))   
+    public UserContentResponse listUsers(Pageable pageable){
+        var users = userRepository.findAll(pageable)   
             .map(user -> 
                 new UserItemDTO(
                     user.getUserId(),
@@ -149,12 +149,8 @@ public class UserService {
                     user.getCreatedAt()
                 ));
 
-        return new UserDTO(
-            users.getContent(),
-            page,
-            pageSize,
-            users.getTotalPages(),
-            users.getTotalElements()
+        return new UserContentResponse(
+            PageMapper.toPageResponse(users)
         );
     }
 
