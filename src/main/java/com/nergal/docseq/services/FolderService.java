@@ -64,11 +64,23 @@ public class FolderService {
             .findAll(FolderSpecifications.withRootFilters(town_id, name), pageable)
             .map(FolderMapper::toDTO);
 
+        var filePage = fileRepository
+            .findAll(FileSpecifications.withSubFoldersFilters(
+                town_id, 
+                folderPage.getContent().size() == 0 
+                ? null 
+                : folderPage.getContent().get(0).parentId(), 
+                name
+            ), pageable)
+            .map(FileMapper::toResponse);
+
         return new FolderContentResponse(
             PageMapper.toPageResponse(
                     folderPage
             ),
-            null
+            PageMapper.toPageResponse(
+                    filePage
+            )
         );
     }
 
@@ -95,7 +107,7 @@ public class FolderService {
 
         
         var filePage = fileRepository
-            .findAll(FileSpecifications.withSubFoldersFilters(parentId, name), pageable)
+            .findAll(FileSpecifications.withSubFoldersFilters(town_id, parentId, name), pageable)
             .map(FileMapper::toResponse);
 
         return new FolderContentResponse(

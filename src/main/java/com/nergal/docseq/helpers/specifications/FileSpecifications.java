@@ -11,10 +11,11 @@ import java.util.UUID;
 
 public class FileSpecifications {
     
-    public static Specification<File> withSubFoldersFilters(UUID folderId, String name) {
+    public static Specification<File> withSubFoldersFilters(UUID townId, UUID folderId, String name) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
             
+            predicates.add(cb.equal(root.get("town").get("townId"), townId));
             predicates.add(cb.isNull(root.get("deletedAt")));
             
             if (name == null || name.isEmpty()) {
