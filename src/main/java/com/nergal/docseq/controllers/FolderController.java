@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.nergal.docseq.dto.folders.FolderRequestDTO;
@@ -64,9 +65,10 @@ public class FolderController {
     @GetMapping("/root")
     public ResponseEntity<FolderContentResponse> listRoot(
             Pageable pageable,
+            @RequestParam(required = false) String name,
             JwtAuthenticationToken token
     ) {
-        return ResponseEntity.ok(folderService.listRootFolders(pageable, token));
+        return ResponseEntity.ok(folderService.listRootFolders(pageable, name, token));
     }
 
     /**
@@ -75,10 +77,11 @@ public class FolderController {
     @GetMapping("/{folderId}/children")
     public ResponseEntity<FolderContentResponse> listChildren(
             @PathVariable UUID folderId,
+            @RequestParam(required = false) String name,
             Pageable pageable,
             JwtAuthenticationToken token
     ) {
-        return ResponseEntity.ok(folderService.listChildren(folderId, pageable, token));
+        return ResponseEntity.ok(folderService.listChildren(folderId, name, pageable, token));
     }
 
     /**

@@ -25,6 +25,9 @@ import com.nergal.docseq.helpers.mappers.FileMapper;
 import com.nergal.docseq.helpers.mappers.FolderMapper;
 import com.nergal.docseq.helpers.mappers.FolderTreeBuilder;
 import com.nergal.docseq.helpers.mappers.PageMapper;
+import com.nergal.docseq.helpers.specifications.FileSpecifications;
+import com.nergal.docseq.helpers.specifications.FolderParentSpecifications;
+import com.nergal.docseq.helpers.specifications.FolderSpecifications;
 import com.nergal.docseq.repositories.FileRepository;
 import com.nergal.docseq.repositories.FolderRepository;
 import com.nergal.docseq.repositories.UserRepository;
@@ -53,30 +56,20 @@ public class FolderService {
     @Transactional(readOnly = true)
     public FolderContentResponse listRootFolders(
             Pageable pageable,
+            String name,
             JwtAuthenticationToken token
     ) {
         var town_id = getTownId(token);
 
         var folderPage = folderRepository
-            .findByTownTownIdAndParentIsNullAndDeletedAtIsNull(
-                    town_id,
-                    pageable
-            )
+            .findAll(FolderSpecifications.withFilters(town_id, name), pageable)
             .map(FolderMapper::toDTO);
-
-        var filePage = fileRepository
-            .findByFolderFolderIdAndDeletedAtIsNull(
-                null, 
-                pageable
-            ).map(FileMapper::toResponse);
 
         return new FolderContentResponse(
             PageMapper.toPageResponse(
                     folderPage
             ),
-            PageMapper.toPageResponse(
-                    filePage
-            )
+            null
         );
     }
 
@@ -84,26 +77,25 @@ public class FolderService {
     @Transactional(readOnly = true)
     public FolderContentResponse listChildren(
             UUID parentId,
+            String name,
             Pageable pageable,
             JwtAuthenticationToken token
     ) {
         var town_id = getTownId(token);
 
-        var folder = folderRepository.findByFolderIdAndTownTownIdAndDeletedAtIsNull(
+        folderRepository.findByFolderIdAndTownTownIdAndDeletedAtIsNull(
                 parentId, 
                 town_id
             )
             .orElseThrow(() -> new NotFoundException("folder not found"));
 
         var folderPage = folderRepository
-                .findByParentFolderIdAndDeletedAtIsNull(parentId, pageable)
-                .map(FolderMapper::toDTO);
+            .findAll(FolderParentSpecifications.withFilters(parentId, name), pageable)
+            .map(FolderMapper::toDTO);
 
+        
         var filePage = fileRepository
-            .findByFolderFolderIdAndDeletedAtIsNull(
-                folder.getFolderId(), 
-                pageable
-            )
+            .findAll(FileSpecifications.withFilters(parentId, name), pageable)
             .map(FileMapper::toResponse);
 
         return new FolderContentResponse(
