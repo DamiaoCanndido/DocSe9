@@ -43,13 +43,6 @@ public class User {
     @JoinColumn(name = "town_id")
     private Town town;
 
-    @OneToMany(
-        mappedBy = "user",
-        cascade = CascadeType.REMOVE,
-        orphanRemoval = true
-    )
-    private Set<UserPermission> permissions;
-
     @CreationTimestamp
     private LocalDateTime createdAt;
 

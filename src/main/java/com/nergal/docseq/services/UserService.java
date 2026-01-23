@@ -29,7 +29,6 @@ import com.nergal.docseq.exception.ForbiddenException;
 import com.nergal.docseq.exception.NotFoundException;
 import com.nergal.docseq.exception.UnprocessableContentException;
 import com.nergal.docseq.helpers.mappers.PageMapper;
-import com.nergal.docseq.repositories.PermissionRepository;
 import com.nergal.docseq.repositories.RoleRepository;
 import com.nergal.docseq.repositories.TownRepository;
 import com.nergal.docseq.repositories.UserRepository;
@@ -39,7 +38,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class UserService {
 
-    private final PermissionRepository permissionRepository;
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final TownRepository townRepository;
@@ -50,14 +48,12 @@ public class UserService {
             UserRepository userRepository,
             RoleRepository roleRepository,
             TownRepository townRepository,
-            PermissionRepository permissionRepository,
             BCryptPasswordEncoder passwordEncoder,
             JwtEncoder jwtEncoder) {
 
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.townRepository = townRepository;
-        this.permissionRepository = permissionRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtEncoder = jwtEncoder;
     }
@@ -98,8 +94,6 @@ public class UserService {
             throw new BadCredentialsException("user or password invalid");
         }
 
-        var permissionsByUser = permissionRepository.findPermissionNamesByUsername(user.get().getUsername());
-
         var now = Instant.now();
         var expiresIn = 300L;
 
@@ -108,9 +102,9 @@ public class UserService {
             .map(Role::getName)
             .map(Role.Values::name)
             .collect(Collectors.joining(" "));
-        
-        
-        var scopes = String.join(" ", role, String.join(" ", permissionsByUser));
+
+
+        var scopes = String.join(" ", role);
 
 
         var claims = JwtClaimsSet.builder()
