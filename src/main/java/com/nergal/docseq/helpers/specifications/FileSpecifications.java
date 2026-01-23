@@ -11,15 +11,15 @@ import java.util.UUID;
 
 public class FileSpecifications {
     
-    public static Specification<File> withFilters(UUID folderId, String name) {
+    public static Specification<File> withSubFoldersFilters(UUID folderId, String name) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
             
-            predicates.add(cb.equal(root.get("folder").get("folderId"), folderId));
-            
             predicates.add(cb.isNull(root.get("deletedAt")));
             
-            if (name != null && !name.isEmpty()) {
+            if (name == null || name.isEmpty()) {
+                predicates.add(cb.equal(root.get("folder").get("folderId"), folderId));
+            } else {
                 predicates.add(cb.like(
                     cb.lower(root.get("name")), 
                     "%" + name.toLowerCase() + "%"

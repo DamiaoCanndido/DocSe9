@@ -26,7 +26,6 @@ import com.nergal.docseq.helpers.mappers.FolderMapper;
 import com.nergal.docseq.helpers.mappers.FolderTreeBuilder;
 import com.nergal.docseq.helpers.mappers.PageMapper;
 import com.nergal.docseq.helpers.specifications.FileSpecifications;
-import com.nergal.docseq.helpers.specifications.FolderParentSpecifications;
 import com.nergal.docseq.helpers.specifications.FolderSpecifications;
 import com.nergal.docseq.repositories.FileRepository;
 import com.nergal.docseq.repositories.FolderRepository;
@@ -62,7 +61,7 @@ public class FolderService {
         var town_id = getTownId(token);
 
         var folderPage = folderRepository
-            .findAll(FolderSpecifications.withFilters(town_id, name), pageable)
+            .findAll(FolderSpecifications.withRootFilters(town_id, name), pageable)
             .map(FolderMapper::toDTO);
 
         return new FolderContentResponse(
@@ -88,14 +87,15 @@ public class FolderService {
                 town_id
             )
             .orElseThrow(() -> new NotFoundException("folder not found"));
+        var townId = getTownId(token);  
 
         var folderPage = folderRepository
-            .findAll(FolderParentSpecifications.withFilters(parentId, name), pageable)
+            .findAll(FolderSpecifications.withSubFoldersFilters(townId, parentId, name), pageable)
             .map(FolderMapper::toDTO);
 
         
         var filePage = fileRepository
-            .findAll(FileSpecifications.withFilters(parentId, name), pageable)
+            .findAll(FileSpecifications.withSubFoldersFilters(parentId, name), pageable)
             .map(FileMapper::toResponse);
 
         return new FolderContentResponse(
