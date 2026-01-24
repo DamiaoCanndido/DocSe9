@@ -9,12 +9,11 @@ import com.nergal.docseq.helpers.validators.PasswordMatches;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 
 @PasswordMatches
 public record UserUpdateDTO(
-    @Min(value = 3, message = "Username must be at least 3 characters long")
+    @Size(min = 3, message = "Username must be at least 3 characters long")
     String username, 
 
     @Email(message = "Email should be valid")
