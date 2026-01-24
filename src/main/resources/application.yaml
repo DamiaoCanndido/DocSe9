@@ -10,6 +10,8 @@ spring:
     active: dev
   application:
     name: docseq
+  config:
+    import: optional:file:.env[.properties]
   datasource:
     url: jdbc:postgresql://localhost:5432/docse9
     username: postgres
