@@ -1,0 +1,16 @@
+{
+  "folders": [
+    {
+      "path": "backend",
+      "name": "API - Backend"
+    },
+    {
+      "path": "frontend",
+      "name": "WEB - Frontend"
+    }
+  ],
+  "settings": {
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.compile.nullAnalysis.mode": "automatic"
+  }
+}
