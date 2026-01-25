@@ -48,6 +48,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -388,7 +389,7 @@ public class UserServiceTest {
 
         // Mock static PageMapper.toPageResponse
         try (MockedStatic<PageMapper> mockedStatic = mockStatic(PageMapper.class)) {
-            mockedStatic.when(() -> PageMapper.toPageResponse(any(Page.class))).thenReturn(pageResponse);
+            mockedStatic.when(() -> PageMapper.toPageResponse((Page<?>) any(Page.class))).thenReturn(pageResponse);
 
             // Call the service method
             UserContentResponse response = userService.listUsers(PageRequest.of(0, 10));
@@ -401,7 +402,7 @@ public class UserServiceTest {
             assertEquals(userItemDTO2.userId(), response.users().content().get(1).userId());
 
             verify(userRepository).findAll(any(Pageable.class));
-            mockedStatic.verify(() -> PageMapper.toPageResponse(any(Page.class)));
+            mockedStatic.verify(() -> PageMapper.toPageResponse((Page<?>) any(Page.class)));
         }
     }   
 }
