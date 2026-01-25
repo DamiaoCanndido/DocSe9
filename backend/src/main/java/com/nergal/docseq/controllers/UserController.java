@@ -42,8 +42,7 @@ public class UserController {
     @GetMapping("/users")
     @PreAuthorize("hasAuthority('SCOPE_admin')")
     public ResponseEntity<UserContentResponse> listUsers(
-        Pageable pageable
-    ) {
+            Pageable pageable) {
         return ResponseEntity.ok(userService.listUsers(pageable));
     }
 
@@ -54,13 +53,13 @@ public class UserController {
 
     @PatchMapping("/user/{id}")
     @PreAuthorize("hasAuthority('SCOPE_admin')")
-    public ResponseEntity<Void> updateUser(@PathVariable("id") UUID userId, @Valid @RequestBody UserUpdateDTO dto){
+    public ResponseEntity<Void> updateUser(@PathVariable("id") UUID userId, @Valid @RequestBody UserUpdateDTO dto) {
         userService.updateUser(userId, dto);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/user/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable("id") UUID userId, JwtAuthenticationToken token){
+    public ResponseEntity<Void> deleteUser(@PathVariable("id") UUID userId, JwtAuthenticationToken token) {
         userService.deleteUser(userId, token);
         return ResponseEntity.ok().build();
     }

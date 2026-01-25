@@ -4,6 +4,6 @@ import com.nergal.docseq.dto.PageResponse;
 import com.nergal.docseq.dto.files.FileResponseDTO;
 
 public record FolderContentResponse(
-    PageResponse<FolderResponseDTO> folders,
-    PageResponse<FileResponseDTO> files
-) { }
+        PageResponse<FolderResponseDTO> folders,
+        PageResponse<FileResponseDTO> files) {
+}

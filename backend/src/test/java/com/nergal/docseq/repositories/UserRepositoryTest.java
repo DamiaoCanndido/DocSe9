@@ -1,5 +1,8 @@
 package com.nergal.docseq.repositories;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.util.Optional;
 import java.util.Set;
 
@@ -10,8 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.test.context.ActiveProfiles;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 import com.nergal.docseq.entities.Role;
 import com.nergal.docseq.entities.User;
@@ -32,7 +33,7 @@ class UserRepositoryTest {
     private Role roleAdmin;
 
     @BeforeEach
-    void setUp(){
+    void setUp() {
         user = new User();
 
         roleBasic = new Role();
@@ -55,11 +56,11 @@ class UserRepositoryTest {
     @Test
     @DisplayName("You should be able to find the user by email if an email address exists.")
     void shouldFindByEmail_WhenEmailExists() {
-        
+
         userRepository.save(user);
-        
+
         Optional<User> result = userRepository.findByEmail("teste@email.com");
-        
+
         assertTrue(result.isPresent());
         assertEquals("teste@email.com", result.get().getEmail());
         assertEquals("João Silva", result.get().getUsername());

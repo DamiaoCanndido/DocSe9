@@ -4,9 +4,8 @@ import java.util.List;
 import java.util.UUID;
 
 public record FolderTreeResponseDTO(
-    UUID folderId,
-    String name,
-    boolean favorite,
-    List<FolderTreeResponseDTO> children
-) {}
-
+        UUID folderId,
+        String name,
+        boolean favorite,
+        List<FolderTreeResponseDTO> children) {
+}

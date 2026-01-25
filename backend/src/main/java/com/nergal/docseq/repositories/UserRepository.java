@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 import com.nergal.docseq.entities.User;
 
 @Repository
-public interface UserRepository extends JpaRepository<User, UUID>{
+public interface UserRepository extends JpaRepository<User, UUID> {
 
     Optional<User> findByUsername(String username);
 

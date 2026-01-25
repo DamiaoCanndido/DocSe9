@@ -38,7 +38,8 @@ public class LocalStorageService implements StorageService {
     public void delete(String storageKey) {
         try {
             Files.deleteIfExists(Paths.get(storageKey));
-        } catch (IOException ignored) {}
+        } catch (IOException ignored) {
+        }
     }
 
     @Override

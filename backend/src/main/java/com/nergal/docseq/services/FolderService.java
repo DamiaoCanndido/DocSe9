@@ -10,8 +10,8 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.nergal.docseq.dto.folders.FolderRequestDTO;
 import com.nergal.docseq.dto.folders.FolderContentResponse;
+import com.nergal.docseq.dto.folders.FolderRequestDTO;
 import com.nergal.docseq.dto.folders.FolderTreeResponseDTO;
 import com.nergal.docseq.dto.folders.FolderUpdateDTO;
 import com.nergal.docseq.entities.File;
@@ -33,18 +33,17 @@ import com.nergal.docseq.repositories.UserRepository;
 
 @Service
 public class FolderService {
-    
+
     private final FolderRepository folderRepository;
     private final FileRepository fileRepository;
     private final UserRepository userRepository;
     private final StorageService storageService;
 
     public FolderService(
-        FolderRepository folderRepository, 
-        FileRepository fileRepository,
-        UserRepository userRepository,
-        StorageService storageService
-    ) {
+            FolderRepository folderRepository,
+            FileRepository fileRepository,
+            UserRepository userRepository,
+            StorageService storageService) {
         this.folderRepository = folderRepository;
         this.fileRepository = fileRepository;
         this.userRepository = userRepository;
@@ -56,32 +55,27 @@ public class FolderService {
     public FolderContentResponse listRootFolders(
             Pageable pageable,
             String name,
-            JwtAuthenticationToken token
-    ) {
+            JwtAuthenticationToken token) {
         var town_id = getTownId(token);
 
         var folderPage = folderRepository
-            .findAll(FolderSpecifications.withRootFilters(town_id, name), pageable)
-            .map(FolderMapper::toDTO);
+                .findAll(FolderSpecifications.withRootFilters(town_id, name), pageable)
+                .map(FolderMapper::toDTO);
 
         var filePage = fileRepository
-            .findAll(FileSpecifications.withSubFoldersFilters(
-                town_id, 
-                folderPage.getContent().size() == 0 
-                ? null 
-                : folderPage.getContent().get(0).parentId(), 
-                name
-            ), pageable)
-            .map(FileMapper::toResponse);
+                .findAll(FileSpecifications.withSubFoldersFilters(
+                        town_id,
+                        folderPage.getContent().size() == 0
+                                ? null
+                                : folderPage.getContent().get(0).parentId(),
+                        name), pageable)
+                .map(FileMapper::toResponse);
 
         return new FolderContentResponse(
-            PageMapper.toPageResponse(
-                    folderPage
-            ),
-            PageMapper.toPageResponse(
-                    filePage
-            )
-        );
+                PageMapper.toPageResponse(
+                        folderPage),
+                PageMapper.toPageResponse(
+                        filePage));
     }
 
     // List subfolders
@@ -90,41 +84,34 @@ public class FolderService {
             UUID parentId,
             String name,
             Pageable pageable,
-            JwtAuthenticationToken token
-    ) {
+            JwtAuthenticationToken token) {
         var town_id = getTownId(token);
 
         folderRepository.findByFolderIdAndTownTownIdAndDeletedAtIsNull(
-                parentId, 
-                town_id
-            )
-            .orElseThrow(() -> new NotFoundException("folder not found"));
-        var townId = getTownId(token);  
+                parentId,
+                town_id)
+                .orElseThrow(() -> new NotFoundException("folder not found"));
+        var townId = getTownId(token);
 
         var folderPage = folderRepository
-            .findAll(FolderSpecifications.withSubFoldersFilters(townId, parentId, name), pageable)
-            .map(FolderMapper::toDTO);
+                .findAll(FolderSpecifications.withSubFoldersFilters(townId, parentId, name), pageable)
+                .map(FolderMapper::toDTO);
 
-        
         var filePage = fileRepository
-            .findAll(FileSpecifications.withSubFoldersFilters(town_id, parentId, name), pageable)
-            .map(FileMapper::toResponse);
+                .findAll(FileSpecifications.withSubFoldersFilters(town_id, parentId, name), pageable)
+                .map(FileMapper::toResponse);
 
         return new FolderContentResponse(
-            PageMapper.toPageResponse(
-                    folderPage
-            ),
-            PageMapper.toPageResponse(
-                    filePage
-            )
-        );
+                PageMapper.toPageResponse(
+                        folderPage),
+                PageMapper.toPageResponse(
+                        filePage));
     }
 
     // Complete tree
     @Transactional(readOnly = true)
     public List<FolderTreeResponseDTO> getFolderTree(
-            JwtAuthenticationToken token
-    ) {
+            JwtAuthenticationToken token) {
         var townId = getTownId(token);
 
         var folders = folderRepository
@@ -137,14 +124,13 @@ public class FolderService {
     @Transactional
     public void create(FolderRequestDTO dto, JwtAuthenticationToken token) {
         var user = getUser(token);
-        
+
         Folder parent = null;
         if (dto.parentId() != null) {
             parent = folderRepository.findByFolderIdAndTownTownIdAndDeletedAtIsNull(
                     dto.parentId(),
-                    user.getTown().getTownId()
-            )
-            .orElseThrow(() -> new NotFoundException("parent folder not found"));
+                    user.getTown().getTownId())
+                    .orElseThrow(() -> new NotFoundException("parent folder not found"));
         }
 
         if (folderRepository.existsByNameAndParentAndDeletedAtIsNull(dto.name(), parent)) {
@@ -165,24 +151,24 @@ public class FolderService {
     public void update(
             UUID folderId,
             FolderUpdateDTO dto,
-            JwtAuthenticationToken token
-    ) {
+            JwtAuthenticationToken token) {
         var user = getUser(token);
 
         Folder folder = folderRepository
                 .findByFolderIdAndTownTownIdAndDeletedAtIsNull(
                         folderId,
-                        user.getTown().getTownId()
-                )
+                        user.getTown().getTownId())
                 .orElseThrow(() -> new NotFoundException("folder not found"));
 
         if (dto.name() != null &&
-            folderRepository.existsByNameAndParentAndDeletedAtIsNull(dto.name(), folder.getParent())) {
+                folderRepository.existsByNameAndParentAndDeletedAtIsNull(dto.name(), folder.getParent())) {
             throw new ConflictException("Folder already exists");
         }
 
-        if (dto.name() != null) folder.setName(dto.name());
-        if (dto.favorite() != null) folder.setFavorite(dto.favorite());
+        if (dto.name() != null)
+            folder.setName(dto.name());
+        if (dto.favorite() != null)
+            folder.setFavorite(dto.favorite());
     }
 
     // move folder
@@ -193,16 +179,14 @@ public class FolderService {
         UUID townId = getTownId(token);
 
         Folder folder = folderRepository
-            .findByFolderIdAndTownTownIdAndDeletedAtIsNull(
-                folderId, townId
-            )
-            .orElseThrow(() -> new NotFoundException("Folder not found"));
+                .findByFolderIdAndTownTownIdAndDeletedAtIsNull(
+                        folderId, townId)
+                .orElseThrow(() -> new NotFoundException("Folder not found"));
 
         Folder target = folderRepository
-            .findByFolderIdAndTownTownIdAndDeletedAtIsNull(
-                targetFolderId, townId
-            )
-            .orElseThrow(() -> new NotFoundException("Target folder not found"));
+                .findByFolderIdAndTownTownIdAndDeletedAtIsNull(
+                        targetFolderId, townId)
+                .orElseThrow(() -> new NotFoundException("Target folder not found"));
 
         if (folder.getFolderId().equals(target.getFolderId())) {
             throw new BadRequestException("Folder cannot be its own parent");
@@ -247,31 +231,28 @@ public class FolderService {
         Folder folder = folderRepository
                 .findByFolderIdAndTownTownIdAndDeletedAtIsNull(
                         folderId,
-                        user.getTown().getTownId()
-                )
+                        user.getTown().getTownId())
                 .orElseThrow(() -> new NotFoundException("folder not found"));
 
         softDeleteRecursively(folder, user);
     }
 
     private void collectForSoftDelete(
-        Folder folder,
-        List<Folder> folders,
-        List<File> files
-    ) {
-        if (folder.getDeletedAt() != null) return;
+            Folder folder,
+            List<Folder> folders,
+            List<File> files) {
+        if (folder.getDeletedAt() != null)
+            return;
 
         folders.add(folder);
         files.addAll(fileRepository.findByFolderAndDeletedAtIsNull(folder));
 
-        List<Folder> children =
-                folderRepository.findByParentAndDeletedAtIsNull(folder);
+        List<Folder> children = folderRepository.findByParentAndDeletedAtIsNull(folder);
 
         for (Folder child : children) {
             collectForSoftDelete(child, folders, files);
         }
     }
-
 
     @Transactional
     public void softDeleteRecursively(Folder root, User deletedBy) {
@@ -301,9 +282,8 @@ public class FolderService {
         UUID townId = getTownId(token);
 
         Folder folder = folderRepository.findByFolderIdAndTownTownIdAndDeletedAtIsNotNull(
-            folderId, townId
-        )
-        .orElseThrow(() -> new NotFoundException("Folder not found"));
+                folderId, townId)
+                .orElseThrow(() -> new NotFoundException("Folder not found"));
 
         if (folder.getDeletedAt() == null) {
             throw new BadRequestException("Folder must be in trash before permanent delete");
@@ -312,24 +292,20 @@ public class FolderService {
     }
 
     private void collectForPermanentDelete(
-        Folder root,
-        List<Folder> folders,
-        List<File> files
-    ) {
+            Folder root,
+            List<Folder> folders,
+            List<File> files) {
         folders.add(root);
 
         files.addAll(
-            fileRepository.findByFolderFolderId(root.getFolderId())
-        );
+                fileRepository.findByFolderFolderId(root.getFolderId()));
 
-        List<Folder> children =
-                folderRepository.findByParentFolderId(root.getFolderId());
+        List<Folder> children = folderRepository.findByParentFolderId(root.getFolderId());
 
         for (Folder child : children) {
             collectForPermanentDelete(child, folders, files);
         }
     }
-
 
     @Transactional
     public void permanentDeleteRecursively(Folder root) {
@@ -351,74 +327,63 @@ public class FolderService {
         }
     }
 
-
     // List trash can
     @Transactional(readOnly = true)
     public FolderContentResponse listTrash(
             Pageable pageable,
-            JwtAuthenticationToken token
-    ) {
+            JwtAuthenticationToken token) {
         var townId = getTownId(token);
 
         var folderPage = folderRepository
-            .findByTownTownIdAndDeletedAtIsNotNull(
-                townId,
-                pageable
-            )
-            .map(FolderMapper::toDTO);
+                .findByTownTownIdAndDeletedAtIsNotNull(
+                        townId,
+                        pageable)
+                .map(FolderMapper::toDTO);
 
         var filePage = fileRepository
-            .findByTownTownIdAndDeletedAtIsNotNull(
-                townId,
-                pageable
-            )
-            .map(FileMapper::toResponse);
+                .findByTownTownIdAndDeletedAtIsNotNull(
+                        townId,
+                        pageable)
+                .map(FileMapper::toResponse);
 
         return new FolderContentResponse(
-            PageMapper.toPageResponse(
-                    folderPage
-            ),
-            PageMapper.toPageResponse(
-                    filePage
-            )
-        );
+                PageMapper.toPageResponse(
+                        folderPage),
+                PageMapper.toPageResponse(
+                        filePage));
     }
 
     // Restore folder with children
     @Transactional
     public void restore(UUID folderId, JwtAuthenticationToken token) {
-        UUID townId = getTownId(token); 
+        UUID townId = getTownId(token);
 
         Folder folder = folderRepository
                 .findByFolderIdAndTownTownIdAndDeletedAtIsNotNull(
-                    folderId, townId
-                )
+                        folderId, townId)
                 .orElseThrow(() -> new NotFoundException("folder not found"));
 
         restoreRecursively(folder);
     }
 
     private void collectForRestore(
-        Folder folder,
-        List<Folder> folders,
-        List<File> files
-    ) {
-        if (folder.getDeletedAt() == null) return;
+            Folder folder,
+            List<Folder> folders,
+            List<File> files) {
+        if (folder.getDeletedAt() == null)
+            return;
 
         folders.add(folder);
 
         files.addAll(
-            fileRepository.findByFolderAndDeletedAtIsNotNull(folder)
-        );
+                fileRepository.findByFolderAndDeletedAtIsNotNull(folder));
 
-        List<Folder> children =
-            folderRepository.findByParentAndDeletedAtIsNotNull(folder);
+        List<Folder> children = folderRepository.findByParentAndDeletedAtIsNotNull(folder);
 
         for (Folder child : children) {
             collectForRestore(child, folders, files);
         }
     }
-
 
     @Transactional
     public void restoreRecursively(Folder root) {
@@ -447,8 +412,7 @@ public class FolderService {
         Folder folder = folderRepository
                 .findByFolderIdAndTownTownIdAndDeletedAtIsNull(
                         folderId,
-                        user.getTown().getTownId()
-                )
+                        user.getTown().getTownId())
                 .orElseThrow(() -> new NotFoundException("folder not found"));
 
         folder.setFavorite(!folder.getFavorite());

@@ -4,8 +4,7 @@ import jakarta.validation.constraints.Size;
 
 public record FolderUpdateDTO(
 
-    @Size(min = 1, max = 255)
-    String name,
+        @Size(min = 1, max = 255) String name,
 
-    Boolean favorite
-) { }
+        Boolean favorite) {
+}

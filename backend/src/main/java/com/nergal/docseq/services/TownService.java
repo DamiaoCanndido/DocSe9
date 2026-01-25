@@ -19,31 +19,29 @@ import com.nergal.docseq.repositories.TownRepository;
 public class TownService {
 
     private final TownRepository townRepo;
-    
+
     public TownService(TownRepository townRepo) {
         this.townRepo = townRepo;
     }
 
     @Transactional(readOnly = true)
     public TownContentResponse getAllTowns(Pageable pageable) {
-        
+
         var townPage = townRepo.findAll(pageable);
 
         var townItems = townPage
-            .map(town -> new TownItemDTO(
-                town.getTownId(),
-                town.getName(),
-                town.getUf(),
-                town.getImageUrl()
-            ));
-        
+                .map(town -> new TownItemDTO(
+                        town.getTownId(),
+                        town.getName(),
+                        town.getUf(),
+                        town.getImageUrl()));
+
         return new TownContentResponse(
-            PageMapper.toPageResponse(townItems)
-        );
+                PageMapper.toPageResponse(townItems));
     }
 
     @Transactional
-    public void createTown(TownRequestDTO dto){
+    public void createTown(TownRequestDTO dto) {
         var town = new Town();
         town.setName(dto.name());
         town.setUf(dto.uf());
@@ -64,20 +62,19 @@ public class TownService {
     }
 
     @Transactional
-    public void updateTown(UUID townId, TownUpdateDTO dto){
+    public void updateTown(UUID townId, TownUpdateDTO dto) {
         var town = townRepo.findById(townId)
-            .orElseThrow(() -> new NotFoundException("Town not found"));
-        
+                .orElseThrow(() -> new NotFoundException("Town not found"));
+
         applyUpdates(dto, town);
         townRepo.save(town);
     }
 
     @Transactional
-    public void deleteTown(UUID townId){
+    public void deleteTown(UUID townId) {
         townRepo.findById(townId)
-        .orElseThrow(() -> new NotFoundException(
-            "Town not found"
-        ));
+                .orElseThrow(() -> new NotFoundException(
+                        "Town not found"));
         townRepo.deleteById(townId);
     }
 }

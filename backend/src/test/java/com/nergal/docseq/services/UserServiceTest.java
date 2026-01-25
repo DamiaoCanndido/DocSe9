@@ -1,5 +1,43 @@
 package com.nergal.docseq.services;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+
 import com.nergal.docseq.dto.PageResponse;
 import com.nergal.docseq.dto.roles.RoleItemDTO;
 import com.nergal.docseq.dto.towns.TownItemDTO;
@@ -19,37 +57,6 @@ import com.nergal.docseq.helpers.mappers.PageMapper;
 import com.nergal.docseq.repositories.RoleRepository;
 import com.nergal.docseq.repositories.TownRepository;
 import com.nergal.docseq.repositories.UserRepository;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockedStatic;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.jwt.JwtEncoder;
-import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class UserServiceTest {
@@ -136,7 +143,8 @@ public class UserServiceTest {
         when(mockUser.getUserId()).thenReturn(UUID.randomUUID());
         when(mockUser.isLoginCorrect(any(LoginRequest.class), any(BCryptPasswordEncoder.class))).thenReturn(true);
         when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(mockUser));
-        when(jwtEncoder.encode(any(JwtEncoderParameters.class))).thenReturn(Jwt.withTokenValue("token").header("alg", "none").claim("scope", "basic").build());
+        when(jwtEncoder.encode(any(JwtEncoderParameters.class)))
+                .thenReturn(Jwt.withTokenValue("token").header("alg", "none").claim("scope", "basic").build());
 
         LoginResponse response = userService.login(new LoginRequest("test@example.com", "password"));
 
@@ -167,9 +175,8 @@ public class UserServiceTest {
                 .thenReturn(Optional.of(user)); // Second call for the user to be deleted
 
         JwtAuthenticationToken token = new JwtAuthenticationToken(
-            Jwt.withTokenValue("token").header("alg", "none").claim("sub", userIdToDelete.toString()).build(),
-            Collections.emptyList()
-        );
+                Jwt.withTokenValue("token").header("alg", "none").claim("sub", userIdToDelete.toString()).build(),
+                Collections.emptyList());
         userService.deleteUser(userIdToDelete, token);
 
         verify(userRepository).deleteById(userIdToDelete);
@@ -196,7 +203,8 @@ public class UserServiceTest {
                 .thenReturn(Optional.of(adminUser))
                 .thenReturn(Optional.of(user));
 
-        JwtAuthenticationToken token = new JwtAuthenticationToken(Jwt.withTokenValue("token").header("alg", "none").claim("sub", adminUser.getUserId().toString()).build(), Collections.emptyList());
+        JwtAuthenticationToken token = new JwtAuthenticationToken(Jwt.withTokenValue("token").header("alg", "none")
+                .claim("sub", adminUser.getUserId().toString()).build(), Collections.emptyList());
         userService.deleteUser(user.getUserId(), token);
 
         verify(userRepository).deleteById(user.getUserId());
@@ -220,9 +228,8 @@ public class UserServiceTest {
                 .thenReturn(Optional.empty());
 
         JwtAuthenticationToken token = new JwtAuthenticationToken(
-            Jwt.withTokenValue("token").header("alg", "none").claim("sub", adminId.toString()).build(),
-            Collections.emptyList()
-        );
+                Jwt.withTokenValue("token").header("alg", "none").claim("sub", adminId.toString()).build(),
+                Collections.emptyList());
 
         assertThrows(NotFoundException.class, () -> userService.deleteUser(userToDeleteId, token));
     }
@@ -237,7 +244,9 @@ public class UserServiceTest {
                 .thenReturn(Optional.of(user))
                 .thenReturn(Optional.of(otherUser));
 
-        JwtAuthenticationToken token = new JwtAuthenticationToken(Jwt.withTokenValue("token").header("alg", "none").claim("sub", user.getUserId().toString()).build(), Collections.emptyList());
+        JwtAuthenticationToken token = new JwtAuthenticationToken(
+                Jwt.withTokenValue("token").header("alg", "none").claim("sub", user.getUserId().toString()).build(),
+                Collections.emptyList());
         assertThrows(ForbiddenException.class, () -> userService.deleteUser(otherUser.getUserId(), token));
     }
 
@@ -250,7 +259,8 @@ public class UserServiceTest {
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(townRepository.findByTownId(nonExistentTownId)).thenReturn(Optional.empty());
 
-        UserUpdateDTO updateDTO = new UserUpdateDTO("newuser", "new@example.com", null, "newpass", "newpass", nonExistentTownId);
+        UserUpdateDTO updateDTO = new UserUpdateDTO("newuser", "new@example.com", null, "newpass", "newpass",
+                nonExistentTownId);
         assertThrows(NotFoundException.class, () -> userService.updateUser(userId, updateDTO));
     }
 
@@ -286,7 +296,8 @@ public class UserServiceTest {
         when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(mockUser));
         when(mockUser.isLoginCorrect(any(LoginRequest.class), any(BCryptPasswordEncoder.class))).thenReturn(false);
 
-        assertThrows(BadCredentialsException.class, () -> userService.login(new LoginRequest("test@example.com", "wrongpass")));
+        assertThrows(BadCredentialsException.class,
+                () -> userService.login(new LoginRequest("test@example.com", "wrongpass")));
     }
 
     @DisplayName("Register: Should throw NotFoundException when provided town ID does not exist")
@@ -298,7 +309,8 @@ public class UserServiceTest {
         when(townRepository.findByTownId(any(UUID.class))).thenReturn(Optional.empty()); // Town not found
 
         assertThrows(NotFoundException.class,
-                () -> userService.register(new RegisterUserDTO("user", "email@email.com", "pass", "pass", UUID.randomUUID())));
+                () -> userService
+                        .register(new RegisterUserDTO("user", "email@email.com", "pass", "pass", UUID.randomUUID())));
     }
 
     @DisplayName("Register: Should create basic role if it does not exist")
@@ -374,16 +386,14 @@ public class UserServiceTest {
                 user1.getEmail(),
                 Collections.singletonList(new RoleItemDTO(basicRole.getRoleId(), basicRole.getName())),
                 new TownItemDTO(mockTown.getTownId(), mockTown.getName(), mockTown.getUf(), mockTown.getImageUrl()),
-                user1.getCreatedAt()
-        );
+                user1.getCreatedAt());
         UserItemDTO userItemDTO2 = new UserItemDTO(
                 user2.getUserId(),
                 user2.getUsername(),
                 user2.getEmail(),
                 Collections.singletonList(new RoleItemDTO(adminRole.getRoleId(), adminRole.getName())),
                 new TownItemDTO(mockTown.getTownId(), mockTown.getName(), mockTown.getUf(), mockTown.getImageUrl()),
-                user2.getCreatedAt()
-        );
+                user2.getCreatedAt());
         List<UserItemDTO> userItemDTOList = Arrays.asList(userItemDTO1, userItemDTO2);
         PageResponse<UserItemDTO> pageResponse = new PageResponse<>(userItemDTOList, 0, 10, userList.size(), 1, true);
 
@@ -404,5 +414,5 @@ public class UserServiceTest {
             verify(userRepository).findAll(any(Pageable.class));
             mockedStatic.verify(() -> PageMapper.toPageResponse((Page<?>) any(Page.class)));
         }
-    }   
+    }
 }

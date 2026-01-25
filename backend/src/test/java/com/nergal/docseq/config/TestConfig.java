@@ -1,10 +1,11 @@
 package com.nergal.docseq.config;
 
-import com.nergal.docseq.services.LocalStorageService;
-import com.nergal.docseq.services.StorageService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+
+import com.nergal.docseq.services.LocalStorageService;
+import com.nergal.docseq.services.StorageService;
 
 @Configuration
 @Profile("test")

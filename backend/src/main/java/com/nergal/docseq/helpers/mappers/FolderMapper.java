@@ -5,7 +5,8 @@ import com.nergal.docseq.entities.Folder;
 
 public class FolderMapper {
 
-    private FolderMapper() {}
+    private FolderMapper() {
+    }
 
     public static FolderResponseDTO toDTO(Folder folder) {
         return new FolderResponseDTO(
@@ -16,8 +17,6 @@ public class FolderMapper {
                         : null,
                 folder.getFavorite(),
                 folder.getCreatedAt(),
-                folder.getUpdatedAt()
-        );
+                folder.getUpdatedAt());
     }
 }
-

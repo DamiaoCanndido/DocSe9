@@ -28,33 +28,31 @@ public class FileService {
     private final StorageService storageService;
 
     public FileService(
-        FileRepository fileRepository, 
-        FolderRepository folderRepository, 
-        UserRepository userRepository,
-        StorageService storageService) {
-            this.fileRepository = fileRepository;
-            this.folderRepository = folderRepository;
-            this.userRepository = userRepository;
-            this.storageService = storageService;
+            FileRepository fileRepository,
+            FolderRepository folderRepository,
+            UserRepository userRepository,
+            StorageService storageService) {
+        this.fileRepository = fileRepository;
+        this.folderRepository = folderRepository;
+        this.userRepository = userRepository;
+        this.storageService = storageService;
     }
 
     @Transactional
     public FileResponseDTO upload(
             MultipartFile file,
             UUID folderId,
-            JwtAuthenticationToken token
-    ) {
+            JwtAuthenticationToken token) {
 
         validatePdf(file);
 
         User user = getUser(token);
 
         Folder folder = folderRepository
-            .findByFolderIdAndTownTownIdAndDeletedAtIsNull(
-                folderId, 
-                user.getTown().getTownId()
-            )
-            .orElseThrow(() -> new NotFoundException("Folder not found"));
+                .findByFolderIdAndTownTownIdAndDeletedAtIsNull(
+                        folderId,
+                        user.getTown().getTownId())
+                .orElseThrow(() -> new NotFoundException("Folder not found"));
 
         File entity = new File();
         entity.setName(file.getOriginalFilename());
@@ -90,11 +88,10 @@ public class FileService {
         User user = getUser(token);
 
         File file = fileRepository
-            .findByFileIdAndTownTownIdAndDeletedAtIsNotNull(
-                fileId, 
-                user.getTown().getTownId()
-            )
-            .orElseThrow(() -> new NotFoundException("File not found"));
+                .findByFileIdAndTownTownIdAndDeletedAtIsNotNull(
+                        fileId,
+                        user.getTown().getTownId())
+                .orElseThrow(() -> new NotFoundException("File not found"));
 
         file.setDeletedAt(null);
         file.setDeletedBy(null);
@@ -106,11 +103,10 @@ public class FileService {
         User user = getUser(token);
 
         File file = fileRepository
-            .findByFileIdAndTownTownIdAndDeletedAtIsNotNull(
-                fileId, 
-                user.getTown().getTownId()
-            )
-            .orElseThrow(() -> new NotFoundException("File not found"));
+                .findByFileIdAndTownTownIdAndDeletedAtIsNotNull(
+                        fileId,
+                        user.getTown().getTownId())
+                .orElseThrow(() -> new NotFoundException("File not found"));
 
         if (file.getDeletedAt() == null) {
             throw new BadRequestException("File must be in trash");
@@ -138,7 +134,7 @@ public class FileService {
     }
 
     /* ========================= */
-    /* Helpers                   */
+    /* Helpers */
     /* ========================= */
 
     private void validatePdf(MultipartFile file) {
@@ -148,20 +144,18 @@ public class FileService {
         }
 
         if (!"application/pdf".equalsIgnoreCase(file.getContentType())) {
-            throw new BadRequestException( "Only PDF allowed");
+            throw new BadRequestException("Only PDF allowed");
         }
     }
 
     private File getFileBelongsOrganization(UUID fileId, UUID townId) {
         return fileRepository
-            .findByFileIdAndTownTownIdAndDeletedAtIsNull(
-                fileId, townId
-            )
-            .orElseThrow(() -> new NotFoundException("File not found"));
+                .findByFileIdAndTownTownIdAndDeletedAtIsNull(
+                        fileId, townId)
+                .orElseThrow(() -> new NotFoundException("File not found"));
     }
 
     private User getUser(JwtAuthenticationToken token) {
         return userRepository.getReferenceById(UUID.fromString(token.getName()));
     }
 }
-

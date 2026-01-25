@@ -19,20 +19,17 @@ public class AdminUserConfig implements CommandLineRunner {
     private UserRepository userRepository;
     private BCryptPasswordEncoder passwordEncoder;
     private AdminEnvsConfig adminEnvConfig;
-    
 
-    public AdminUserConfig( 
-        RoleRepository roleRepository, 
-        UserRepository userRepository,
-        BCryptPasswordEncoder passwordEncoder,
-        AdminEnvsConfig adminEnvConfig
-    ) {
+    public AdminUserConfig(
+            RoleRepository roleRepository,
+            UserRepository userRepository,
+            BCryptPasswordEncoder passwordEncoder,
+            AdminEnvsConfig adminEnvConfig) {
         this.roleRepository = roleRepository;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.adminEnvConfig = adminEnvConfig;
     }
-
 
     @Override
     @Transactional
@@ -48,10 +45,10 @@ public class AdminUserConfig implements CommandLineRunner {
             newBasicRole.setName(Role.Values.basic);
             return roleRepository.save(newBasicRole);
         });
-        
+
         var userAdmin = userRepository.findByEmail(adminEnvConfig.getEmail());
 
-         userAdmin.ifPresentOrElse(
+        userAdmin.ifPresentOrElse(
                 user -> {
                     System.out.println("admin already exists");
                 },
@@ -62,8 +59,7 @@ public class AdminUserConfig implements CommandLineRunner {
                     user.setPassword(passwordEncoder.encode(adminEnvConfig.getPassword()));
                     user.setRoles(Set.of(adminRole));
                     userRepository.save(user);
-                }
-        );
+                });
     }
 
 }

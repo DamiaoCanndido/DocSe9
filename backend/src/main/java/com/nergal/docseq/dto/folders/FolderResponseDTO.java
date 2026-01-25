@@ -4,11 +4,10 @@ import java.time.Instant;
 import java.util.UUID;
 
 public record FolderResponseDTO(
-    UUID folderId,
-    String name,
-    UUID parentId,
-    boolean favorite,
-    Instant createdAt,
-    Instant updatedAt
-) {}
-
+        UUID folderId,
+        String name,
+        UUID parentId,
+        boolean favorite,
+        Instant createdAt,
+        Instant updatedAt) {
+}

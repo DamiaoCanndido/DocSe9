@@ -6,11 +6,9 @@ import jakarta.validation.constraints.Size;
 
 public record FileUpdateDTO(
 
-    @Size(min = 1, max = 255)
-    String name,
+        @Size(min = 1, max = 255) String name,
 
-    UUID folderId,
+        UUID folderId,
 
-    Boolean favorite
-) {}
-
+        Boolean favorite) {
+}

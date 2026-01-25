@@ -13,6 +13,7 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.nergal.docseq.dto.roles.RoleItemDTO;
 import com.nergal.docseq.dto.towns.TownItemDTO;
@@ -32,8 +33,6 @@ import com.nergal.docseq.helpers.mappers.PageMapper;
 import com.nergal.docseq.repositories.RoleRepository;
 import com.nergal.docseq.repositories.TownRepository;
 import com.nergal.docseq.repositories.UserRepository;
-
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UserService {
@@ -61,8 +60,8 @@ public class UserService {
     @Transactional
     public void register(RegisterUserDTO dto) {
 
-        if (userRepository.findByEmail(dto.email()).isPresent() || 
-            userRepository.findByUsername(dto.username()).isPresent()) {
+        if (userRepository.findByEmail(dto.email()).isPresent() ||
+                userRepository.findByUsername(dto.username()).isPresent()) {
             throw new UnprocessableContentException("user already exists");
         }
 
@@ -76,8 +75,7 @@ public class UserService {
 
         if (dto.townId() != null) {
             town = townRepository.findByTownId(dto.townId()).orElseThrow(
-                () -> new NotFoundException("Town not found")
-            );    
+                    () -> new NotFoundException("Town not found"));
         }
 
         var user = new User();
@@ -91,7 +89,7 @@ public class UserService {
     }
 
     @Transactional
-    public LoginResponse login(LoginRequest loginRequest){
+    public LoginResponse login(LoginRequest loginRequest) {
         var user = userRepository.findByEmail(loginRequest.email());
 
         if (user.isEmpty() || !user.get().isLoginCorrect(loginRequest, passwordEncoder)) {
@@ -102,22 +100,20 @@ public class UserService {
         var expiresIn = 300L;
 
         var role = user.get().getRoles()
-            .stream()
-            .map(Role::getName)
-            .map(Role.Values::name)
-            .collect(Collectors.joining(" "));
-
+                .stream()
+                .map(Role::getName)
+                .map(Role.Values::name)
+                .collect(Collectors.joining(" "));
 
         var scopes = String.join(" ", role);
 
-
         var claims = JwtClaimsSet.builder()
-            .issuer("nergal.com")
-            .subject(user.get().getUserId().toString())
-            .expiresAt(now.plusSeconds(expiresIn))
-            .claim("scope", scopes)
-            .issuedAt(now)
-            .build();
+                .issuer("nergal.com")
+                .subject(user.get().getUserId().toString())
+                .expiresAt(now.plusSeconds(expiresIn))
+                .claim("scope", scopes)
+                .issuedAt(now)
+                .build();
 
         var jwtValue = jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
 
@@ -125,31 +121,27 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public UserContentResponse listUsers(Pageable pageable){
-        var users = userRepository.findAll(pageable)   
-            .map(user -> 
-                new UserItemDTO(
-                    user.getUserId(),
-                    user.getUsername(),
-                    user.getEmail(),
-                    user.getRoles()
-                        .stream()
-                        .map(role -> new RoleItemDTO(
-                            role.getRoleId(), 
-                            role.getName()
-                        )).collect(Collectors.toList()),
-                    user.getTown() != null ? new TownItemDTO(
-                        user.getTown().getTownId(),
-                        user.getTown().getName(),
-                        user.getTown().getUf(),
-                        user.getTown().getImageUrl()
-                    ) : null,
-                    user.getCreatedAt()
-                ));
+    public UserContentResponse listUsers(Pageable pageable) {
+        var users = userRepository.findAll(pageable)
+                .map(user -> new UserItemDTO(
+                        user.getUserId(),
+                        user.getUsername(),
+                        user.getEmail(),
+                        user.getRoles()
+                                .stream()
+                                .map(role -> new RoleItemDTO(
+                                        role.getRoleId(),
+                                        role.getName()))
+                                .collect(Collectors.toList()),
+                        user.getTown() != null ? new TownItemDTO(
+                                user.getTown().getTownId(),
+                                user.getTown().getName(),
+                                user.getTown().getUf(),
+                                user.getTown().getImageUrl()) : null,
+                        user.getCreatedAt()));
 
         return new UserContentResponse(
-            PageMapper.toPageResponse(users)
-        );
+                PageMapper.toPageResponse(users));
     }
 
     protected void applyUpdates(User entity, UserUpdateDTO dto) {
@@ -164,15 +156,15 @@ public class UserService {
         }
         if (dto.townId() != null) {
             var town = townRepository.findByTownId(dto.townId())
-                .orElseThrow(() -> new NotFoundException("Town not found"));
+                    .orElseThrow(() -> new NotFoundException("Town not found"));
             entity.setTown(town);
         }
     }
 
     @Transactional
-    public void updateUser(UUID userId, UserUpdateDTO dto){
+    public void updateUser(UUID userId, UserUpdateDTO dto) {
         var user = userRepository.findById(userId)
-            .orElseThrow(() -> new NotFoundException("User not found"));
+                .orElseThrow(() -> new NotFoundException("User not found"));
 
         applyUpdates(user, dto);
 
@@ -180,15 +172,15 @@ public class UserService {
     }
 
     @Transactional
-    public void deleteUser(UUID userId, JwtAuthenticationToken token){
+    public void deleteUser(UUID userId, JwtAuthenticationToken token) {
         var user = userRepository.findById(UUID.fromString(token.getName()));
 
         var isAdmin = user.get().getRoles()
-            .stream()
-            .anyMatch(role -> role.getName().name().equalsIgnoreCase(Role.Values.admin.name()));
+                .stream()
+                .anyMatch(role -> role.getName().name().equalsIgnoreCase(Role.Values.admin.name()));
 
         var userToDelete = userRepository.findById(userId)
-            .orElseThrow(() -> new NotFoundException("User not found"));
+                .orElseThrow(() -> new NotFoundException("User not found"));
 
         if (isAdmin || userToDelete.getUserId().equals(UUID.fromString(token.getName()))) {
             userRepository.deleteById(userId);

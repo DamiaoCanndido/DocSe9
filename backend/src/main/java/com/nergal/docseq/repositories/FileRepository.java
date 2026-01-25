@@ -18,9 +18,8 @@ public interface FileRepository extends JpaRepository<File, UUID>, JpaSpecificat
 
     // List files in a folder
     Page<File> findByFolderFolderIdAndDeletedAtIsNull(
-        UUID folderId,
-        Pageable page
-    );
+            UUID folderId,
+            Pageable page);
 
     // List files by folder id
     List<File> findByFolderFolderId(UUID folderId);
@@ -30,45 +29,38 @@ public interface FileRepository extends JpaRepository<File, UUID>, JpaSpecificat
 
     // List files in the root directory.
     Page<File> findByFolderIsNullAndTownTownIdAndDeletedAtIsNull(
-        UUID townId,
-        Pageable page
-    );
+            UUID townId,
+            Pageable page);
 
     // Search for favorite files
     Page<File> findByTownTownIdAndFavoriteTrueAndDeletedAtIsNull(
-        UUID townId,
-        Pageable page
-    );
+            UUID townId,
+            Pageable page);
 
     // Recycle Bin – Deleted Files
     Page<File> findByTownTownIdAndDeletedAtIsNotNull(
-        UUID townId,
-        Pageable page
-    );
+            UUID townId,
+            Pageable page);
 
     // Search for files securely
     Optional<File> findByFileIdAndTownTownIdAndDeletedAtIsNull(
-        UUID fileId,
-        UUID townId
-    );
+            UUID fileId,
+            UUID townId);
 
     // Search for files soft deleted
     Optional<File> findByFileIdAndTownTownIdAndDeletedAtIsNotNull(
-        UUID fileId,
-        UUID townId
-    );
+            UUID fileId,
+            UUID townId);
 
     // Search for folder id and town id
     Optional<File> findByFolderFolderIdAndTownTownIdAndDeletedAtIsNull(
-        UUID folderId,
-        UUID townId
-    );
+            UUID folderId,
+            UUID townId);
 
     // Check for duplicate names in the same folder
     boolean existsByNameAndFolderAndDeletedAtIsNull(
-        String name,
-        Folder folder
-    );
+            String name,
+            Folder folder);
 
     // Search for restore
     Optional<File> findByFileIdAndDeletedAtIsNotNull(UUID fileId);

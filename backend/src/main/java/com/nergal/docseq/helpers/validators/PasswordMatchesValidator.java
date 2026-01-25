@@ -8,7 +8,8 @@ public class PasswordMatchesValidator
 
     @Override
     public boolean isValid(PasswordConfirmable value, ConstraintValidatorContext context) {
-        if (value == null) return true;
+        if (value == null)
+            return true;
 
         String password = value.password();
         String confirmPassword = value.confirmPassword();
@@ -24,4 +25,3 @@ public class PasswordMatchesValidator
         return password.equals(confirmPassword);
     }
 }
-

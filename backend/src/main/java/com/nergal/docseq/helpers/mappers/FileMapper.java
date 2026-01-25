@@ -5,7 +5,8 @@ import com.nergal.docseq.entities.File;
 
 public final class FileMapper {
 
-    private FileMapper() {}
+    private FileMapper() {
+    }
 
     public static FileResponseDTO toResponse(File entity) {
         if (entity == null) {
@@ -26,7 +27,6 @@ public final class FileMapper {
                         : null,
                 entity.getUpdatedBy() != null
                         ? entity.getUploadedBy().getUsername()
-                        : null
-        );
+                        : null);
     }
 }

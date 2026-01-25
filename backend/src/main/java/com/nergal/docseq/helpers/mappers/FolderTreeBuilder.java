@@ -11,7 +11,8 @@ import com.nergal.docseq.entities.Folder;
 
 public class FolderTreeBuilder {
 
-    private FolderTreeBuilder() {}
+    private FolderTreeBuilder() {
+    }
 
     public static List<FolderTreeResponseDTO> build(List<Folder> folders) {
 
@@ -21,26 +22,22 @@ public class FolderTreeBuilder {
 
         for (Folder folder : folders) {
             folderMap.put(
-                folder.getFolderId(),
+                    folder.getFolderId(),
                     new FolderTreeResponseDTO(
-                        folder.getFolderId(),
-                        folder.getName(),
-                        folder.getFavorite(),
-                        new ArrayList<>()
-                    )
-            );
+                            folder.getFolderId(),
+                            folder.getName(),
+                            folder.getFavorite(),
+                            new ArrayList<>()));
         }
 
         for (Folder folder : folders) {
 
-            FolderTreeResponseDTO current =
-                    folderMap.get(folder.getFolderId());
+            FolderTreeResponseDTO current = folderMap.get(folder.getFolderId());
 
             if (folder.getParent() == null) {
                 roots.add(current);
             } else {
-                FolderTreeResponseDTO parent =
-                        folderMap.get(folder.getParent().getFolderId());
+                FolderTreeResponseDTO parent = folderMap.get(folder.getParent().getFolderId());
 
                 if (parent != null) {
                     parent.children().add(current);
@@ -51,4 +48,3 @@ public class FolderTreeBuilder {
         return roots;
     }
 }
-

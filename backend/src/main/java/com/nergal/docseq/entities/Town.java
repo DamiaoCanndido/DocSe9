@@ -15,7 +15,7 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "tb_town")
 public class Town {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "town_id")
@@ -30,11 +30,7 @@ public class Town {
     @Column(name = "image_url")
     private String imageUrl;
 
-    @OneToMany(
-        mappedBy = "town",
-        cascade = CascadeType.REMOVE,
-        orphanRemoval = true
-    )
+    @OneToMany(mappedBy = "town", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<User> users;
 
     public UUID getTownId() {
