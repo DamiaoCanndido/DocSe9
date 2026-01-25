@@ -18,4 +18,5 @@
 
 ### Testes
 
-1. Analise o teste uniário em `./backend/src/test/java/com/docse9/repositories/UserRepositoryTest.java` e escreva outros testes nesse arquivo conforme necessário.
+1. Analise o teste unitário em `./backend/src/test/java/com/docseq/repositories/UserRepositoryTest.java` e escreva outros testes nesse arquivo conforme necessário.
+2. Agora analise o arquivo `./backend/src/main/java/com/docseq/services/UserServices.java` e me escreva os testes necessários para cada metodo nesse arquivo.
