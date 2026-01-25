@@ -1,9 +1,9 @@
 package com.nergal.docseq.services;
 
 import java.time.Instant;
-import java.util.Set;
+
 import java.util.UUID;
-import java.util.stream.Collectors;
+
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -82,7 +82,7 @@ public class UserService {
         user.setUsername(dto.username());
         user.setEmail(dto.email());
         user.setPassword(passwordEncoder.encode(dto.password()));
-        user.setRoles(Set.of(basicRole));
+        user.setRole(basicRole);
         user.setTown(town);
 
         userRepository.save(user);
@@ -99,13 +99,9 @@ public class UserService {
         var now = Instant.now();
         var expiresIn = 300L;
 
-        var role = user.get().getRoles()
-                .stream()
-                .map(Role::getName)
-                .map(Role.Values::name)
-                .collect(Collectors.joining(" "));
+        var role = user.get().getRole().getName().name();
 
-        var scopes = String.join(" ", role);
+        var scopes = role;
 
         var claims = JwtClaimsSet.builder()
                 .issuer("nergal.com")
@@ -127,12 +123,9 @@ public class UserService {
                         user.getUserId(),
                         user.getUsername(),
                         user.getEmail(),
-                        user.getRoles()
-                                .stream()
-                                .map(role -> new RoleItemDTO(
-                                        role.getRoleId(),
-                                        role.getName()))
-                                .collect(Collectors.toList()),
+                        new RoleItemDTO(
+                                user.getRole().getRoleId(),
+                                user.getRole().getName()),
                         user.getTown() != null ? new TownItemDTO(
                                 user.getTown().getTownId(),
                                 user.getTown().getName(),
@@ -150,6 +143,11 @@ public class UserService {
         }
         if (dto.email() != null) {
             entity.setEmail(dto.email());
+        }
+        if (dto.role() != null) {
+            var newRole = roleRepository.findByName(dto.role())
+                    .orElseThrow(() -> new NotFoundException("Role not found"));
+            entity.setRole(newRole);
         }
         if (dto.password() != null && !dto.password().isEmpty()) {
             entity.setPassword(passwordEncoder.encode(dto.password()));
@@ -175,9 +173,7 @@ public class UserService {
     public void deleteUser(UUID userId, JwtAuthenticationToken token) {
         var user = userRepository.findById(UUID.fromString(token.getName()));
 
-        var isAdmin = user.get().getRoles()
-                .stream()
-                .anyMatch(role -> role.getName().name().equalsIgnoreCase(Role.Values.admin.name()));
+        var isAdmin = user.get().getRole().getName().name().equalsIgnoreCase(Role.Values.admin.name());
 
         var userToDelete = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found"));

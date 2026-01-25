@@ -1,7 +1,6 @@
 package com.nergal.docseq.entities;
 
 import java.time.LocalDateTime;
-import java.util.Set;
 import java.util.UUID;
 
 import org.hibernate.annotations.CreationTimestamp;
@@ -11,7 +10,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.nergal.docseq.dto.users.LoginRequest;
 
 // javax not found
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -19,8 +17,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
@@ -42,9 +38,9 @@ public class User {
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
-    @ManyToMany(cascade = CascadeType.PERSIST, fetch = FetchType.EAGER)
-    @JoinTable(name = "tb_users_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
-    private Set<Role> roles;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "role_id")
+    private Role role;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "town_id")
@@ -69,8 +65,8 @@ public class User {
         return password;
     }
 
-    public Set<Role> getRoles() {
-        return roles;
+    public Role getRole() {
+        return role;
     }
 
     public void setUserId(UUID userId) {
@@ -89,16 +85,8 @@ public class User {
         this.password = password;
     }
 
-    public void setRoles(Set<Role> roles) {
-        this.roles = roles;
-    }
-
-    public void addRole(Role newRole) {
-        this.roles.add(newRole);
-    }
-
-    public void removeRole(Role role) {
-        this.roles.remove(role);
+    public void setRole(Role role) {
+        this.role = role;
     }
 
     public Town getTown() {

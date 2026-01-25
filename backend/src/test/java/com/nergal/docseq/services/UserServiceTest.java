@@ -10,12 +10,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import org.mockito.Mockito;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
+
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -90,11 +91,10 @@ public class UserServiceTest {
         user.setUserId(UUID.randomUUID());
         user.setUsername("testuser");
         user.setEmail("test@example.com");
-        user.setPassword("password");
-
         basicRole = new Role();
+        basicRole.setRoleId(2L); // Example ID
         basicRole.setName(Role.Values.basic);
-        user.setRoles(Set.of(basicRole));
+        user.setRole(basicRole);
 
         townId = UUID.randomUUID();
         town = new Town();
@@ -109,7 +109,7 @@ public class UserServiceTest {
     void register_shouldThrowException_whenUserExists() {
         when(userRepository.findByEmail(any())).thenReturn(Optional.of(user));
         assertThrows(UnprocessableContentException.class,
-                () -> userService.register(new RegisterUserDTO("user", "test@example.com", "pass", "pass", townId)));
+                () -> userService.register(new RegisterUserDTO("user", "test@example.com", Role.Values.basic, "pass", "pass", townId)));
     }
 
     @DisplayName("Register: Should successfully register a new user with a town")
@@ -122,7 +122,7 @@ public class UserServiceTest {
         when(townRepository.findByTownId(any(UUID.class))).thenReturn(Optional.of(town));
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
 
-        userService.register(new RegisterUserDTO("user", "email@email.com", "pass", "pass", townId));
+        userService.register(new RegisterUserDTO("user", "email@email.com", Role.Values.basic, "pass", "pass", townId));
 
         verify(userRepository).save(userCaptor.capture());
         User savedUser = userCaptor.getValue();
@@ -140,8 +140,11 @@ public class UserServiceTest {
     @Test
     void login_shouldReturnLoginResponse() {
         User mockUser = mock(User.class);
+        Role mockRole = new Role();
+        mockRole.setName(Role.Values.basic);
         when(mockUser.getUserId()).thenReturn(UUID.randomUUID());
         when(mockUser.isLoginCorrect(any(LoginRequest.class), any(BCryptPasswordEncoder.class))).thenReturn(true);
+        when(mockUser.getRole()).thenReturn(mockRole);
         when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(mockUser));
         when(jwtEncoder.encode(any(JwtEncoderParameters.class)))
                 .thenReturn(Jwt.withTokenValue("token").header("alg", "none").claim("scope", "basic").build());
@@ -157,8 +160,9 @@ public class UserServiceTest {
     void updateUser_shouldUpdateUserData() {
         when(userRepository.findById(any())).thenReturn(Optional.of(user));
         when(townRepository.findByTownId(any(UUID.class))).thenReturn(Optional.of(town));
+        when(roleRepository.findByName(Role.Values.basic)).thenReturn(Optional.of(basicRole));
 
-        UserUpdateDTO updateDTO = new UserUpdateDTO("newuser", "new@example.com", null, "newpass", "newpass", townId);
+        UserUpdateDTO updateDTO = new UserUpdateDTO("newuser", "new@example.com", Role.Values.basic, "newpass", "newpass", townId);
         userService.updateUser(user.getUserId(), updateDTO);
 
         verify(userRepository).save(any(User.class));
@@ -168,7 +172,7 @@ public class UserServiceTest {
     @Test
     void deleteUser_shouldDeleteOwnAccount() {
         UUID userIdToDelete = user.getUserId(); // User trying to delete themselves
-        user.setRoles(Set.of(basicRole)); // Ensure the user is a basic user
+        user.setRole(basicRole); // Ensure the user is a basic user
 
         when(userRepository.findById(userIdToDelete))
                 .thenReturn(Optional.of(user)) // First call for the user performing the action
@@ -186,7 +190,7 @@ public class UserServiceTest {
     @Test
     void updateUser_shouldThrowException_whenUserNotFound() {
         when(userRepository.findById(any())).thenReturn(Optional.empty());
-        UserUpdateDTO updateDTO = new UserUpdateDTO("newuser", "new@example.com", null, "newpass", "newpass", townId);
+        UserUpdateDTO updateDTO = new UserUpdateDTO("newuser", "new@example.com", Role.Values.basic, "newpass", "newpass", townId);
         assertThrows(NotFoundException.class, () -> userService.updateUser(UUID.randomUUID(), updateDTO));
     }
 
@@ -196,8 +200,9 @@ public class UserServiceTest {
         Role adminRole = new Role();
         adminRole.setName(Role.Values.admin);
         User adminUser = new User();
+
         adminUser.setUserId(UUID.randomUUID());
-        adminUser.setRoles(Set.of(adminRole));
+        adminUser.setRole(adminRole);
 
         when(userRepository.findById(any(UUID.class)))
                 .thenReturn(Optional.of(adminUser))
@@ -220,7 +225,7 @@ public class UserServiceTest {
         adminRole.setName(Role.Values.admin);
         User adminUser = new User();
         adminUser.setUserId(adminId);
-        adminUser.setRoles(Set.of(adminRole));
+        adminUser.setRole(adminRole);
 
         when(userRepository.findById(adminId)) // User performing the action (admin)
                 .thenReturn(Optional.of(adminUser));
@@ -238,8 +243,10 @@ public class UserServiceTest {
     @Test
     void deleteUser_shouldThrowException_whenNotAdmin() {
         user.setUserId(UUID.randomUUID());
+        user.setRole(basicRole);
         User otherUser = new User();
         otherUser.setUserId(UUID.randomUUID());
+        otherUser.setRole(basicRole);
         when(userRepository.findById(any(UUID.class)))
                 .thenReturn(Optional.of(user))
                 .thenReturn(Optional.of(otherUser));
@@ -257,9 +264,9 @@ public class UserServiceTest {
         UUID nonExistentTownId = UUID.randomUUID();
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(townRepository.findByTownId(nonExistentTownId)).thenReturn(Optional.empty());
+        Mockito.lenient().when(townRepository.findByTownId(nonExistentTownId)).thenReturn(Optional.empty());
 
-        UserUpdateDTO updateDTO = new UserUpdateDTO("newuser", "new@example.com", null, "newpass", "newpass",
+        UserUpdateDTO updateDTO = new UserUpdateDTO("newuser", "new@example.com", Role.Values.basic, "newpass", "newpass",
                 nonExistentTownId);
         assertThrows(NotFoundException.class, () -> userService.updateUser(userId, updateDTO));
     }
@@ -276,8 +283,9 @@ public class UserServiceTest {
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(passwordEncoder.encode(newPassword)).thenReturn(encodedNewPassword);
+        when(roleRepository.findByName(Role.Values.basic)).thenReturn(Optional.of(basicRole));
 
-        UserUpdateDTO updateDTO = new UserUpdateDTO(newUsername, newEmail, null, newPassword, newPassword, null);
+        UserUpdateDTO updateDTO = new UserUpdateDTO(newUsername, newEmail, Role.Values.basic, newPassword, newPassword, null);
         userService.updateUser(userId, updateDTO);
 
         verify(userRepository).save(userCaptor.capture());
@@ -310,7 +318,7 @@ public class UserServiceTest {
 
         assertThrows(NotFoundException.class,
                 () -> userService
-                        .register(new RegisterUserDTO("user", "email@email.com", "pass", "pass", UUID.randomUUID())));
+                        .register(new RegisterUserDTO("user", "email@email.com", Role.Values.basic, "pass", "pass", UUID.randomUUID())));
     }
 
     @DisplayName("Register: Should create basic role if it does not exist")
@@ -323,7 +331,7 @@ public class UserServiceTest {
         when(townRepository.findByTownId(any(UUID.class))).thenReturn(Optional.of(town)); // Town found
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
 
-        userService.register(new RegisterUserDTO("user", "email@email.com", "pass", "pass", townId));
+        userService.register(new RegisterUserDTO("user", "email@email.com", Role.Values.basic, "pass", "pass", townId));
 
         verify(roleRepository).save(any(Role.class)); // Verify that basic role was saved
         verify(userRepository).save(any(User.class));
@@ -338,7 +346,7 @@ public class UserServiceTest {
         when(roleRepository.findByName(Role.Values.basic)).thenReturn(Optional.of(basicRole));
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
 
-        userService.register(new RegisterUserDTO("user", "email@email.com", "pass", "pass", null));
+        userService.register(new RegisterUserDTO("user", "email@email.com", Role.Values.basic, "pass", "pass", null));
 
         verify(userRepository).save(userCaptor.capture());
         User savedUser = userCaptor.getValue();
@@ -363,14 +371,14 @@ public class UserServiceTest {
         user1.setUserId(UUID.randomUUID());
         user1.setUsername("user1");
         user1.setEmail("user1@example.com");
-        user1.setRoles(Set.of(basicRole));
+        user1.setRole(basicRole);
         user1.setTown(mockTown);
 
         User user2 = new User();
         user2.setUserId(UUID.randomUUID());
         user2.setUsername("user2");
         user2.setEmail("user2@example.com");
-        user2.setRoles(Set.of(adminRole));
+        user2.setRole(adminRole);
         user2.setTown(mockTown);
 
         List<User> userList = Arrays.asList(user1, user2);
@@ -384,14 +392,14 @@ public class UserServiceTest {
                 user1.getUserId(),
                 user1.getUsername(),
                 user1.getEmail(),
-                Collections.singletonList(new RoleItemDTO(basicRole.getRoleId(), basicRole.getName())),
+                new RoleItemDTO(basicRole.getRoleId(), basicRole.getName()),
                 new TownItemDTO(mockTown.getTownId(), mockTown.getName(), mockTown.getUf(), mockTown.getImageUrl()),
                 user1.getCreatedAt());
         UserItemDTO userItemDTO2 = new UserItemDTO(
                 user2.getUserId(),
                 user2.getUsername(),
                 user2.getEmail(),
-                Collections.singletonList(new RoleItemDTO(adminRole.getRoleId(), adminRole.getName())),
+                new RoleItemDTO(adminRole.getRoleId(), adminRole.getName()),
                 new TownItemDTO(mockTown.getTownId(), mockTown.getName(), mockTown.getUf(), mockTown.getImageUrl()),
                 user2.getCreatedAt());
         List<UserItemDTO> userItemDTOList = Arrays.asList(userItemDTO1, userItemDTO2);

@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Optional;
-import java.util.Set;
+
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -50,7 +50,7 @@ class UserRepositoryTest {
         user.setEmail("teste@email.com");
         user.setUsername("João Silva");
         user.setPassword("123456");
-        user.setRoles(Set.of(userRole));
+        user.setRole(userRole);
     }
 
     @Test

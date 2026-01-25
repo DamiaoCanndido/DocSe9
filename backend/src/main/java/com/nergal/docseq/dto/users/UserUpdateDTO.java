@@ -13,20 +13,15 @@ import jakarta.validation.constraints.Size;
 
 @PasswordMatches
 public record UserUpdateDTO(
-    @Size(min = 3, message = "Username must be at least 3 characters long")
-    String username, 
+        @Size(min = 3, message = "Username must be at least 3 characters long") String username,
 
-    @Email(message = "Email should be valid")
-    String email,
+        @Email(message = "Email should be valid") String email,
 
-    @Enumerated(EnumType.STRING)
-    Role.Values role,
+        @Enumerated(EnumType.STRING) Role.Values role,
 
-    @Size(min = 6, message = "Password must have at least 6 characters")
-    String password, 
+        @Size(min = 6, message = "Password must have at least 6 characters") String password,
 
-    @Size(min = 6, message = "Password must have at least 6 characters")
-    String confirmPassword,
+        @Size(min = 6, message = "Password must have at least 6 characters") String confirmPassword,
 
-    UUID townId
-) implements PasswordConfirmable { }
+        UUID townId) implements PasswordConfirmable {
+}

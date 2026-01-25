@@ -1,6 +1,6 @@
 package com.nergal.docseq.config;
 
-import java.util.Set;
+// import java.util.Set;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Configuration;
@@ -57,7 +57,7 @@ public class AdminUserConfig implements CommandLineRunner {
                     user.setUsername(adminEnvConfig.getUsername());
                     user.setEmail(adminEnvConfig.getEmail());
                     user.setPassword(passwordEncoder.encode(adminEnvConfig.getPassword()));
-                    user.setRoles(Set.of(adminRole));
+                    user.setRole(adminRole);
                     userRepository.save(user);
                 });
     }
