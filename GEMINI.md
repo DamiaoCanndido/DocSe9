@@ -15,3 +15,7 @@
 
 - `POST /login`: Recebe LoginDTO, retorna um LoginResponse.
 - `POST /register`: Recebe RegisterUserDTO Cria novo usuário e retorna void.
+
+### Testes
+
+1. Analise o teste uniário em `./backend/src/test/java/com/docse9/repositories/UserRepositoryTest.java` e escreva outros testes nesse arquivo conforme necessário.

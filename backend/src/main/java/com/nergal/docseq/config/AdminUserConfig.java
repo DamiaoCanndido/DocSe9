@@ -37,7 +37,18 @@ public class AdminUserConfig implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) throws Exception {
-        var roleAdmin = roleRepository.findByName(Role.Values.admin);
+        Role adminRole = roleRepository.findByName(Role.Values.admin).orElseGet(() -> {
+            Role newAdminRole = new Role();
+            newAdminRole.setName(Role.Values.admin);
+            return roleRepository.save(newAdminRole);
+        });
+
+        roleRepository.findByName(Role.Values.basic).orElseGet(() -> {
+            Role newBasicRole = new Role();
+            newBasicRole.setName(Role.Values.basic);
+            return roleRepository.save(newBasicRole);
+        });
+        
         var userAdmin = userRepository.findByEmail(adminEnvConfig.getEmail());
 
          userAdmin.ifPresentOrElse(
@@ -49,7 +60,7 @@ public class AdminUserConfig implements CommandLineRunner {
                     user.setUsername(adminEnvConfig.getUsername());
                     user.setEmail(adminEnvConfig.getEmail());
                     user.setPassword(passwordEncoder.encode(adminEnvConfig.getPassword()));
-                    user.setRoles(Set.of(roleAdmin));
+                    user.setRoles(Set.of(adminRole));
                     userRepository.save(user);
                 }
         );

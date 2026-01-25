@@ -66,7 +66,11 @@ public class UserService {
             throw new UnprocessableContentException("user already exists");
         }
 
-        var basicRole = roleRepository.findByName(Role.Values.basic);
+        var basicRole = roleRepository.findByName(Role.Values.basic).orElseGet(() -> {
+            var newBasicRole = new Role();
+            newBasicRole.setName(Role.Values.basic);
+            return roleRepository.save(newBasicRole);
+        });
 
         Town town = null;
 

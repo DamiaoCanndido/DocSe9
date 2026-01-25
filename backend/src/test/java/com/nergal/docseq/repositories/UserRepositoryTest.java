@@ -45,7 +45,7 @@ class UserRepositoryTest {
         roleRepository.save(roleBasic);
         roleRepository.save(roleAdmin);
 
-        var userRole = roleRepository.findByName(Role.Values.basic);
+        var userRole = roleRepository.findByName(Role.Values.basic).get();
         user.setEmail("teste@email.com");
         user.setUsername("João Silva");
         user.setPassword("123456");
@@ -63,5 +63,29 @@ class UserRepositoryTest {
         assertTrue(result.isPresent());
         assertEquals("teste@email.com", result.get().getEmail());
         assertEquals("João Silva", result.get().getUsername());
+    }
+
+    @Test
+    @DisplayName("Should not find user by email if email does not exist")
+    void shouldNotFindByEmail_WhenEmailDoesNotExist() {
+        Optional<User> result = userRepository.findByEmail("nonexistent@email.com");
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    @DisplayName("You should be able to find the user by username if a username exists.")
+    void shouldFindByUsername_WhenUsernameExists() {
+        userRepository.save(user);
+        Optional<User> result = userRepository.findByUsername("João Silva");
+        assertTrue(result.isPresent());
+        assertEquals("teste@email.com", result.get().getEmail());
+        assertEquals("João Silva", result.get().getUsername());
+    }
+
+    @Test
+    @DisplayName("Should not find user by username if username does not exist")
+    void shouldNotFindByUsername_WhenUsernameDoesNotExist() {
+        Optional<User> result = userRepository.findByUsername("NonExistentUser");
+        assertTrue(result.isEmpty());
     }
 }
