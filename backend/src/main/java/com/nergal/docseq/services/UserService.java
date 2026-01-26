@@ -1,9 +1,7 @@
 package com.nergal.docseq.services;
 
 import java.time.Instant;
-
 import java.util.UUID;
-
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -65,13 +63,19 @@ public class UserService {
             throw new UnprocessableContentException("user already exists");
         }
 
-        var basicRole = roleRepository.findByName(Role.Values.basic).orElseGet(() -> {
-            var newBasicRole = new Role();
-            newBasicRole.setName(Role.Values.basic);
-            return roleRepository.save(newBasicRole);
+        // Fetch the role specified in the DTO
+        var userRole = roleRepository.findByName(dto.role()).orElseGet(() -> {
+            var newRole = new Role();
+            newRole.setName(dto.role());
+            return roleRepository.save(newRole);
         });
 
         Town town = null;
+
+        // Conditional validation for townId based on the actual userRole
+        if (userRole.getName().equals(Role.Values.basic) && dto.townId() == null) {
+            throw new UnprocessableContentException("Town must be provided for basic users");
+        }
 
         if (dto.townId() != null) {
             town = townRepository.findByTownId(dto.townId()).orElseThrow(
@@ -82,7 +86,7 @@ public class UserService {
         user.setUsername(dto.username());
         user.setEmail(dto.email());
         user.setPassword(passwordEncoder.encode(dto.password()));
-        user.setRole(basicRole);
+        user.setRole(userRole); // Set the role based on the DTO
         user.setTown(town);
 
         userRepository.save(user);

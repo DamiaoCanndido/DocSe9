@@ -2,7 +2,6 @@ package com.nergal.docseq.services;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -10,13 +9,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import org.mockito.Mockito;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -27,6 +24,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -102,6 +100,8 @@ public class UserServiceTest {
         town.setName("Test Town");
         town.setUf("TT");
         town.setImageUrl("http://example.com/image.png");
+
+        user.setTown(town);
     }
 
     @DisplayName("Register: Should throw UnprocessableContentException when user already exists")
@@ -109,7 +109,8 @@ public class UserServiceTest {
     void register_shouldThrowException_whenUserExists() {
         when(userRepository.findByEmail(any())).thenReturn(Optional.of(user));
         assertThrows(UnprocessableContentException.class,
-                () -> userService.register(new RegisterUserDTO("user", "test@example.com", Role.Values.basic, "pass", "pass", townId)));
+                () -> userService.register(
+                        new RegisterUserDTO("user", "test@example.com", Role.Values.basic, "pass", "pass", townId)));
     }
 
     @DisplayName("Register: Should successfully register a new user with a town")
@@ -119,14 +120,14 @@ public class UserServiceTest {
         when(userRepository.findByEmail(any())).thenReturn(Optional.empty());
         when(userRepository.findByUsername(any())).thenReturn(Optional.empty());
         when(roleRepository.findByName(Role.Values.basic)).thenReturn(Optional.of(basicRole));
-        when(townRepository.findByTownId(any(UUID.class))).thenReturn(Optional.of(town));
+        when(townRepository.findByTownId(any(UUID.class))).thenReturn(Optional.of(town)); // Ensure town is found
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
 
         userService.register(new RegisterUserDTO("user", "email@email.com", Role.Values.basic, "pass", "pass", townId));
 
         verify(userRepository).save(userCaptor.capture());
         User savedUser = userCaptor.getValue();
-        assertNotNull(savedUser.getTown(), "Basic user should always have a town.");
+        assertNotNull(savedUser.getTown()); // Basic user should always have a town.
     }
 
     @DisplayName("Login: Should throw BadCredentialsException when user not found")
@@ -162,7 +163,8 @@ public class UserServiceTest {
         when(townRepository.findByTownId(any(UUID.class))).thenReturn(Optional.of(town));
         when(roleRepository.findByName(Role.Values.basic)).thenReturn(Optional.of(basicRole));
 
-        UserUpdateDTO updateDTO = new UserUpdateDTO("newuser", "new@example.com", Role.Values.basic, "newpass", "newpass", townId);
+        UserUpdateDTO updateDTO = new UserUpdateDTO("newuser", "new@example.com", Role.Values.basic, "newpass",
+                "newpass", townId);
         userService.updateUser(user.getUserId(), updateDTO);
 
         verify(userRepository).save(any(User.class));
@@ -190,7 +192,8 @@ public class UserServiceTest {
     @Test
     void updateUser_shouldThrowException_whenUserNotFound() {
         when(userRepository.findById(any())).thenReturn(Optional.empty());
-        UserUpdateDTO updateDTO = new UserUpdateDTO("newuser", "new@example.com", Role.Values.basic, "newpass", "newpass", townId);
+        UserUpdateDTO updateDTO = new UserUpdateDTO("newuser", "new@example.com", Role.Values.basic, "newpass",
+                "newpass", townId);
         assertThrows(NotFoundException.class, () -> userService.updateUser(UUID.randomUUID(), updateDTO));
     }
 
@@ -266,7 +269,8 @@ public class UserServiceTest {
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         Mockito.lenient().when(townRepository.findByTownId(nonExistentTownId)).thenReturn(Optional.empty());
 
-        UserUpdateDTO updateDTO = new UserUpdateDTO("newuser", "new@example.com", Role.Values.basic, "newpass", "newpass",
+        UserUpdateDTO updateDTO = new UserUpdateDTO("newuser", "new@example.com", Role.Values.basic, "newpass",
+                "newpass",
                 nonExistentTownId);
         assertThrows(NotFoundException.class, () -> userService.updateUser(userId, updateDTO));
     }
@@ -284,8 +288,10 @@ public class UserServiceTest {
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(passwordEncoder.encode(newPassword)).thenReturn(encodedNewPassword);
         when(roleRepository.findByName(Role.Values.basic)).thenReturn(Optional.of(basicRole));
+        when(townRepository.findByTownId(any(UUID.class))).thenReturn(Optional.of(town));
 
-        UserUpdateDTO updateDTO = new UserUpdateDTO(newUsername, newEmail, Role.Values.basic, newPassword, newPassword, null);
+        UserUpdateDTO updateDTO = new UserUpdateDTO(newUsername, newEmail, Role.Values.basic, newPassword, newPassword,
+                townId); // Pass townId for basic role
         userService.updateUser(userId, updateDTO);
 
         verify(userRepository).save(userCaptor.capture());
@@ -294,7 +300,7 @@ public class UserServiceTest {
         assertEquals(newUsername, updatedUser.getUsername());
         assertEquals(newEmail, updatedUser.getEmail());
         assertEquals(encodedNewPassword, updatedUser.getPassword());
-        assertNull(updatedUser.getTown()); // Town should remain null as no townId was provided in DTO
+        assertNotNull(updatedUser.getTown()); // Basic user should have a town
     }
 
     @DisplayName("Login: Should throw BadCredentialsException when password is incorrect")
@@ -318,7 +324,8 @@ public class UserServiceTest {
 
         assertThrows(NotFoundException.class,
                 () -> userService
-                        .register(new RegisterUserDTO("user", "email@email.com", Role.Values.basic, "pass", "pass", UUID.randomUUID())));
+                        .register(new RegisterUserDTO("user", "email@email.com", Role.Values.basic, "pass", "pass",
+                                UUID.randomUUID())));
     }
 
     @DisplayName("Register: Should create basic role if it does not exist")
@@ -337,20 +344,17 @@ public class UserServiceTest {
         verify(userRepository).save(any(User.class));
     }
 
-    @DisplayName("Register: Should register a user with a null town ID")
+    @DisplayName("Register: Should throw UnprocessableContentException when basic user registers with null town ID")
     @Test
-    void register_shouldRegisterUserWithNullTownId() {
-        ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
+    void register_shouldThrowException_whenBasicUserRegistersWithNullTownId() {
         when(userRepository.findByEmail(any())).thenReturn(Optional.empty());
         when(userRepository.findByUsername(any())).thenReturn(Optional.empty());
-        when(roleRepository.findByName(Role.Values.basic)).thenReturn(Optional.of(basicRole));
-        when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
+        when(roleRepository.findByName(Role.Values.basic)).thenReturn(Optional.of(basicRole)); // Re-adding this stub
+        // No need to mock passwordEncoder.encode as it won't be reached
 
-        userService.register(new RegisterUserDTO("user", "email@email.com", Role.Values.basic, "pass", "pass", null));
-
-        verify(userRepository).save(userCaptor.capture());
-        User savedUser = userCaptor.getValue();
-        assertNull(savedUser.getTown(), "Basic user should not have a town when townId is null.");
+        assertThrows(UnprocessableContentException.class,
+                () -> userService.register(
+                        new RegisterUserDTO("user", "email@email.com", Role.Values.basic, "pass", "pass", null)));
     }
 
     @DisplayName("List Users: Should return a page of users")
