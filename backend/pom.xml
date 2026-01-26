@@ -114,6 +114,34 @@
 			<version>4.0.1</version>
 			<scope>compile</scope>
 		</dependency>
+		<!-- Source: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-webmvc -->                                                                    
+		<dependency>                                                                                                                                                               
+				<groupId>org.springframework.boot</groupId>                                                                                                                        
+				<artifactId>spring-boot-starter-webmvc</artifactId>                                                                                                                
+				<version>4.1.0-M1</version>                                                                                                                                        
+				<scope>compile</scope>                                                                                                                                             
+		</dependency>                                                                                                                                                              
+		<!-- Source: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-webmvc-test -->                                                               
+		<dependency>                                                                                                                                                               
+				<groupId>org.springframework.boot</groupId>                                                                                                                        
+				<artifactId>spring-boot-starter-webmvc-test</artifactId>                                                                                                           
+				<version>4.1.0-M1</version>                                                                                                                                        
+				<scope>test</scope>                                                                                                                                                
+		</dependency>                                                                                                                                                              
+		<!-- Source: https://mvnrepository.com/artifact/org.springframework.security/spring-security-test -->                                                                      
+		<dependency>                                                                                                                                                               
+				<groupId>org.springframework.security</groupId>                                                                                                                    
+				<artifactId>spring-security-test</artifactId>                                                                                                                      
+				<version>7.1.0-M1</version>                                                                                                                                        
+				<scope>test</scope>                                                                                                                                                
+		</dependency>                                                                                                                                                              
+		<!-- Source: https://mvnrepository.com/artifact/tools.jackson.core/jackson-databind -->                                                                                    
+		<dependency>                                                                                                                                                               
+				<groupId>tools.jackson.core</groupId>                                                                                                                              
+				<artifactId>jackson-databind</artifactId>                                                                                                                          
+				<version>3.0.4</version>                                                                                                                                           
+				<scope>compile</scope>                                                                                                                                             
+		</dependency>
 	</dependencies>
 
 	<build>
