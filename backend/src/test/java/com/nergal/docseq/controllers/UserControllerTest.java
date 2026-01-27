@@ -1,6 +1,5 @@
 package com.nergal.docseq.controllers;
 
-import com.nergal.docseq.config.TestConfig;
 import com.nergal.docseq.dto.users.LoginRequest;
 import com.nergal.docseq.dto.users.RegisterUserDTO;
 import com.nergal.docseq.dto.users.UserUpdateDTO;
@@ -13,8 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -24,14 +22,14 @@ import java.util.UUID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
-@SpringBootTest
+@WebMvcTest(controllers = UserController.class)
 @AutoConfigureMockMvc
-@Import(TestConfig.class)
 public class UserControllerTest {
 
     @Autowired
@@ -79,6 +77,17 @@ public class UserControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(registerUserDTO)))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("It should return a JSON error if the request body is null when attempting to register a user.")
+    void testRegisterIfRequestBodyIsNull() throws Exception {
+        doNothing().when(userService).register(any(RegisterUserDTO.class));
+
+        mockMvc.perform(post("/register").with(jwt().authorities(new SimpleGrantedAuthority("SCOPE_admin")))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(null)))
+                .andExpect(jsonPath("$.error").value("Error reading JSON"));
     }
 
     @Test

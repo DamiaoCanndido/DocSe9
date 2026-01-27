@@ -103,7 +103,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<Object> handleJsonErrors(HttpMessageNotReadableException ex) {
+    public ResponseEntity<Map<String, String>> handleJsonErrors(HttpMessageNotReadableException ex) {
         if (ex.getCause() instanceof InvalidFormatException) {
             InvalidFormatException ife = (InvalidFormatException) ex.getCause();
 
@@ -112,7 +112,8 @@ public class GlobalExceptionHandler {
                         ife.getValue(),
                         Arrays.toString(ife.getTargetType().getEnumConstants()));
 
-                return ResponseEntity.badRequest()
+                return ResponseEntity
+                        .status(HttpStatus.BAD_REQUEST)
                         .body(new HashMap<>() {
                             {
                                 put("error", message);
