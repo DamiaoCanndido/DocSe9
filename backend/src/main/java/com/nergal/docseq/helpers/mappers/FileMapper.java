@@ -18,10 +18,12 @@ public final class FileMapper {
                 entity.getName(),
                 entity.getSize(),
                 entity.getContentType(),
+                entity.getObjectKey(),
                 entity.getFavorite(),
                 entity.getLastSeen(),
                 entity.getCreatedAt(),
                 entity.getUpdatedAt(),
+                entity.getDeletedAt(),
                 entity.getFolder() != null
                         ? entity.getFolder().getFolderId()
                         : null,

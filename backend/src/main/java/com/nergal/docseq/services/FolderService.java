@@ -16,6 +16,7 @@ import com.nergal.docseq.dto.folders.FolderTreeResponseDTO;
 import com.nergal.docseq.dto.folders.FolderUpdateDTO;
 import com.nergal.docseq.entities.File;
 import com.nergal.docseq.entities.Folder;
+import com.nergal.docseq.entities.Role;
 import com.nergal.docseq.entities.User;
 import com.nergal.docseq.exception.BadRequestException;
 import com.nergal.docseq.exception.ConflictException;
@@ -124,6 +125,10 @@ public class FolderService {
     @Transactional
     public void create(FolderRequestDTO dto, JwtAuthenticationToken token) {
         var user = getUser(token);
+
+        if (user.getRole().getName().equals(Role.Values.admin)) {
+            throw new ForbiddenException("Admins cannot create folders");
+        }
 
         Folder parent = null;
         if (dto.parentId() != null) {

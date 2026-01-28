@@ -46,7 +46,7 @@ public class FolderController {
     }
 
     /**
-     * Update folder (name, favorite, parent folder)
+     * Update folder (name, favorite)
      */
     @PatchMapping("/{folderId}")
     public ResponseEntity<Void> update(
