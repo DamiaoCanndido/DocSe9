@@ -31,13 +31,13 @@ public class TownController {
         this.townService = townService;
     }
 
-    @GetMapping("")
+    @GetMapping
     @PreAuthorize("hasAuthority('SCOPE_admin')")
     public ResponseEntity<TownContentResponse> getTowns(Pageable pageable) {
         return ResponseEntity.ok(townService.getAllTowns(pageable));
     }
 
-    @PostMapping("")
+    @PostMapping
     @PreAuthorize("hasAuthority('SCOPE_admin')")
     public ResponseEntity<Void> createTown(@Valid @RequestBody TownRequestDTO dto) {
         townService.createTown(dto);

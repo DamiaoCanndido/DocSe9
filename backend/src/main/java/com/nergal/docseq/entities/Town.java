@@ -21,13 +21,13 @@ public class Town {
     @Column(name = "town_id")
     private UUID townId;
 
-    @Column
+    @Column(nullable = false)
     private String name;
 
-    @Column(length = 2)
+    @Column(length = 2, nullable = false)
     private String uf;
 
-    @Column(name = "image_url")
+    @Column(name = "image_url", nullable = false)
     private String imageUrl;
 
     @OneToMany(mappedBy = "town", cascade = CascadeType.REMOVE, orphanRemoval = true)

@@ -44,7 +44,7 @@ public class TownService {
     public void createTown(TownRequestDTO dto) {
         var town = new Town();
         town.setName(dto.name());
-        town.setUf(dto.uf());
+        town.setUf(dto.uf().toUpperCase());
         town.setImageUrl(dto.imageUrl());
         townRepo.save(town);
     }
@@ -54,7 +54,7 @@ public class TownService {
             town.setName(dto.name());
         }
         if (dto.uf() != null) {
-            town.setUf(dto.uf());
+            town.setUf(dto.uf().toUpperCase());
         }
         if (dto.imageUrl() != null) {
             town.setImageUrl(dto.imageUrl());
