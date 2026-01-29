@@ -11,13 +11,17 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.nergal.docseq.dto.files.FileResponseDTO;
+import com.nergal.docseq.dto.folders.FolderUpdateDTO;
 import com.nergal.docseq.services.FileService;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/files")
@@ -59,6 +63,24 @@ public class FileController {
             @PathVariable UUID fileId,
             JwtAuthenticationToken token) {
         fileService.permanentDelete(fileId, token);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{fileId}/rename")
+    public ResponseEntity<Void> rename(
+            @PathVariable UUID fileId,
+            @Valid @RequestBody FolderUpdateDTO dto,
+            JwtAuthenticationToken token) {
+        fileService.rename(fileId, dto, token);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{fileId}/move/{targetFolderId}")
+    public ResponseEntity<Void> move(
+            @PathVariable UUID fileId,
+            @PathVariable UUID targetFolderId,
+            JwtAuthenticationToken token) {
+        fileService.move(fileId, targetFolderId, token);
         return ResponseEntity.noContent().build();
     }
 

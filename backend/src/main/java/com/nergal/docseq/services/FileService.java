@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.nergal.docseq.dto.files.FileResponseDTO;
+import com.nergal.docseq.dto.folders.FolderUpdateDTO;
 import com.nergal.docseq.entities.File;
 import com.nergal.docseq.entities.Folder;
 import com.nergal.docseq.entities.User;
@@ -114,6 +115,28 @@ public class FileService {
 
         storageService.delete(file.getObjectKey());
         fileRepository.delete(file);
+    }
+
+    @Transactional
+    public void rename(UUID fileId, FolderUpdateDTO dto, JwtAuthenticationToken token) {
+        User user = getUser(token);
+
+        File file = getFileBelongsOrganization(fileId, user.getTown().getTownId());
+        if (dto.name() != null) {
+            file.setName(dto.name() + file.getContentType().replace("application/", "."));
+        }
+    }
+
+    @Transactional
+    public void move(UUID fileId, UUID targetFolderId, JwtAuthenticationToken token) {
+        User user = getUser(token);
+        File file = getFileBelongsOrganization(fileId, user.getTown().getTownId());
+        Folder targetFolder = folderRepository
+                .findByFolderIdAndTownTownIdAndDeletedAtIsNull(
+                        targetFolderId,
+                        user.getTown().getTownId())
+                .orElseThrow(() -> new NotFoundException("Target folder not found"));
+        file.setFolder(targetFolder);
     }
 
     @Transactional
