@@ -1,6 +1,8 @@
 package com.nergal.docseq.services;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -89,13 +91,36 @@ public class FileService {
         User user = getUser(token);
 
         File file = fileRepository
-                .findByFileIdAndTownTownIdAndDeletedAtIsNotNull(
-                        fileId,
-                        user.getTown().getTownId())
+                .findByFileIdAndTownTownIdAndDeletedAtIsNotNull(fileId, user.getTown().getTownId())
                 .orElseThrow(() -> new NotFoundException("File not found"));
+
+        if (file.getFolder() != null) {
+            restoreFolderAncestors(file.getFolder(), user);
+        }
 
         file.setDeletedAt(null);
         file.setDeletedBy(null);
+        fileRepository.save(file);
+    }
+
+    private void restoreFolderAncestors(Folder folder, User user) {
+        List<Folder> foldersToRestore = new ArrayList<>();
+        Folder current = folder;
+
+        while (current != null) {
+            if (current.getDeletedAt() != null) {
+                foldersToRestore.add(current);
+            }
+            current = current.getParent();
+        }
+
+        if (!foldersToRestore.isEmpty()) {
+            foldersToRestore.forEach(f -> {
+                f.setDeletedAt(null);
+                f.setDeletedBy(null);
+            });
+            folderRepository.saveAll(foldersToRestore);
+        }
     }
 
     @Transactional
