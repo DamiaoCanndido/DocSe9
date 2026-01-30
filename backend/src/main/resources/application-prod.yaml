@@ -1,0 +1,13 @@
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+cloudflare:
+  r2:
+    bucket-name: ${CLOUDFLARE_R2_BUCKET_NAME}
+    endpoint: ${CLOUDFLARE_R2_ENDPOINT}
+    access-key: ${CLOUDFLARE_R2_ACCESS_KEY}
+    secret-key: ${CLOUDFLARE_R2_SECRET_KEY}
+    region: auto
+    url-expiration-minutes: 60
