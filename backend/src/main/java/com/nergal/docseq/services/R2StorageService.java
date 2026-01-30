@@ -36,7 +36,7 @@ public class R2StorageService implements StorageService {
     @Override
     public String upload(MultipartFile file, UUID fileId) {
         try {
-            String fileName = generateFileName(file.getOriginalFilename());
+            String fileName = generateFileName(file.getOriginalFilename(), fileId);
 
             byte[] fileBytes = file.getBytes();
 
@@ -75,7 +75,6 @@ public class R2StorageService implements StorageService {
     public String generateTemporaryUrl(String storageKey) {
         try {
 
-            // Gera URL pré-assinada
             GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                     .bucket(bucketName)
                     .key(storageKey)
@@ -95,11 +94,11 @@ public class R2StorageService implements StorageService {
         }
     }
 
-    private String generateFileName(String originalFileName) {
+    private String generateFileName(String originalFileName, UUID storageKey) {
         String extension = "";
         if (originalFileName != null && originalFileName.contains(".")) {
             extension = originalFileName.substring(originalFileName.lastIndexOf("."));
         }
-        return UUID.randomUUID().toString() + extension;
+        return storageKey + extension;
     }
 }
