@@ -7,7 +7,7 @@ spring:
       max-file-size: 200MB
       max-request-size: 200MB
   profiles:
-    active: prod
+    active: dev
   application:
     name: docseq
   config:

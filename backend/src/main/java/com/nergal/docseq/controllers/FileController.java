@@ -93,10 +93,10 @@ public class FileController {
     }
 
     @GetMapping("/{fileId}/view-url")
-    public Map<String, String> generateUrl(
+    public ResponseEntity<Map<String, String>> generateUrl(
             @PathVariable UUID fileId,
             JwtAuthenticationToken token) {
         String url = fileService.generateViewUrl(fileId, token);
-        return Map.of("url", url);
+        return ResponseEntity.ok(Map.of("url", url));
     }
 }

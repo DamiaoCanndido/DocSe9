@@ -28,3 +28,8 @@
    2. `./backend/src/test/java/com/docseq/config/AdminuserConfig.java`
    3. `./backend/src/test/java/com/docseq/entities/User.java`
 2. Mudei a forma na qual se registra um usuario se a role setada for "basic" é o obrigatorio ter um townId veja a o arquivo `./backend/src/test/java/com/docseq/services/UserService.java` a partir da linha 74 a 76
+
+### Refatoração
+
+1. Tenho muitos metodos recursivos em: @backend/src/main/java/com/nergal/docseq/services/FolderService.java e em: @backend/src/main/java/com/nergal/docseq/services/FileService.java isso
+   futuramente pode gerar lentidão?

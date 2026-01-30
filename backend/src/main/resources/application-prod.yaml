@@ -10,4 +10,4 @@ cloudflare:
     access-key: ${CLOUDFLARE_R2_ACCESS_KEY}
     secret-key: ${CLOUDFLARE_R2_SECRET_KEY}
     region: auto
-    url-expiration-minutes: 60
+    url-expiration-minutes: 1
