@@ -66,4 +66,6 @@ public interface FolderRepository extends
     Optional<Folder> findByFolderIdAndDeletedAtIsNull(UUID folderId);
 
     List<Folder> findByParentFolderId(UUID parentId);
+
+    List<Folder> findByTownTownId(UUID townId);
 }

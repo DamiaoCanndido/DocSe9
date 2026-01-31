@@ -101,7 +101,7 @@ public class UserService {
         }
 
         var now = Instant.now();
-        var expiresIn = 300L;
+        var expiresIn = 1800L;
 
         var role = user.get().getRole().getName().name();
 

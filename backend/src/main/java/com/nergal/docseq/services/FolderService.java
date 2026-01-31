@@ -5,6 +5,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.Queue;
+import java.util.stream.Collectors;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
@@ -242,39 +247,46 @@ public class FolderService {
         softDeleteRecursively(folder, user);
     }
 
-    private void collectForSoftDelete(
-            Folder folder,
-            List<Folder> folders,
-            List<File> files) {
-        if (folder.getDeletedAt() != null)
-            return;
-
-        folders.add(folder);
-        files.addAll(fileRepository.findByFolderAndDeletedAtIsNull(folder));
-
-        List<Folder> children = folderRepository.findByParentAndDeletedAtIsNull(folder);
-
-        for (Folder child : children) {
-            collectForSoftDelete(child, folders, files);
-        }
-    }
-
     @Transactional
     public void softDeleteRecursively(Folder root, User deletedBy) {
-
         Instant now = Instant.now();
 
-        List<Folder> folders = new ArrayList<>();
-        List<File> files = new ArrayList<>();
+        List<Folder> allFoldersInTown = folderRepository.findByTownTownIdAndDeletedAtIsNull(root.getTown().getTownId());
+        Map<Folder, List<Folder>> parentToChildrenMap = allFoldersInTown.stream()
+                .filter(f -> f.getParent() != null)
+                .collect(Collectors.groupingBy(Folder::getParent));
 
-        collectForSoftDelete(root, folders, files);
+        List<Folder> foldersToDelete = new ArrayList<>();
+        Queue<Folder> queue = new LinkedList<>();
 
-        for (Folder folder : folders) {
+        if (root.getDeletedAt() == null) {
+            queue.add(root);
+            foldersToDelete.add(root);
+        }
+
+        while (!queue.isEmpty()) {
+            Folder current = queue.poll();
+            List<Folder> children = parentToChildrenMap.getOrDefault(current, Collections.emptyList());
+            for (Folder child : children) {
+                if (child.getDeletedAt() == null) {
+                    foldersToDelete.add(child);
+                    queue.add(child);
+                }
+            }
+        }
+
+        if (foldersToDelete.isEmpty()) {
+            return;
+        }
+
+        List<File> filesToDelete = fileRepository.findByFolderInAndDeletedAtIsNull(foldersToDelete);
+
+        for (Folder folder : foldersToDelete) {
             folder.setDeletedAt(now);
             folder.setDeletedBy(deletedBy);
         }
 
-        for (File file : files) {
+        for (File file : filesToDelete) {
             file.setDeletedAt(now);
             file.setDeletedBy(deletedBy);
         }
@@ -296,38 +308,40 @@ public class FolderService {
         permanentDeleteRecursively(folder);
     }
 
-    private void collectForPermanentDelete(
-            Folder root,
-            List<Folder> folders,
-            List<File> files) {
-        folders.add(root);
-
-        files.addAll(
-                fileRepository.findByFolderFolderId(root.getFolderId()));
-
-        List<Folder> children = folderRepository.findByParentFolderId(root.getFolderId());
-
-        for (Folder child : children) {
-            collectForPermanentDelete(child, folders, files);
-        }
-    }
-
     @Transactional
     public void permanentDeleteRecursively(Folder root) {
+        List<Folder> allFoldersInTown = folderRepository.findByTownTownId(root.getTown().getTownId());
+        Map<Folder, List<Folder>> parentToChildrenMap = allFoldersInTown.stream()
+                .filter(f -> f.getParent() != null)
+                .collect(Collectors.groupingBy(Folder::getParent));
 
-        List<Folder> folders = new ArrayList<>();
-        List<File> files = new ArrayList<>();
+        List<Folder> foldersToDelete = new ArrayList<>();
+        Queue<Folder> queue = new LinkedList<>();
 
-        collectForPermanentDelete(root, folders, files);
+        queue.add(root);
+        foldersToDelete.add(root);
 
-        fileRepository.deleteAll(files);
-        folderRepository.deleteAll(folders);
+        while (!queue.isEmpty()) {
+            Folder current = queue.poll();
+            List<Folder> children = parentToChildrenMap.getOrDefault(current, Collections.emptyList());
+            foldersToDelete.addAll(children);
+            queue.addAll(children);
+        }
 
-        for (File file : files) {
+        if (foldersToDelete.isEmpty()) {
+            return;
+        }
+
+        List<File> filesToDelete = fileRepository.findByFolderIn(foldersToDelete);
+
+        fileRepository.deleteAll(filesToDelete);
+        folderRepository.deleteAll(foldersToDelete);
+
+        for (File file : filesToDelete) {
             try {
                 storageService.delete(file.getObjectKey());
             } catch (Exception e) {
-                System.out.println("Failed to delete file from storage");
+                System.out.println("Failed to delete file from storage: " + e.getMessage());
             }
         }
     }
@@ -371,39 +385,46 @@ public class FolderService {
         restoreRecursively(folder);
     }
 
-    private void collectForRestore(
-            Folder folder,
-            List<Folder> folders,
-            List<File> files) {
-        if (folder.getDeletedAt() == null)
-            return;
-
-        folders.add(folder);
-
-        files.addAll(
-                fileRepository.findByFolderAndDeletedAtIsNotNull(folder));
-
-        List<Folder> children = folderRepository.findByParentAndDeletedAtIsNotNull(folder);
-
-        for (Folder child : children) {
-            collectForRestore(child, folders, files);
-        }
-    }
 
     @Transactional
     public void restoreRecursively(Folder root) {
+        List<Folder> allDeletedFoldersInTown = folderRepository
+                .findByTownTownIdAndDeletedAtIsNotNull(root.getTown().getTownId(), Pageable.unpaged()).getContent();
+        Map<Folder, List<Folder>> parentToChildrenMap = allDeletedFoldersInTown.stream()
+                .filter(f -> f.getParent() != null)
+                .collect(Collectors.groupingBy(Folder::getParent));
 
-        List<Folder> folders = new ArrayList<>();
-        List<File> files = new ArrayList<>();
+        List<Folder> foldersToRestore = new ArrayList<>();
+        Queue<Folder> queue = new LinkedList<>();
 
-        collectForRestore(root, folders, files);
+        if (root.getDeletedAt() != null) {
+            queue.add(root);
+            foldersToRestore.add(root);
+        }
 
-        for (Folder folder : folders) {
+        while (!queue.isEmpty()) {
+            Folder current = queue.poll();
+            List<Folder> children = parentToChildrenMap.getOrDefault(current, Collections.emptyList());
+            for (Folder child : children) {
+                if (child.getDeletedAt() != null) {
+                    foldersToRestore.add(child);
+                    queue.add(child);
+                }
+            }
+        }
+
+        if (foldersToRestore.isEmpty()) {
+            return;
+        }
+
+        List<File> filesToRestore = fileRepository.findByFolderInAndDeletedAtIsNotNull(foldersToRestore);
+
+        for (Folder folder : foldersToRestore) {
             folder.setDeletedAt(null);
             folder.setDeletedBy(null);
         }
 
-        for (File file : files) {
+        for (File file : filesToRestore) {
             file.setDeletedAt(null);
             file.setDeletedBy(null);
         }

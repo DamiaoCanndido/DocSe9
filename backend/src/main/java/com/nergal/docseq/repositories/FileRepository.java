@@ -71,13 +71,9 @@ public interface FileRepository extends JpaRepository<File, UUID>, JpaSpecificat
 
         void deleteByFolderFolderId(UUID folderId);
 
-        /*
-         * @Modifying
-         * 
-         * @Transactional
-         * 
-         * @Query("UPDATE Folder f SET f.deletedAt = null, f.deletedBy = null WHERE f.folderId IN :folderIds"
-         * )
-         * void restoreFoldersByIds(@Param("folderIds") List<UUID> folderIds);
-         */
+        List<File> findByFolderInAndDeletedAtIsNull(List<Folder> folders);
+
+        List<File> findByFolderIn(List<Folder> folders);
+
+        List<File> findByFolderInAndDeletedAtIsNotNull(List<Folder> folders);
 }
