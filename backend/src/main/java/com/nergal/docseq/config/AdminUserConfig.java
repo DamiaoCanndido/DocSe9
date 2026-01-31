@@ -12,6 +12,9 @@ import com.nergal.docseq.entities.User;
 import com.nergal.docseq.repositories.RoleRepository;
 import com.nergal.docseq.repositories.UserRepository;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Configuration
 public class AdminUserConfig implements CommandLineRunner {
 
@@ -50,7 +53,7 @@ public class AdminUserConfig implements CommandLineRunner {
 
         userAdmin.ifPresentOrElse(
                 user -> {
-                    System.out.println("admin already exists");
+                    log.info("Admin user already exists.");
                 },
                 () -> {
                     var user = new User();

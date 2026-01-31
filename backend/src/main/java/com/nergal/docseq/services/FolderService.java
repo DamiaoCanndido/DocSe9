@@ -37,6 +37,9 @@ import com.nergal.docseq.repositories.FileRepository;
 import com.nergal.docseq.repositories.FolderRepository;
 import com.nergal.docseq.repositories.UserRepository;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class FolderService {
 
@@ -341,7 +344,7 @@ public class FolderService {
             try {
                 storageService.delete(file.getObjectKey());
             } catch (Exception e) {
-                System.out.println("Failed to delete file from storage: " + e.getMessage());
+                log.error("Failed to delete file from storage: {}", e.getMessage());
             }
         }
     }
@@ -384,7 +387,6 @@ public class FolderService {
 
         restoreRecursively(folder);
     }
-
 
     @Transactional
     public void restoreRecursively(Folder root) {
