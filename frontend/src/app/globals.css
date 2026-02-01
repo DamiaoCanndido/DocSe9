@@ -1,5 +1,7 @@
 @import 'tailwindcss';
 
+@plugin 'tailwindcss-animate';
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -118,7 +120,37 @@
   * {
     @apply border-border outline-ring/50;
   }
+
+  h1 {
+    @apply text-[34px] leading-10.5 font-bold;
+  }
+
+  h2 {
+    @apply text-[24px] leading-9 font-bold;
+  }
+
+  h3 {
+    @apply text-[20px] leading-7 font-semibold;
+  }
+
+  h4 {
+    @apply text-[18px] leading-5 font-medium;
+  }
+
+  h5 {
+    @apply text-[16px] leading-6 font-semibold;
+  }
+
   body {
     @apply bg-background text-foreground;
+  }
+
+  @layer components {
+    .policies-btn {
+      @apply hover:text-[#1F1F1F] transition-colors cursor-pointer;
+    }
+    .policies-content {
+      @apply mt-8! flex! gap-6 text-[11px] font-medium text-[#5F6368] uppercase tracking-wider;
+    }
   }
 }
