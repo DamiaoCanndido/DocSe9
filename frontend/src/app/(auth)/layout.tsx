@@ -24,9 +24,9 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
       {/* Policies */}
       <div className="policies-content">
-        <button className="policies-btn">Privacy</button>
-        <button className="policies-btn">Terms</button>
-        <button className="policies-btn">Help</button>
+        <button className="policies-btn">Privacidade</button>
+        <button className="policies-btn">Termos</button>
+        <button className="policies-btn">Ajuda</button>
       </div>
     </div>
   );

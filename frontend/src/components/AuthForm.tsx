@@ -64,7 +64,7 @@ const authFormSchema = (formType: FormType) => {
       remember: formType === 'login' ? z.boolean() : z.boolean().optional(),
       townId:
         formType === 'register'
-          ? z.uuid({ message: 'Id da cidade inválido' })
+          ? z.uuid({ message: 'Id da cidade inválido' }).optional()
           : z.string().optional(),
       role:
         formType === 'register'
@@ -87,24 +87,21 @@ const authFormSchema = (formType: FormType) => {
           : data.password === data.password,
       {
         message: 'As senhas não coincidem',
-        path: ['repeatPassword'],
+        path: ['confirmPassword'],
       }
     )
     .refine(
       (data) => {
         if (formType === 'login') {
           return true;
-        } else if (
-          (data.role === 'admin' && data.townId !== undefined) ||
-          (data.role === 'basic' && data.townId === undefined)
-        ) {
+        } else if (data.role === 'basic' && data.townId === undefined) {
           return false;
         }
         return true;
       },
       {
-        message: 'A cidade só é necessária para a função FUNCIONÁRIO',
-        path: ['role'],
+        message: 'A cidade é necessária para criar o FUNCIONÁRIO',
+        path: ['townId'],
       }
     );
 };
@@ -116,6 +113,7 @@ const AuthForm = ({ type }: { type: FormType }) => {
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [townsIsVisible, SetTownsVisible] = useState(false);
   const [towns, setTowns] = useState<TownResProps[]>([]);
 
   const formSchema = authFormSchema(type);
@@ -132,6 +130,8 @@ const AuthForm = ({ type }: { type: FormType }) => {
       confirmPassword: '',
     },
   });
+
+  const currentRole = form.watch('role');
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
@@ -166,42 +166,6 @@ const AuthForm = ({ type }: { type: FormType }) => {
                     />
                   </FormControl>
                 </div>
-                <FormMessage className="" />
-              </FormItem>
-            )}
-          />
-        )}
-        {/* Town Field */}
-        {type === 'register' && (
-          <FormField
-            control={form.control}
-            name="townId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-sm font-semibold text-[#444746] ml-1">
-                  Cidade
-                </FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione uma cidade" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {mockTowns.map((town) => (
-                      <SelectItem
-                        className="h-12.5"
-                        key={town.id}
-                        value={town.id}
-                      >
-                        {town.name} - {town.uf}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
                 <FormMessage className="" />
               </FormItem>
             )}
@@ -269,6 +233,42 @@ const AuthForm = ({ type }: { type: FormType }) => {
             )}
           />
         )}
+        {/* Town Field */}
+        {type === 'register' && currentRole !== 'admin' && (
+          <FormField
+            control={form.control}
+            name="townId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-sm font-semibold text-[#444746] ml-1">
+                  Cidade
+                </FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value || ''}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione uma cidade" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {mockTowns.map((town) => (
+                      <SelectItem
+                        className="h-12.5"
+                        key={town.id}
+                        value={town.id}
+                      >
+                        {town.name} - {town.uf}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage className="" />
+              </FormItem>
+            )}
+          />
+        )}
         {/* Password Field */}
         <FormField
           control={form.control}
@@ -281,7 +281,7 @@ const AuthForm = ({ type }: { type: FormType }) => {
                 </FormLabel>
                 <button
                   type="button"
-                  className="text-xs font-bold text-blue-600 hover:text-blue-700"
+                  className="text-xs cursor-pointer font-bold text-blue-600 hover:text-blue-700"
                 >
                   Esqueceu?
                 </button>
@@ -365,7 +365,7 @@ const AuthForm = ({ type }: { type: FormType }) => {
                 <FormControl className="relative flex items-center">
                   <div className="w-5 h-5 rounded-md border-[#E0E0E0] text-blue-600 focus:ring-blue-200 transition-all cursor-pointer">
                     <Checkbox
-                      className=""
+                      className="cursor-pointer"
                       checked={field.value}
                       onCheckedChange={field.onChange}
                     />
@@ -383,7 +383,7 @@ const AuthForm = ({ type }: { type: FormType }) => {
         )}
         {/* BUTTON */}
         <Button
-          className="w-full bg-blue-600 text-white rounded-2xl py-8 font-semibold text-base transition-all shadow-md shadow-blue-100 hover:bg-blue-700 hover:shadow-lg active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4"
+          className="w-full cursor-pointer bg-blue-600 text-white rounded-2xl py-8 font-semibold text-base transition-all shadow-md shadow-blue-100 hover:bg-blue-700 hover:shadow-lg active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4"
           type="submit"
           disabled={isLoading}
         >
