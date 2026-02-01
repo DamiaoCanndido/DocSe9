@@ -11,7 +11,7 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        primary: '#3b82f6',
+        primary: { DEFAULT: 'hsl(221, 83%, 53%)' },
         secondary: '#10b981',
       },
       fontSize: {
