@@ -4,3 +4,13 @@ declare interface TownResProps {
   name: string;
   uf: string;
 }
+
+declare interface LoginResponse {
+  accessToken: string;
+  expiresIn: number;
+}
+
+declare interface LoginRequest {
+  email: string;
+  password: string;
+}
