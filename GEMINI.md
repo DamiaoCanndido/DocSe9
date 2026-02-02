@@ -100,7 +100,15 @@ GET    /files/{fileId}/view-url                  # Url de arquivo
 - **Porta**: 9090
 - **CORS**: Não configurado
 - **Perfis**: dev, prod
-- **Variáveis de ambiente**: DATABASE_URL, JWT_SECRET, etc
+- **Variáveis de ambiente**:
+  - DB_PASSWORD,
+  - ADM_USERNAME,
+  - ADM_EMAIL,
+  - ADM_PASSWORD,
+  - CLOUDFLARE_R2_BUCKET_NAME
+  - CLOUDFLARE_R2_ENDPOINT
+  - CLOUDFLARE_R2_ACCESS_KEY
+  - CLOUDFLARE_R2_SECRET_KEY
 
 ## 🎨 Frontend - Next.js 16
 
@@ -217,10 +225,34 @@ const API_BASE_URL =
 
 ## 🎯 Próximos Passos / Roadmap
 
-- [ ]
-- [ ]
-- [ ]
-- [ ]
+- **Backend**
+
+1. - [ ] Busca Avançada: Implementar uma busca global que permita pesquisar por nome em arquivos e pastas, com filtros por data, tipo e outras propriedades.
+2. - [ ] Controle de Acesso por Papel (RBAC): Expandir o sistema de permissões para permitir controle de acesso mais granular a pastas e arquivos, além das roles admin e basic existentes.
+3. - [ ] Log de Auditoria: Criar um serviço para registrar todas as ações importantes (criação, acesso, modificação, exclusão de arquivos/pastas) para fins de segurança e conformidade.
+4. - [ ] Funcionalidade de Compartilhamento: Desenvolver a lógica para permitir que usuários compartilhem arquivos e pastas com outros usuários, gerando links seguros e controlando permissões
+         de acesso.
+5. - [ ] Versionamento de Arquivos: Implementar a capacidade de manter um histórico de versões dos arquivos, permitindo que os usuários visualizem e restaurem versões anteriores.
+6. - [ ] Configuração de CORS: Adicionar uma configuração de Cross-Origin Resource Sharing (CORS) para permitir que o frontend (executando em um domínio diferente) se comunique de forma segura
+         com a API.
+7. - [ ] Cobertura de Testes: Aumentar a cobertura de testes unitários e de integração, especialmente para os novos recursos, garantindo a estabilidade e a qualidade do código.
+
+- **Frontend**
+
+1. - [ ] Dashboard Principal: Construir a interface principal da aplicação, onde os usuários poderão navegar, visualizar e gerenciar suas pastas e arquivos após o login.
+2. - [ ] Operações de Arquivos e Pastas: Implementar os componentes de UI e a lógica para todas as operações de CRUD (criar, renomear, mover, deletar) em arquivos e pastas, consumindo os
+         endpoints da API.
+3. - [ ] Integração com a API: Criar um serviço de API centralizado no frontend (/lib/api) para gerenciar a comunicação com o backend, incluindo o tratamento de autenticação (JWT) e a exibição
+         de feedback (toasts/alertas) para o usuário.
+4. - [ ] Gerenciamento de Estado Global: Utilizar a Context API do React para gerenciar o estado da aplicação, como informações do usuário autenticado, a pasta atual e a lista de arquivos.
+5. - [ ] Componentes da UI: Desenvolver uma biblioteca de componentes reutilizáveis com shadcn/ui para elementos como:
+   * - [ ] Itens de lista para arquivos e pastas.
+   * - [ ] Menus de contexto (clique com o botão direito).
+   * - [ ] Modais para interações do usuário (criar pasta, renomear, etc.).
+   * - [ ] Visualizações específicas para "Lixeira" e "Favoritos".
+6. - [ ] Interface de Busca: Criar uma barra de pesquisa e uma página de resultados para interagir com a funcionalidade de busca do backend.
+7. - [ ] Painel de Administração: Desenvolver uma área administrativa onde usuários com permissão (admin) possam gerenciar usuários e municípios.
+8. - [ ] Design Responsivo: Garantir que a aplicação seja totalmente funcional e visualmente agradável em diferentes tamanhos de tela, de dispositivos móveis a desktops.
 
 ## 📖 Referências Úteis
 
