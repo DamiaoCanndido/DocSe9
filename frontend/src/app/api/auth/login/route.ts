@@ -1,6 +1,7 @@
 import { apiServer } from '@/lib/axios';
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import axios, { AxiosError } from 'axios';
 
 export async function POST(req: NextRequest, res: NextResponse) {
   try {
@@ -14,20 +15,43 @@ export async function POST(req: NextRequest, res: NextResponse) {
 
     const cookieStore = await cookies();
     cookieStore.set('docse9-auth-token', data.accessToken, {
-      httpOnly: false,
-      secure: false,
+      httpOnly: true,
+      secure: true,
       sameSite: 'strict',
-      maxAge: 60 * 60 * 24 * 7,
+      maxAge: 60 * 30,
       path: '/',
     });
 
     return NextResponse.json({
+      success: true,
       accessToken: data.accessToken,
       expiresIn: data.expiresIn,
     });
   } catch (error) {
-    return NextResponse.json({
-      error: error instanceof Error ? error.message : 'Unknown',
-    });
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError<{ message?: string }>;
+      if (axiosError.response) {
+        const status = axiosError.response.status;
+        const message = axiosError.response.data?.message;
+
+        if (status === 401) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: message || 'Email ou senha incorretos',
+            },
+            { status: 401 }
+          );
+        }
+
+        return NextResponse.json(
+          {
+            success: false,
+            error: message || 'Erro ao fazer login',
+          },
+          { status: status }
+        );
+      }
+    }
   }
 }

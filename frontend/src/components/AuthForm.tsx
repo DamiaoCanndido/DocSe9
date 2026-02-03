@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+import { toast } from 'sonner';
 import {
   Form,
   FormControl,
@@ -24,6 +25,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import { apiClient } from '@/lib/axios';
 
 type FormType = 'login' | 'register';
 
@@ -135,10 +137,28 @@ const AuthForm = ({ type }: { type: FormType }) => {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
-    setTimeout(() => {
+    try {
+      if (type === 'login') {
+        const { data } = await apiClient.post('/api/auth/login', {
+          email: values.email,
+          password: values.password,
+        });
+        if (data.success) {
+          toast.success('Sucesso');
+        }
+        router.replace('/dashboard');
+      }
+    } catch (error) {
+      toast.error('Error.', {
+        description:
+          type === 'register'
+            ? 'Error ao criar conta.'
+            : 'Credenciais inválidas.',
+        duration: 2000,
+      });
+    } finally {
       setIsLoading(false);
-    }, 1200);
-    console.log(values);
+    }
   };
 
   return (
