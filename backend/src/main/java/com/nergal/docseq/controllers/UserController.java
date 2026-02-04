@@ -18,6 +18,7 @@ import com.nergal.docseq.dto.users.LoginRequest;
 import com.nergal.docseq.dto.users.LoginResponse;
 import com.nergal.docseq.dto.users.RegisterUserDTO;
 import com.nergal.docseq.dto.users.UserContentResponse;
+import com.nergal.docseq.dto.users.UserItemDTO;
 import com.nergal.docseq.dto.users.UserUpdateDTO;
 import com.nergal.docseq.services.UserService;
 
@@ -44,6 +45,12 @@ public class UserController {
     public ResponseEntity<UserContentResponse> listUsers(
             Pageable pageable) {
         return ResponseEntity.ok(userService.listUsers(pageable));
+    }
+
+    @GetMapping("/get-me")
+    public ResponseEntity<UserItemDTO> getMe(
+            JwtAuthenticationToken token) {
+        return ResponseEntity.ok(userService.getMe(token));
     }
 
     @PostMapping("/login")

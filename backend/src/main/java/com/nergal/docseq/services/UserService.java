@@ -141,6 +141,27 @@ public class UserService {
                 PageMapper.toPageResponse(users));
     }
 
+    @Transactional(readOnly = true)
+    public UserItemDTO getMe(JwtAuthenticationToken token) {
+        var user = userRepository.findById(UUID.fromString(token.getName()))
+                .orElseThrow(() -> new NotFoundException("user not found"));
+        return new UserItemDTO(
+                user.getUserId(),
+                user.getUsername(),
+                user.getEmail(),
+                new RoleItemDTO(
+                        user.getRole().getRoleId(),
+                        user.getRole().getName()),
+                user.getRole().getName().name() != "admin"
+                        ? new TownItemDTO(
+                                user.getTown().getTownId(),
+                                user.getTown().getName(),
+                                user.getTown().getUf(),
+                                user.getTown().getImageUrl())
+                        : null,
+                user.getCreatedAt());
+    }
+
     protected void applyUpdates(User entity, UserUpdateDTO dto) {
         if (dto.username() != null) {
             entity.setUsername(dto.username());
