@@ -63,6 +63,7 @@ docseq/
 
 ```
 GET    /register                                 # Cria usuário
+GET    /get-me                                   # Dados do usuário logado
 POST   /login                                    # Login
 GET    /users                                    # Lista usuários
 PATCH  /user/{id}                                # Atualiza usuário
@@ -233,7 +234,7 @@ const API_BASE_URL =
 4. - [ ] Funcionalidade de Compartilhamento: Desenvolver a lógica para permitir que usuários compartilhem arquivos e pastas com outros usuários, gerando links seguros e controlando permissões
          de acesso.
 5. - [ ] Versionamento de Arquivos: Implementar a capacidade de manter um histórico de versões dos arquivos, permitindo que os usuários visualizem e restaurem versões anteriores.
-6. - [ ] Configuração de CORS: Adicionar uma configuração de Cross-Origin Resource Sharing (CORS) para permitir que o frontend (executando em um domínio diferente) se comunique de forma segura
+6. - [x] Configuração de CORS: Adicionar uma configuração de Cross-Origin Resource Sharing (CORS) para permitir que o frontend (executando em um domínio diferente) se comunique de forma segura
          com a API.
 7. - [ ] Cobertura de Testes: Aumentar a cobertura de testes unitários e de integração, especialmente para os novos recursos, garantindo a estabilidade e a qualidade do código.
 
@@ -242,7 +243,7 @@ const API_BASE_URL =
 1. - [ ] Dashboard Principal: Construir a interface principal da aplicação, onde os usuários poderão navegar, visualizar e gerenciar suas pastas e arquivos após o login.
 2. - [ ] Operações de Arquivos e Pastas: Implementar os componentes de UI e a lógica para todas as operações de CRUD (criar, renomear, mover, deletar) em arquivos e pastas, consumindo os
          endpoints da API.
-3. - [ ] Integração com a API: Criar um serviço de API centralizado no frontend (/lib/api) para gerenciar a comunicação com o backend, incluindo o tratamento de autenticação (JWT) e a exibição
+3. - [x] Integração com a API: Criar um serviço de API centralizado no frontend (/lib/api) para gerenciar a comunicação com o backend, incluindo o tratamento de autenticação (JWT) e a exibição
          de feedback (toasts/alertas) para o usuário.
 4. - [ ] Gerenciamento de Estado Global: Utilizar a Context API do React para gerenciar o estado da aplicação, como informações do usuário autenticado, a pasta atual e a lista de arquivos.
 5. - [ ] Componentes da UI: Desenvolver uma biblioteca de componentes reutilizáveis com shadcn/ui para elementos como:
