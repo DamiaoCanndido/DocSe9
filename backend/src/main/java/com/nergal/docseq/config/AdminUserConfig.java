@@ -43,6 +43,12 @@ public class AdminUserConfig implements CommandLineRunner {
             return roleRepository.save(newAdminRole);
         });
 
+        roleRepository.findByName(Role.Values.manager).orElseGet(() -> {
+            Role newManagerRole = new Role();
+            newManagerRole.setName(Role.Values.manager);
+            return roleRepository.save(newManagerRole);
+        });
+
         roleRepository.findByName(Role.Values.basic).orElseGet(() -> {
             Role newBasicRole = new Role();
             newBasicRole.setName(Role.Values.basic);

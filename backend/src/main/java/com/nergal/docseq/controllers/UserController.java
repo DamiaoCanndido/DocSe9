@@ -34,9 +34,9 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    @PreAuthorize("hasAuthority('SCOPE_admin')")
-    public ResponseEntity<Void> register(@Valid @RequestBody RegisterUserDTO dto) {
-        userService.register(dto);
+    @PreAuthorize("hasAnyAuthority('SCOPE_admin', 'SCOPE_manager')")
+    public ResponseEntity<Void> register(@Valid @RequestBody RegisterUserDTO dto, JwtAuthenticationToken token) {
+        userService.register(dto, token);
         return ResponseEntity.ok().build();
     }
 

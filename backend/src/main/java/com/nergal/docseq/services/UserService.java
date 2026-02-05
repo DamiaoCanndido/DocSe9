@@ -56,7 +56,7 @@ public class UserService {
     }
 
     @Transactional
-    public void register(RegisterUserDTO dto) {
+    public void register(RegisterUserDTO dto, JwtAuthenticationToken token) {
 
         if (userRepository.findByEmail(dto.email()).isPresent() ||
                 userRepository.findByUsername(dto.username()).isPresent()) {
@@ -64,29 +64,40 @@ public class UserService {
         }
 
         // Fetch the role specified in the DTO
-        var userRole = roleRepository.findByName(dto.role()).orElseGet(() -> {
-            var newRole = new Role();
-            newRole.setName(dto.role());
-            return roleRepository.save(newRole);
-        });
+        var userRole = roleRepository.findByName(dto.role()).orElseThrow(
+                () -> new NotFoundException("Role not found"));
 
         Town town = null;
 
         // Conditional validation for townId based on the actual userRole
-        if (userRole.getName().equals(Role.Values.basic) && dto.townId() == null) {
-            throw new UnprocessableContentException("Town must be provided for basic users");
+        if (userRole.getName() != Role.Values.admin && dto.townId() == null) {
+            throw new UnprocessableContentException("Town must be provided for basic and manager users");
+        }
+        if (userRole.getName() == Role.Values.admin && dto.townId() != null) {
+            throw new UnprocessableContentException("admins cannot be created with a town");
         }
 
+        final User currentUser = getUser(token);
+
+        if (currentUser.getRole().getName().equals(Role.Values.manager) && dto.role().equals(Role.Values.admin)) {
+            throw new UnprocessableContentException("Manager cannot create admin.");
+        }
+
+        // The manager can only create one user for another town.
         if (dto.townId() != null) {
-            town = townRepository.findByTownId(dto.townId()).orElseThrow(
-                    () -> new NotFoundException("Town not found"));
+            if (currentUser.getRole().getName().equals(Role.Values.admin)) {
+                town = townRepository.findByTownId(dto.townId()).orElseThrow(
+                        () -> new NotFoundException("Town not found"));
+            } else {
+                town = currentUser.getTown();
+            }
         }
 
         var user = new User();
         user.setUsername(dto.username());
         user.setEmail(dto.email());
         user.setPassword(passwordEncoder.encode(dto.password()));
-        user.setRole(userRole); // Set the role based on the DTO
+        user.setRole(userRole);
         user.setTown(town);
 
         userRepository.save(user);
@@ -208,5 +219,11 @@ public class UserService {
         } else {
             throw new ForbiddenException("You do not have permission to delete this user.");
         }
+    }
+
+    // Auxiliary methods
+    private User getUser(JwtAuthenticationToken token) {
+        return userRepository.findById(UUID.fromString(token.getName()))
+                .orElseThrow(() -> new NotFoundException("user not found"));
     }
 }
