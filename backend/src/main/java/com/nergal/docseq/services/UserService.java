@@ -28,6 +28,7 @@ import com.nergal.docseq.exception.ForbiddenException;
 import com.nergal.docseq.exception.NotFoundException;
 import com.nergal.docseq.exception.UnprocessableContentException;
 import com.nergal.docseq.helpers.mappers.PageMapper;
+import com.nergal.docseq.helpers.specifications.UserSpecifications;
 import com.nergal.docseq.repositories.RoleRepository;
 import com.nergal.docseq.repositories.TownRepository;
 import com.nergal.docseq.repositories.UserRepository;
@@ -132,8 +133,15 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public UserContentResponse listUsers(Pageable pageable) {
-        var users = userRepository.findAll(pageable)
+    public UserContentResponse listUsers(Pageable pageable, String name, String town, JwtAuthenticationToken token) {
+
+        var userRole = getUser(token).getRole().getName();
+
+        if (userRole.equals(Role.Values.manager)) {
+            town = getUser(token).getTown().getName();
+        }
+
+        var users = userRepository.findAll(UserSpecifications.withFilters(town, name), pageable)
                 .map(user -> new UserItemDTO(
                         user.getUserId(),
                         user.getUsername(),

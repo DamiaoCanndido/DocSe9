@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.nergal.docseq.dto.users.LoginRequest;
@@ -41,10 +42,13 @@ public class UserController {
     }
 
     @GetMapping("/users")
-    @PreAuthorize("hasAuthority('SCOPE_admin')")
+    @PreAuthorize("hasAnyAuthority('SCOPE_admin', 'SCOPE_manager')")
     public ResponseEntity<UserContentResponse> listUsers(
-            Pageable pageable) {
-        return ResponseEntity.ok(userService.listUsers(pageable));
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String town,
+            Pageable pageable,
+            JwtAuthenticationToken token) {
+        return ResponseEntity.ok(userService.listUsers(pageable, name, town, token));
     }
 
     @GetMapping("/get-me")
