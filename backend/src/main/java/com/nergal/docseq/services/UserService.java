@@ -162,8 +162,8 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public UserItemDTO getMe(JwtAuthenticationToken token) {
-        var user = userRepository.findById(UUID.fromString(token.getName()))
-                .orElseThrow(() -> new NotFoundException("user not found"));
+        var user = getUser(token);
+
         return new UserItemDTO(
                 user.getUserId(),
                 user.getUsername(),
@@ -204,25 +204,48 @@ public class UserService {
     }
 
     @Transactional
-    public void updateUser(UUID userId, UserUpdateDTO dto) {
-        var user = userRepository.findById(userId)
+    public void updateUser(UUID userId, UserUpdateDTO dto, JwtAuthenticationToken token) {
+        var user = getUser(token);
+        UUID townId = null;
+
+        if (user.getRole().getName() != Role.Values.admin) {
+            townId = user.getTown().getTownId();
+        }
+
+        var userToUpdate = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
-        applyUpdates(user, dto);
+        boolean isAdmin = user.getRole().getName().name().equalsIgnoreCase(Role.Values.admin.name());
+        boolean isManager = user.getRole().getName().name().equalsIgnoreCase(Role.Values.manager.name())
+                && userToUpdate.getRole().getName() != Role.Values.admin
+                && userToUpdate.getTown().getTownId().equals(townId);
 
-        userRepository.save(user);
+        if (isAdmin || isManager || userToUpdate.getUserId().equals(UUID.fromString(token.getName()))) {
+            applyUpdates(userToUpdate, dto);
+            userRepository.save(userToUpdate);
+        } else {
+            throw new ForbiddenException("You do not have permission to update this user.");
+        }
     }
 
     @Transactional
     public void deleteUser(UUID userId, JwtAuthenticationToken token) {
-        var user = userRepository.findById(UUID.fromString(token.getName()));
+        var user = getUser(token);
+        UUID townId = null;
 
-        var isAdmin = user.get().getRole().getName().name().equalsIgnoreCase(Role.Values.admin.name());
+        if (user.getRole().getName() != Role.Values.admin) {
+            townId = user.getTown().getTownId();
+        }
 
         var userToDelete = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
-        if (isAdmin || userToDelete.getUserId().equals(UUID.fromString(token.getName()))) {
+        boolean isAdmin = user.getRole().getName().name().equalsIgnoreCase(Role.Values.admin.name());
+        boolean isManager = user.getRole().getName().name().equalsIgnoreCase(Role.Values.manager.name())
+                && userToDelete.getRole().getName() != Role.Values.admin
+                && userToDelete.getTown().getTownId().equals(townId);
+
+        if (isAdmin || isManager || userToDelete.getUserId().equals(UUID.fromString(token.getName()))) {
             userRepository.deleteById(userId);
         } else {
             throw new ForbiddenException("You do not have permission to delete this user.");
