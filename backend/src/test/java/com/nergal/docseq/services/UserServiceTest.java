@@ -83,6 +83,10 @@ public class UserServiceTest {
         private Town town;
         private UUID townId;
 
+        private Role adminRole;
+        private User adminUser;
+        JwtAuthenticationToken adminToken;
+
         @BeforeEach
         void setUp() {
                 user = new User();
@@ -102,16 +106,28 @@ public class UserServiceTest {
                 town.setImageUrl("http://example.com/image.png");
 
                 user.setTown(town);
+
+                adminRole = new Role();
+                adminRole.setName(Role.Values.admin);
+                adminUser = new User();
+                adminUser.setUserId(UUID.randomUUID());
+                adminUser.setRole(adminRole);
+                adminToken = new JwtAuthenticationToken(
+                                Jwt.withTokenValue("token").header("alg", "none")
+                                                .claim("sub", adminUser.getUserId().toString()).build(),
+                                Collections.emptyList());
         }
 
         @DisplayName("Register: Should throw UnprocessableContentException when user already exists")
         @Test
         void register_shouldThrowException_whenUserExists() {
+
                 when(userRepository.findByEmail(any())).thenReturn(Optional.of(user));
                 assertThrows(UnprocessableContentException.class,
                                 () -> userService.register(
                                                 new RegisterUserDTO("user", "test@example.com", Role.Values.basic,
-                                                                "pass", "pass", townId)));
+                                                                "pass", "pass", townId),
+                                                adminToken));
         }
 
         @DisplayName("Register: Should successfully register a new user with a town")
@@ -126,7 +142,7 @@ public class UserServiceTest {
                 when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
 
                 userService.register(new RegisterUserDTO("user", "email@email.com", Role.Values.basic, "pass", "pass",
-                                townId));
+                                townId), adminToken);
 
                 verify(userRepository).save(userCaptor.capture());
                 User savedUser = userCaptor.getValue();
@@ -170,7 +186,7 @@ public class UserServiceTest {
 
                 UserUpdateDTO updateDTO = new UserUpdateDTO("newuser", "new@example.com", Role.Values.basic, "newpass",
                                 "newpass", townId);
-                userService.updateUser(user.getUserId(), updateDTO);
+                userService.updateUser(user.getUserId(), updateDTO, adminToken);
 
                 verify(userRepository).save(any(User.class));
         }
@@ -200,7 +216,8 @@ public class UserServiceTest {
                 when(userRepository.findById(any())).thenReturn(Optional.empty());
                 UserUpdateDTO updateDTO = new UserUpdateDTO("newuser", "new@example.com", Role.Values.basic, "newpass",
                                 "newpass", townId);
-                assertThrows(NotFoundException.class, () -> userService.updateUser(UUID.randomUUID(), updateDTO));
+                assertThrows(NotFoundException.class,
+                                () -> userService.updateUser(UUID.randomUUID(), updateDTO, adminToken));
         }
 
         @DisplayName("Delete User: Should allow an admin user to delete any user")
@@ -282,7 +299,7 @@ public class UserServiceTest {
                 UserUpdateDTO updateDTO = new UserUpdateDTO("newuser", "new@example.com", Role.Values.basic, "newpass",
                                 "newpass",
                                 nonExistentTownId);
-                assertThrows(NotFoundException.class, () -> userService.updateUser(userId, updateDTO));
+                assertThrows(NotFoundException.class, () -> userService.updateUser(userId, updateDTO, adminToken));
         }
 
         @DisplayName("Update User: Should correctly update specified fields (username, email, password)")
@@ -303,7 +320,7 @@ public class UserServiceTest {
                 UserUpdateDTO updateDTO = new UserUpdateDTO(newUsername, newEmail, Role.Values.basic, newPassword,
                                 newPassword,
                                 townId); // Pass townId for basic role
-                userService.updateUser(userId, updateDTO);
+                userService.updateUser(userId, updateDTO, adminToken);
 
                 verify(userRepository).save(userCaptor.capture());
                 User updatedUser = userCaptor.getValue();
@@ -338,7 +355,7 @@ public class UserServiceTest {
                                 () -> userService
                                                 .register(new RegisterUserDTO("user", "email@email.com",
                                                                 Role.Values.basic, "pass", "pass",
-                                                                UUID.randomUUID())));
+                                                                UUID.randomUUID()), adminToken));
         }
 
         @DisplayName("Register: Should create basic role if it does not exist")
@@ -352,7 +369,7 @@ public class UserServiceTest {
                 when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
 
                 userService.register(new RegisterUserDTO("user", "email@email.com", Role.Values.basic, "pass", "pass",
-                                townId));
+                                townId), adminToken);
 
                 verify(roleRepository).save(any(Role.class)); // Verify that basic role was saved
                 verify(userRepository).save(any(User.class));
@@ -370,7 +387,8 @@ public class UserServiceTest {
                 assertThrows(UnprocessableContentException.class,
                                 () -> userService.register(
                                                 new RegisterUserDTO("user", "email@email.com", Role.Values.basic,
-                                                                "pass", "pass", null)));
+                                                                "pass", "pass", null),
+                                                adminToken));
         }
 
         @DisplayName("List Users: Should return a page of users")
@@ -434,7 +452,11 @@ public class UserServiceTest {
                                         .thenReturn(pageResponse);
 
                         // Call the service method
-                        UserContentResponse response = userService.listUsers(PageRequest.of(0, 10));
+                        UserContentResponse response = userService.listUsers(
+                                        PageRequest.of(0, 10),
+                                        "",
+                                        "",
+                                        adminToken);
 
                         // Assertions
                         assertNotNull(response);

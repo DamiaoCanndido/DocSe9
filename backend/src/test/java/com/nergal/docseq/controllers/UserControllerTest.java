@@ -22,6 +22,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -94,13 +95,14 @@ public class UserControllerTest {
         @Test
         @DisplayName("Should register a new user")
         void testRegister() throws Exception {
+
                 mockMvc.perform(post("/register")
                                 .with(jwt().authorities(new SimpleGrantedAuthority("SCOPE_admin"),
                                                 new SimpleGrantedAuthority("SCOPE_manager")))
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(registerUserDTO)))
                                 .andExpect(status().isOk());
-                verify(userService).register(any(RegisterUserDTO.class));
+                verify(userService).register(any(RegisterUserDTO.class), any(JwtAuthenticationToken.class));
         }
 
         @Test
@@ -135,7 +137,7 @@ public class UserControllerTest {
                                 .with(jwt().authorities(new SimpleGrantedAuthority("SCOPE_admin"))))
                                 .andExpect(status().isOk());
 
-                verify(userService).listUsers(any());
+                verify(userService).listUsers(any(), "", "", any(JwtAuthenticationToken.class));
         }
 
         @Test
@@ -180,7 +182,7 @@ public class UserControllerTest {
                                 .content(objectMapper.writeValueAsString(userUpdateDTO)))
                                 .andExpect(status().isOk());
 
-                verify(userService).updateUser(eq(userId), any(UserUpdateDTO.class));
+                verify(userService).updateUser(eq(userId), any(UserUpdateDTO.class), any(JwtAuthenticationToken.class));
         }
 
         @Test
