@@ -72,14 +72,15 @@ public class FolderService {
         // Only admins and managers can list all folders in their town for now.
         // For basic users, this would require filtering based on explicit read
         // permissions, which is complex.
-        if (user.getRole().getName().equals(Role.Values.basic)) {
-            throw new ForbiddenException("Basic users cannot list root folders without explicit read permissions.");
-        }
+        boolean isManager = user.getRole().getName().equals(Role.Values.manager);
 
         var town_id = user.getTown().getTownId(); // Changed to use user.getTown() directly
 
         var folderPage = folderRepository
-                .findAll(FolderSpecifications.withRootFilters(town_id, name), pageable)
+                .findAll(
+                        FolderSpecifications.withRootFilters(town_id, name, !isManager ? PermissionType.READ : null,
+                                !isManager ? user.getUserId() : null),
+                        pageable)
                 .map(FolderMapper::toDTO);
 
         var filePage = fileRepository
@@ -87,7 +88,7 @@ public class FolderService {
                         town_id,
                         // This logic needs to be re-evaluated as folderPage.getContent() might be empty
                         folderPage.getContent().isEmpty() ? null : folderPage.getContent().get(0).parentId(),
-                        name), pageable)
+                        name, !isManager ? PermissionType.READ : null, !isManager ? user.getUserId() : null), pageable)
                 .map(FileMapper::toResponse);
 
         return new FolderContentResponse(
@@ -105,6 +106,7 @@ public class FolderService {
             Pageable pageable,
             JwtAuthenticationToken token) {
         User user = getUser(token);
+        boolean isManager = user.getRole().getName().equals(Role.Values.manager);
         // Basic users need explicit READ permission for the parent folder
         if (user.getRole().getName().equals(Role.Values.basic)) {
             if (!permissionService.checkPermission(parentId, true, PermissionType.READ, token)) {
@@ -121,11 +123,15 @@ public class FolderService {
         var townId = getTownId(token);
 
         var folderPage = folderRepository
-                .findAll(FolderSpecifications.withSubFoldersFilters(townId, parentId, name), pageable)
+                .findAll(FolderSpecifications.withSubFoldersFilters(townId, parentId, name,
+                        !isManager ? PermissionType.READ : null,
+                        !isManager ? user.getUserId() : null), pageable)
                 .map(FolderMapper::toDTO);
 
         var filePage = fileRepository
-                .findAll(FileSpecifications.withSubFoldersFilters(town_id, parentId, name), pageable)
+                .findAll(FileSpecifications.withSubFoldersFilters(town_id, parentId, name,
+                        !isManager ? PermissionType.READ : null,
+                        !isManager ? user.getUserId() : null), pageable)
                 .map(FileMapper::toResponse);
 
         return new FolderContentResponse(

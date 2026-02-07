@@ -47,6 +47,9 @@ public class Folder {
    @OneToMany(mappedBy = "parent")
    private List<Folder> children = new ArrayList<>();
 
+   @OneToMany(mappedBy = "folder")
+   private List<Permission> permissions = new ArrayList<>();
+
    /*
     * ======================
     * Organizational scope
