@@ -26,9 +26,9 @@ public class PermissionService {
     private final FileRepository fileRepository;
 
     public PermissionService(PermissionRepository permissionRepository,
-                             UserRepository userRepository,
-                             FolderRepository folderRepository,
-                             FileRepository fileRepository) {
+            UserRepository userRepository,
+            FolderRepository folderRepository,
+            FileRepository fileRepository) {
         this.permissionRepository = permissionRepository;
         this.userRepository = userRepository;
         this.folderRepository = folderRepository;
@@ -51,11 +51,13 @@ public class PermissionService {
         String fileName = null;
 
         if (dto.folderId() != null) {
-            folder = folderRepository.findByFolderIdAndTownTownIdAndDeletedAtIsNull(dto.folderId(), managerUser.getTown().getTownId())
+            folder = folderRepository
+                    .findByFolderIdAndTownTownIdAndDeletedAtIsNull(dto.folderId(), managerUser.getTown().getTownId())
                     .orElseThrow(() -> new NotFoundException("Folder not found or does not belong to your town"));
             folderName = folder.getName();
         } else if (dto.fileId() != null) {
-            file = fileRepository.findByFileIdAndTownTownIdAndDeletedAtIsNull(dto.fileId(), managerUser.getTown().getTownId())
+            file = fileRepository
+                    .findByFileIdAndTownTownIdAndDeletedAtIsNull(dto.fileId(), managerUser.getTown().getTownId())
                     .orElseThrow(() -> new NotFoundException("File not found or does not belong to your town"));
             fileName = file.getName();
         } else {
@@ -96,8 +98,7 @@ public class PermissionService {
                 permission.getPermissionType(),
                 managerUser.getUserId(),
                 managerUser.getUsername(),
-                permission.getCreatedAt()
-        );
+                permission.getCreatedAt());
     }
 
     @Transactional
@@ -127,7 +128,8 @@ public class PermissionService {
                 permissions = permissionRepository.findAll();
             }
         } else if (currentUser.getRole().getName().equals(Role.Values.manager)) {
-            // Managers can only list permissions they granted or for basic users in their town
+            // Managers can only list permissions they granted or for basic users in their
+            // town
             if (targetUserId != null) {
                 User targetUser = userRepository.findById(targetUserId)
                         .orElseThrow(() -> new NotFoundException("Target user not found"));
@@ -151,11 +153,13 @@ public class PermissionService {
 
     // Helper method to check if a user has a specific permission on a file/folder
     @Transactional(readOnly = true)
-    public boolean checkPermission(UUID targetEntityId, boolean isFolder, PermissionType type, JwtAuthenticationToken token) {
+    public boolean checkPermission(UUID targetEntityId, boolean isFolder, PermissionType type,
+            JwtAuthenticationToken token) {
         User user = getUser(token);
 
         // Admins and managers implicitly have all permissions within their scope
-        if (user.getRole().getName().equals(Role.Values.admin) || user.getRole().getName().equals(Role.Values.manager)) {
+        if (user.getRole().getName().equals(Role.Values.admin)
+                || user.getRole().getName().equals(Role.Values.manager)) {
             return true;
         }
 
@@ -230,7 +234,6 @@ public class PermissionService {
                 permission.getPermissionType(),
                 permission.getGrantedBy().getUserId(),
                 permission.getGrantedBy().getUsername(),
-                permission.getCreatedAt()
-        );
+                permission.getCreatedAt());
     }
 }

@@ -21,6 +21,7 @@ import com.nergal.docseq.dto.folders.FolderTreeResponseDTO;
 import com.nergal.docseq.dto.folders.FolderUpdateDTO;
 import com.nergal.docseq.entities.File;
 import com.nergal.docseq.entities.Folder;
+import com.nergal.docseq.entities.PermissionType;
 import com.nergal.docseq.entities.Role;
 import com.nergal.docseq.entities.User;
 import com.nergal.docseq.exception.BadRequestException;
@@ -47,25 +48,35 @@ public class FolderService {
     private final FileRepository fileRepository;
     private final UserRepository userRepository;
     private final StorageService storageService;
+    private final PermissionService permissionService; // New
 
     public FolderService(
             FolderRepository folderRepository,
             FileRepository fileRepository,
             UserRepository userRepository,
-            StorageService storageService) {
+            StorageService storageService,
+            PermissionService permissionService) { // New
         this.folderRepository = folderRepository;
         this.fileRepository = fileRepository;
         this.userRepository = userRepository;
         this.storageService = storageService;
+        this.permissionService = permissionService; // New
     }
 
-    // List root folders
     @Transactional(readOnly = true)
     public FolderContentResponse listRootFolders(
             Pageable pageable,
             String name,
             JwtAuthenticationToken token) {
-        var town_id = getTownId(token);
+        User user = getUser(token);
+        // Only admins and managers can list all folders in their town for now.
+        // For basic users, this would require filtering based on explicit read
+        // permissions, which is complex.
+        if (user.getRole().getName().equals(Role.Values.basic)) {
+            throw new ForbiddenException("Basic users cannot list root folders without explicit read permissions.");
+        }
+
+        var town_id = user.getTown().getTownId(); // Changed to use user.getTown() directly
 
         var folderPage = folderRepository
                 .findAll(FolderSpecifications.withRootFilters(town_id, name), pageable)
@@ -74,9 +85,8 @@ public class FolderService {
         var filePage = fileRepository
                 .findAll(FileSpecifications.withSubFoldersFilters(
                         town_id,
-                        folderPage.getContent().size() == 0
-                                ? null
-                                : folderPage.getContent().get(0).parentId(),
+                        // This logic needs to be re-evaluated as folderPage.getContent() might be empty
+                        folderPage.getContent().isEmpty() ? null : folderPage.getContent().get(0).parentId(),
                         name), pageable)
                 .map(FileMapper::toResponse);
 
@@ -94,7 +104,15 @@ public class FolderService {
             String name,
             Pageable pageable,
             JwtAuthenticationToken token) {
-        var town_id = getTownId(token);
+        User user = getUser(token);
+        // Basic users need explicit READ permission for the parent folder
+        if (user.getRole().getName().equals(Role.Values.basic)) {
+            if (!permissionService.checkPermission(parentId, true, PermissionType.READ, token)) {
+                throw new ForbiddenException("You do not have read permission for this folder.");
+            }
+        }
+
+        var town_id = user.getTown().getTownId();
 
         folderRepository.findByFolderIdAndTownTownIdAndDeletedAtIsNull(
                 parentId,
@@ -121,7 +139,12 @@ public class FolderService {
     @Transactional(readOnly = true)
     public List<FolderTreeResponseDTO> getFolderTree(
             JwtAuthenticationToken token) {
-        var townId = getTownId(token);
+        User user = getUser(token);
+        if (user.getRole().getName().equals(Role.Values.basic)) {
+            throw new ForbiddenException(
+                    "Basic users cannot view the full folder tree without explicit read permissions.");
+        }
+        var townId = user.getTown().getTownId();
 
         var folders = folderRepository
                 .findByTownTownIdAndDeletedAtIsNull(townId);
@@ -144,6 +167,15 @@ public class FolderService {
                     dto.parentId(),
                     user.getTown().getTownId())
                     .orElseThrow(() -> new NotFoundException("parent folder not found"));
+
+            // New permission check for parent folder
+            if (!permissionService.checkPermission(dto.parentId(), true, PermissionType.WRITE, token)) {
+                throw new ForbiddenException("You do not have write permission for the parent folder.");
+            }
+        } else { // Creating a root folder
+            if (user.getRole().getName().equals(Role.Values.basic)) {
+                throw new ForbiddenException("Basic users cannot create root folders.");
+            }
         }
 
         if (folderRepository.existsByNameAndParentAndDeletedAtIsNull(dto.name(), parent)) {
@@ -173,6 +205,11 @@ public class FolderService {
                         user.getTown().getTownId())
                 .orElseThrow(() -> new NotFoundException("folder not found"));
 
+        // New permission check
+        if (!permissionService.checkPermission(folderId, true, PermissionType.WRITE, token)) {
+            throw new ForbiddenException("You do not have write permission for this folder.");
+        }
+
         if (dto.name() != null &&
                 folderRepository.existsByNameAndParentAndDeletedAtIsNull(dto.name(), folder.getParent())) {
             throw new ConflictException("Folder already exists");
@@ -182,6 +219,7 @@ public class FolderService {
             folder.setName(dto.name());
         if (dto.favorite() != null)
             folder.setFavorite(dto.favorite());
+        folderRepository.save(folder);
     }
 
     // move folder
@@ -200,6 +238,14 @@ public class FolderService {
                 .findByFolderIdAndTownTownIdAndDeletedAtIsNull(
                         targetFolderId, townId)
                 .orElseThrow(() -> new NotFoundException("Target folder not found"));
+
+        // New permission checks
+        if (!permissionService.checkPermission(folderId, true, PermissionType.WRITE, token)) {
+            throw new ForbiddenException("You do not have write permission for the source folder.");
+        }
+        if (!permissionService.checkPermission(targetFolderId, true, PermissionType.WRITE, token)) {
+            throw new ForbiddenException("You do not have write permission for the target folder.");
+        }
 
         if (folder.getFolderId().equals(target.getFolderId())) {
             throw new BadRequestException("Folder cannot be its own parent");
@@ -247,7 +293,13 @@ public class FolderService {
                         user.getTown().getTownId())
                 .orElseThrow(() -> new NotFoundException("folder not found"));
 
+        // New permission check
+        if (!permissionService.checkPermission(folderId, true, PermissionType.DELETE, token)) {
+            throw new ForbiddenException("You do not have delete permission for this folder.");
+        }
+
         softDeleteRecursively(folder, user);
+        folderRepository.save(folder);
     }
 
     @Transactional
@@ -308,6 +360,12 @@ public class FolderService {
         if (folder.getDeletedAt() == null) {
             throw new BadRequestException("Folder must be in trash before permanent delete");
         }
+
+        // New permission check
+        if (!permissionService.checkPermission(folderId, true, PermissionType.DELETE, token)) {
+            throw new ForbiddenException("You do not have delete permission to permanently delete this folder.");
+        }
+
         permanentDeleteRecursively(folder);
     }
 
@@ -385,7 +443,13 @@ public class FolderService {
                         folderId, townId)
                 .orElseThrow(() -> new NotFoundException("folder not found"));
 
+        // New permission check
+        if (!permissionService.checkPermission(folderId, true, PermissionType.WRITE, token)) {
+            throw new ForbiddenException("You do not have write permission to restore this folder.");
+        }
+
         restoreRecursively(folder);
+        folderRepository.save(folder);
     }
 
     @Transactional
@@ -443,7 +507,13 @@ public class FolderService {
                         user.getTown().getTownId())
                 .orElseThrow(() -> new NotFoundException("folder not found"));
 
+        // New permission check
+        if (!permissionService.checkPermission(folderId, true, PermissionType.WRITE, token)) {
+            throw new ForbiddenException("You do not have write permission to favorite/unfavorite this folder.");
+        }
+
         folder.setFavorite(!folder.getFavorite());
+        folderRepository.save(folder);
     }
 
     // Auxiliary methods
