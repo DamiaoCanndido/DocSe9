@@ -1,6 +1,6 @@
 package com.nergal.docseq.entities;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 import org.hibernate.annotations.CreationTimestamp;
@@ -48,7 +48,7 @@ public class User {
     private Town town;
 
     @CreationTimestamp
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     public UUID getUserId() {
         return userId;
@@ -98,11 +98,11 @@ public class User {
         this.town = town;
     }
 
-    public LocalDateTime getCreatedAt() {
+    public Instant getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
+    public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
     }
 

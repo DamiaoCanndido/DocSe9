@@ -229,10 +229,10 @@ const API_BASE_URL =
 - **Backend**
 
 1. - [ ] Busca Avançada: Implementar uma busca global que permita pesquisar por nome em arquivos e pastas, com filtros por data, tipo e outras propriedades.
-2. - [ ] Controle de Acesso por Papel (RBAC): Expandir o sistema de permissões para permitir controle de acesso mais granular a pastas e arquivos, além das roles admin e basic existentes.
-   - Adiconar no função: manager
-   - admin pode criar qualquer função
-   - manager pode criar outro manager da sua mesma town e basic
+2. - [ ] Controle de Acesso por Papel (RBAC): Expandir o sistema de permissões para permitir controle de acesso mais granular a pastas e arquivos.
+   - Adicionar uma nova entidade Permissions
+   - Vai permitir que usuários manager deem permissão aos basics de acessar pastas e arquivos especificos de suas respectivas towns.
+   - Crie todos as rotas necessárias para dá e retirar as permissões.
 3. - [ ] Log de Auditoria: Criar um serviço para registrar todas as ações importantes (criação, acesso, modificação, exclusão de arquivos/pastas) para fins de segurança e conformidade.
 4. - [ ] Funcionalidade de Compartilhamento: Desenvolver a lógica para permitir que usuários compartilhem arquivos e pastas com outros usuários, gerando links seguros e controlando permissões
          de acesso.

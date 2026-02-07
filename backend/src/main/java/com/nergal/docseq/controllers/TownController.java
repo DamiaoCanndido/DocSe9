@@ -23,6 +23,7 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/town")
+@PreAuthorize("hasAuthority('SCOPE_admin')")
 public class TownController {
 
     private final TownService townService;
@@ -32,27 +33,23 @@ public class TownController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAuthority('SCOPE_admin')")
     public ResponseEntity<TownContentResponse> getTowns(Pageable pageable) {
         return ResponseEntity.ok(townService.getAllTowns(pageable));
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority('SCOPE_admin')")
     public ResponseEntity<Void> createTown(@Valid @RequestBody TownRequestDTO dto) {
         townService.createTown(dto);
         return ResponseEntity.ok().build();
     }
 
     @PatchMapping("/{id}")
-    @PreAuthorize("hasAuthority('SCOPE_admin')")
     public ResponseEntity<Void> updateTown(@PathVariable UUID id, @Valid @RequestBody TownUpdateDTO dto) {
         townService.updateTown(id, dto);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('SCOPE_admin')")
     public ResponseEntity<Void> deleteTown(@PathVariable UUID id) {
         townService.deleteTown(id);
         return ResponseEntity.ok().build();
