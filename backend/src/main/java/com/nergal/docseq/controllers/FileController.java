@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,6 +26,7 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/files")
+@PreAuthorize("hasAnyAuthority('SCOPE_manager', 'SCOPE_basic')")
 public class FileController {
 
     private final FileService fileService;

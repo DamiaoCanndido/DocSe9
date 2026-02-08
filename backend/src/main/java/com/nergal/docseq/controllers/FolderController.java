@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,6 +27,7 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/folders")
+@PreAuthorize("hasAnyAuthority('SCOPE_manager', 'SCOPE_basic')")
 public class FolderController {
 
     private final FolderService folderService;
