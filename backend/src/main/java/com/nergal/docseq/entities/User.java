@@ -1,6 +1,8 @@
 package com.nergal.docseq.entities;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import org.hibernate.annotations.CreationTimestamp;
@@ -18,6 +20,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
@@ -46,6 +49,9 @@ public class User {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "town_id")
     private Town town;
+
+    @OneToMany(mappedBy = "grantedBy")
+    private List<Permission> grantedPermissions = new ArrayList<>();
 
     @CreationTimestamp
     private Instant createdAt;

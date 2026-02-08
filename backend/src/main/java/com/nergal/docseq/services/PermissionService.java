@@ -6,8 +6,11 @@ import com.nergal.docseq.entities.*;
 import com.nergal.docseq.exception.BadRequestException;
 import com.nergal.docseq.exception.ForbiddenException;
 import com.nergal.docseq.exception.NotFoundException;
+import com.nergal.docseq.helpers.specifications.PermissionSpecifications;
 import com.nergal.docseq.exception.ConflictException;
 import com.nergal.docseq.repositories.*;
+
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -120,12 +123,20 @@ public class PermissionService {
     public List<PermissionResponseDTO> listPermissions(UUID targetUserId, JwtAuthenticationToken token) {
         User currentUser = getUser(token);
         List<Permission> permissions;
+        Specification<Permission> spec;
 
         if (currentUser.getRole().getName().equals(Role.Values.admin)) {
             if (targetUserId != null) {
-                permissions = permissionRepository.findByUserUserId(targetUserId);
+                // Admin seeking permissions for a specific user.
+                spec = PermissionSpecifications.withEagerLoading()
+                        .and(PermissionSpecifications.byUserId(targetUserId));
+
+                permissions = permissionRepository.findAll(spec);
             } else {
-                permissions = permissionRepository.findAll();
+                // Admin seeking all permissions
+                spec = PermissionSpecifications.withEagerLoading();
+
+                permissions = permissionRepository.findAll(spec);
             }
         } else if (currentUser.getRole().getName().equals(Role.Values.manager)) {
             // Managers can only list permissions they granted or for basic users in their
@@ -135,20 +146,35 @@ public class PermissionService {
                         .orElseThrow(() -> new NotFoundException("Target user not found"));
                 validateBasicUser(targetUser);
                 validateSameTown(currentUser, targetUser);
-                permissions = permissionRepository.findByUserUserId(targetUserId);
+
+                // Manager searching for permissions for a specific user.
+                spec = PermissionSpecifications.withEagerLoading()
+                        .and(PermissionSpecifications.byUserId(targetUserId));
+
+                permissions = permissionRepository.findAll(spec);
             } else {
                 // List all permissions granted by this manager
-                permissions = permissionRepository.findByGrantedByUserId(currentUser.getUserId());
+                spec = PermissionSpecifications.withEagerLoading()
+                        .and(PermissionSpecifications.byGrantedByUserId(currentUser.getUserId()));
+
+                permissions = permissionRepository.findAll(spec);
             }
         } else {
             // Basic users can only list their own permissions
             if (targetUserId != null && !targetUserId.equals(currentUser.getUserId())) {
                 throw new ForbiddenException("Basic users can only view their own permissions.");
             }
-            permissions = permissionRepository.findByUserUserId(currentUser.getUserId());
+
+            // Basic user seeking their own permissions.
+            spec = PermissionSpecifications.withEagerLoading()
+                    .and(PermissionSpecifications.byUserId(currentUser.getUserId()));
+
+            permissions = permissionRepository.findAll(spec);
         }
 
-        return permissions.stream().map(this::mapToResponseDTO).collect(Collectors.toList());
+        return permissions.stream()
+                .map(this::mapToResponseDTO)
+                .collect(Collectors.toList());
     }
 
     // Helper method to check if a user has a specific permission on a file/folder
@@ -199,38 +225,14 @@ public class PermissionService {
     }
 
     private PermissionResponseDTO mapToResponseDTO(Permission permission) {
-        String folderName = null;
-        if (permission.getFolder() != null) {
-            try {
-                folderName = permission.getFolder().getName();
-            } catch (Exception e) {
-                // Handle lazy loading exception if getName is called outside a transaction
-                // or if entity is detached. Fetching again for safety.
-                folderRepository.findById(permission.getFolder().getFolderId()).ifPresent(f -> {
-                    // This is not ideal as it might cause N+1. Better to use a DTO projection
-                    // in the repository or fetch eagerly if always needed.
-                });
-            }
-        }
-
-        String fileName = null;
-        if (permission.getFile() != null) {
-            try {
-                fileName = permission.getFile().getName();
-            } catch (Exception e) {
-                fileRepository.findById(permission.getFile().getFileId()).ifPresent(f -> {
-                });
-            }
-        }
-
         return new PermissionResponseDTO(
                 permission.getPermissionId(),
                 permission.getUser().getUserId(),
                 permission.getUser().getUsername(),
                 permission.getFolder() != null ? permission.getFolder().getFolderId() : null,
-                folderName,
+                permission.getFolder() != null ? permission.getFolder().getName() : null,
                 permission.getFile() != null ? permission.getFile().getFileId() : null,
-                fileName,
+                permission.getFile() != null ? permission.getFile().getName() : null,
                 permission.getPermissionType(),
                 permission.getGrantedBy().getUserId(),
                 permission.getGrantedBy().getUsername(),
