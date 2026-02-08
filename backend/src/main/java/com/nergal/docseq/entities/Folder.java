@@ -175,4 +175,8 @@ public class Folder {
    public void setDeletedAt(Instant deletedAt) {
       this.deletedAt = deletedAt;
    }
+
+   public List<Permission> getPermissions() {
+      return permissions;
+   }
 }

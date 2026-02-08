@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -27,15 +26,18 @@ public class PermissionService {
     private final UserRepository userRepository;
     private final FolderRepository folderRepository;
     private final FileRepository fileRepository;
+    private final PermissionsCheckService permissionsCheckService;
 
     public PermissionService(PermissionRepository permissionRepository,
             UserRepository userRepository,
             FolderRepository folderRepository,
-            FileRepository fileRepository) {
+            FileRepository fileRepository,
+            PermissionsCheckService permissionsCheckService) {
         this.permissionRepository = permissionRepository;
         this.userRepository = userRepository;
         this.folderRepository = folderRepository;
         this.fileRepository = fileRepository;
+        this.permissionsCheckService = permissionsCheckService;
     }
 
     @Transactional
@@ -183,22 +185,37 @@ public class PermissionService {
             JwtAuthenticationToken token) {
         User user = getUser(token);
 
-        // Admins and managers implicitly have all permissions within their scope
-        if (user.getRole().getName().equals(Role.Values.admin)
-                || user.getRole().getName().equals(Role.Values.manager)) {
+        // Admins have all permissions.
+        if (user.getRole().getName().equals(Role.Values.admin)) {
             return true;
         }
 
-        // Check if basic user has explicit permission
-        Optional<Permission> permission;
-        if (isFolder) {
-            permission = permissionRepository.findByUserUserIdAndFolderFolderIdAndPermissionTypeAndFileIsNull(
-                    user.getUserId(), targetEntityId, type);
-        } else {
-            permission = permissionRepository.findByUserUserIdAndFileFileIdAndPermissionTypeAndFolderIsNull(
-                    user.getUserId(), targetEntityId, type);
+        // Managers have full permissions within their town.
+        if (user.getRole().getName().equals(Role.Values.manager)) {
+            // Check if it's in the same town.
+            if (isFolder) {
+                Folder folder = folderRepository.findById(targetEntityId)
+                        .orElse(null);
+                if (folder != null && folder.getTown().getTownId().equals(user.getTown().getTownId())) {
+                    return true;
+                }
+            } else {
+                File file = fileRepository.findById(targetEntityId)
+                        .orElse(null);
+                if (file != null && file.getTown().getTownId().equals(user.getTown().getTownId())) {
+                    return true;
+                }
+            }
         }
-        return permission.isPresent();
+
+        // For basic users, check explicit permissions with hierarchy.
+        if (isFolder) {
+            return permissionsCheckService.hasPermissionOptimized(
+                    user.getUserId(), targetEntityId, type, true);
+        } else {
+            return permissionsCheckService.hasPermissionOptimized(
+                    user.getUserId(), targetEntityId, type, false);
+        }
     }
 
     private User getUser(JwtAuthenticationToken token) {

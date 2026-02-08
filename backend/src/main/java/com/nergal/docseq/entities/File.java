@@ -158,6 +158,10 @@ public class File {
       return deletedAt;
    }
 
+   public List<Permission> getPermissions() {
+      return permissions;
+   }
+
    public void setName(String name) {
       this.name = name;
    }

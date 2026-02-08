@@ -14,7 +14,9 @@ import com.nergal.docseq.dto.files.FileResponseDTO;
 import com.nergal.docseq.dto.folders.FolderUpdateDTO;
 import com.nergal.docseq.entities.File;
 import com.nergal.docseq.entities.Folder;
+import com.nergal.docseq.entities.Permission;
 import com.nergal.docseq.entities.PermissionType;
+import com.nergal.docseq.entities.Role;
 import com.nergal.docseq.entities.User;
 import com.nergal.docseq.exception.BadRequestException;
 import com.nergal.docseq.exception.ForbiddenException;
@@ -22,6 +24,7 @@ import com.nergal.docseq.exception.NotFoundException;
 import com.nergal.docseq.helpers.mappers.FileMapper;
 import com.nergal.docseq.repositories.FileRepository;
 import com.nergal.docseq.repositories.FolderRepository;
+import com.nergal.docseq.repositories.PermissionRepository;
 import com.nergal.docseq.repositories.UserRepository;
 
 @Service
@@ -32,18 +35,21 @@ public class FileService {
     private final UserRepository userRepository;
     private final StorageService storageService;
     private final PermissionService permissionService;
+    private final PermissionRepository permissionRepository;
 
     public FileService(
             FileRepository fileRepository,
             FolderRepository folderRepository,
             UserRepository userRepository,
             StorageService storageService,
-            PermissionService permissionService) {
+            PermissionService permissionService,
+            PermissionRepository permissionRepository) {
         this.fileRepository = fileRepository;
         this.folderRepository = folderRepository;
         this.userRepository = userRepository;
         this.storageService = storageService;
         this.permissionService = permissionService;
+        this.permissionRepository = permissionRepository;
     }
 
     @Transactional
@@ -81,6 +87,17 @@ public class FileService {
         // upload físico
         String storageKey = storageService.upload(file, entity.getFileId());
         entity.setObjectKey(storageKey);
+
+        if (user.getRole().getName().equals(Role.Values.basic)) {
+            Permission permission = new Permission();
+            permission.setUser(user);
+            permission.setFolder(null);
+            permission.setFile(entity);
+            permission.setPermissionType(PermissionType.DELETE);
+            permission.setGrantedBy(user);
+
+            permissionRepository.save(permission);
+        }
 
         return FileMapper.toResponse(entity);
     }
