@@ -30,7 +30,6 @@ public class FolderSpecifications {
                         "%" + name.toLowerCase() + "%"));
             }
 
-            // Filtro de permissão e usuário
             if (permissionType != null || userId != null) {
                 Join<Folder, Permission> permissionsJoin = root.join("permissions");
 
@@ -64,7 +63,6 @@ public class FolderSpecifications {
                         "%" + name.toLowerCase() + "%"));
             }
 
-            // Filtro de permissão e usuário
             if (permissionType != null || userId != null) {
                 Join<Folder, Permission> permissionsJoin = root.join("permissions");
 

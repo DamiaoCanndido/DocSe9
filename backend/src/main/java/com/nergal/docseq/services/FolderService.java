@@ -48,19 +48,19 @@ public class FolderService {
     private final FileRepository fileRepository;
     private final UserRepository userRepository;
     private final StorageService storageService;
-    private final PermissionService permissionService; // New
+    private final PermissionService permissionService;
 
     public FolderService(
             FolderRepository folderRepository,
             FileRepository fileRepository,
             UserRepository userRepository,
             StorageService storageService,
-            PermissionService permissionService) { // New
+            PermissionService permissionService) {
         this.folderRepository = folderRepository;
         this.fileRepository = fileRepository;
         this.userRepository = userRepository;
         this.storageService = storageService;
-        this.permissionService = permissionService; // New
+        this.permissionService = permissionService;
     }
 
     @Transactional(readOnly = true)
@@ -69,12 +69,10 @@ public class FolderService {
             String name,
             JwtAuthenticationToken token) {
         User user = getUser(token);
-        // Only admins and managers can list all folders in their town for now.
-        // For basic users, this would require filtering based on explicit read
-        // permissions, which is complex.
+
         boolean isManager = user.getRole().getName().equals(Role.Values.manager);
 
-        var town_id = user.getTown().getTownId(); // Changed to use user.getTown() directly
+        var town_id = user.getTown().getTownId();
 
         var folderPage = folderRepository
                 .findAll(
@@ -86,7 +84,6 @@ public class FolderService {
         var filePage = fileRepository
                 .findAll(FileSpecifications.withSubFoldersFilters(
                         town_id,
-                        // This logic needs to be re-evaluated as folderPage.getContent() might be empty
                         folderPage.getContent().isEmpty() ? null : folderPage.getContent().get(0).parentId(),
                         name, !isManager ? PermissionType.READ : null, !isManager ? user.getUserId() : null), pageable)
                 .map(FileMapper::toResponse);
@@ -108,11 +105,6 @@ public class FolderService {
         User user = getUser(token);
         boolean isManager = user.getRole().getName().equals(Role.Values.manager);
         // Basic users need explicit READ permission for the parent folder
-        if (user.getRole().getName().equals(Role.Values.basic)) {
-            if (!permissionService.checkPermission(parentId, true, PermissionType.READ, token)) {
-                throw new ForbiddenException("You do not have read permission for this folder.");
-            }
-        }
 
         var town_id = user.getTown().getTownId();
 

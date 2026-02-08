@@ -16,60 +16,20 @@ import com.nergal.docseq.entities.Folder;
 @Repository
 public interface FileRepository extends JpaRepository<File, UUID>, JpaSpecificationExecutor<File> {
 
-        // List files in a folder
-        Page<File> findByFolderFolderIdAndDeletedAtIsNull(
-                        UUID folderId,
-                        Pageable page);
-
-        // List files by folder id
-        List<File> findByFolderFolderId(UUID folderId);
-
-        // List files than delete at not null
-        List<File> findByFolderAndDeletedAtIsNotNull(Folder folder);
-
-        // List files in the root directory.
-        Page<File> findByFolderIsNullAndTownTownIdAndDeletedAtIsNull(
-                        UUID townId,
-                        Pageable page);
-
-        // Search for favorite files
-        Page<File> findByTownTownIdAndFavoriteTrueAndDeletedAtIsNull(
-                        UUID townId,
-                        Pageable page);
+        // Search for files securely
+        Optional<File> findByFileIdAndTownTownIdAndDeletedAtIsNull(
+                        UUID fileId,
+                        UUID townId);
 
         // Recycle Bin – Deleted Files
         Page<File> findByTownTownIdAndDeletedAtIsNotNull(
                         UUID townId,
                         Pageable page);
 
-        // Search for files securely
-        Optional<File> findByFileIdAndTownTownIdAndDeletedAtIsNull(
-                        UUID fileId,
-                        UUID townId);
-
         // Search for files soft deleted
         Optional<File> findByFileIdAndTownTownIdAndDeletedAtIsNotNull(
                         UUID fileId,
                         UUID townId);
-
-        // Search for folder id and town id
-        Optional<File> findByFolderFolderIdAndTownTownIdAndDeletedAtIsNull(
-                        UUID folderId,
-                        UUID townId);
-
-        // Check for duplicate names in the same folder
-        boolean existsByNameAndFolderAndDeletedAtIsNull(
-                        String name,
-                        Folder folder);
-
-        // Search for restore
-        Optional<File> findByFileIdAndDeletedAtIsNotNull(UUID fileId);
-
-        List<File> findByFolderAndDeletedAtIsNull(Folder folder);
-
-        List<File> findByFolderFolderIdAndDeletedAtIsNotNull(UUID folderId);
-
-        void deleteByFolderFolderId(UUID folderId);
 
         List<File> findByFolderInAndDeletedAtIsNull(List<Folder> folders);
 

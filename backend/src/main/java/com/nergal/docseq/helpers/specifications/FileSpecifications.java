@@ -30,7 +30,6 @@ public class FileSpecifications {
                         "%" + name.toLowerCase() + "%"));
             }
 
-            // Filtro de permissão e usuário
             if (permissionType != null || userId != null) {
                 Join<File, Permission> permissionsJoin = root.join("permissions");
 

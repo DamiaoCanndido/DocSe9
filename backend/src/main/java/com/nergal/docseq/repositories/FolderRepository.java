@@ -17,28 +17,9 @@ public interface FolderRepository extends
                 JpaRepository<Folder, UUID>,
                 JpaSpecificationExecutor<Folder> {
 
-        // Search for root folders (initial explorer)
-        List<Folder> findByTownTownIdAndParentIsNullAndDeletedAtIsNull(
-                        UUID townId);
-
-        // find by parent than delete at is not null
-        List<Folder> findByParentAndDeletedAtIsNotNull(Folder folder);
-
-        // Search for subfolders within a folder
-        Page<Folder> findByParentFolderIdAndDeletedAtIsNull(
-                        UUID parentId,
-                        Pageable page);
-
-        List<Folder> findByParentFolderIdAndDeletedAtIsNull(UUID parentFolderId);
-
         // Search ALL folders in the organization (full tree)
         List<Folder> findByTownTownIdAndDeletedAtIsNull(
                         UUID townId);
-
-        // Find favorite folders
-        Page<Folder> findByTownTownIdAndFavoriteTrueAndDeletedAtIsNull(
-                        UUID townId,
-                        Pageable page);
 
         // Recycle Bin – List deleted folders
         Page<Folder> findByTownTownIdAndDeletedAtIsNotNull(
@@ -59,12 +40,6 @@ public interface FolderRepository extends
         Optional<Folder> findByFolderIdAndTownTownIdAndDeletedAtIsNotNull(
                         UUID folderId,
                         UUID towshipId);
-
-        List<Folder> findByParentAndDeletedAtIsNull(Folder parent);
-
-        Optional<Folder> findByFolderIdAndDeletedAtIsNull(UUID folderId);
-
-        List<Folder> findByParentFolderId(UUID parentId);
 
         List<Folder> findByTownTownId(UUID townId);
 }
