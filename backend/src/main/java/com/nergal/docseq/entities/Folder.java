@@ -8,6 +8,7 @@ import java.util.UUID;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -47,7 +48,7 @@ public class Folder {
    @OneToMany(mappedBy = "parent")
    private List<Folder> children = new ArrayList<>();
 
-   @OneToMany(mappedBy = "folder")
+   @OneToMany(mappedBy = "folder", cascade = CascadeType.REMOVE, orphanRemoval = true)
    private List<Permission> permissions = new ArrayList<>();
 
    /*

@@ -8,6 +8,7 @@ import java.util.UUID;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -57,7 +58,7 @@ public class File {
    @JoinColumn(name = "town_id", nullable = false)
    private Town town;
 
-   @OneToMany(mappedBy = "file")
+   @OneToMany(mappedBy = "file", cascade = CascadeType.REMOVE, orphanRemoval = true)
    private List<Permission> permissions = new ArrayList<>();
 
    /*
