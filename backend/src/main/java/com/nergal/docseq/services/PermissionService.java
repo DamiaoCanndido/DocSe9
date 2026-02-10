@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -58,24 +59,26 @@ public class PermissionService {
             throw new ConflictException("Permission already exists for this user and resource.");
         }
 
-        Permission permission = new Permission();
-        permission.setUser(targetUser);
-        permission.setFolder(folder);
-        permission.setPermissionType(dto.permissionType());
-        permission.setGrantedBy(managerUser);
+        // 1. Adiciona na pasta atual
+        var result = addOrUpdatePermission(folder, targetUser, managerUser, dto.permissionType());
 
-        permissionRepository.save(permission);
+        /*
+         * // 2. Propaga para CIMA (pastas pai) usando query recursiva
+         * List<Folder> parentFolders =
+         * folderRepository.findAllParentFoldersRecursive(folder.getFolderId());
+         * for (Folder parentFolder : parentFolders) {
+         * addOrUpdatePermission(parentFolder, targetUser, managerUser,
+         * dto.permissionType());
+         * }
+         */
 
-        return new PermissionResponseDTO(
-                permission.getPermissionId(),
-                targetUser.getUserId(),
-                targetUser.getUsername(),
-                folder != null ? folder.getFolderId() : null,
-                folder.getName(),
-                permission.getPermissionType(),
-                managerUser.getUserId(),
-                managerUser.getUsername(),
-                permission.getCreatedAt());
+        // 3. Propaga para BAIXO (subpastas) usando query recursiva
+        List<Folder> childFolders = folderRepository.findAllChildFoldersRecursive(folder.getFolderId());
+        for (Folder childFolder : childFolders) {
+            addOrUpdatePermission(childFolder, targetUser, managerUser, dto.permissionType());
+        }
+
+        return result;
     }
 
     @Transactional
@@ -88,6 +91,24 @@ public class PermissionService {
 
         if (!permission.getGrantedBy().getUserId().equals(managerUser.getUserId())) {
             throw new ForbiddenException("You are not authorized to revoke this permission.");
+        }
+
+        removePermission(permission.getFolder(), permission.getUser().getUserId());
+
+        /*
+         * // 2. Remove das pastas pai
+         * List<Folder> parentFolders = folderRepository
+         * .findAllParentFoldersRecursive(permission.getFolder().getFolderId());
+         * for (Folder parentFolder : parentFolders) {
+         * removePermission(parentFolder, permission.getUser().getUserId());
+         * }
+         */
+
+        // 3. Remove das subpastas
+        List<Folder> childFolders = folderRepository
+                .findAllChildFoldersRecursive(permission.getFolder().getFolderId());
+        for (Folder childFolder : childFolders) {
+            removePermission(childFolder, permission.getUser().getUserId());
         }
 
         permissionRepository.delete(permission);
@@ -175,6 +196,55 @@ public class PermissionService {
         // For basic users, check explicit permissions with hierarchy.
         return permissionsCheckService.hasPermissionOptimized(
                 user.getUserId(), folderId, type, true);
+    }
+
+    // ==================== MÉTODOS AUXILIARES ====================
+
+    private PermissionResponseDTO addOrUpdatePermission(Folder folder, User user, User grantedBy,
+            PermissionType permissionType) {
+        Optional<Permission> existingPermission = folder.getPermissions().stream()
+                .filter(p -> p.getUser().getUserId().equals(user.getUserId()))
+                .findFirst();
+
+        Permission newPermission = new Permission();
+
+        if (existingPermission.isPresent()) {
+            existingPermission.get().setPermissionType(permissionType);
+            return new PermissionResponseDTO(
+                    existingPermission.get().getPermissionId(),
+                    user.getUserId(),
+                    user.getUsername(),
+                    folder != null ? folder.getFolderId() : null,
+                    folder.getName(),
+                    existingPermission.get().getPermissionType(),
+                    grantedBy.getUserId(),
+                    grantedBy.getUsername(),
+                    existingPermission.get().getCreatedAt());
+        } else {
+            newPermission.setFolder(folder);
+            newPermission.setUser(user);
+            newPermission.setGrantedBy(grantedBy);
+            newPermission.setPermissionType(permissionType);
+            folder.getPermissions().add(newPermission);
+        }
+
+        folderRepository.save(folder);
+
+        return new PermissionResponseDTO(
+                newPermission.getPermissionId(),
+                user.getUserId(),
+                user.getUsername(),
+                folder != null ? folder.getFolderId() : null,
+                folder.getName(),
+                newPermission.getPermissionType(),
+                grantedBy.getUserId(),
+                grantedBy.getUsername(),
+                newPermission.getCreatedAt());
+    }
+
+    private void removePermission(Folder folder, UUID userId) {
+        folder.getPermissions().removeIf(p -> p.getUser().getUserId().equals(userId));
+        folderRepository.save(folder);
     }
 
     private User getUser(JwtAuthenticationToken token) {

@@ -21,7 +21,6 @@ import com.nergal.docseq.dto.folders.FolderTreeResponseDTO;
 import com.nergal.docseq.dto.folders.FolderUpdateDTO;
 import com.nergal.docseq.entities.File;
 import com.nergal.docseq.entities.Folder;
-import com.nergal.docseq.entities.Permission;
 import com.nergal.docseq.entities.PermissionType;
 import com.nergal.docseq.entities.Role;
 import com.nergal.docseq.entities.User;
@@ -37,7 +36,6 @@ import com.nergal.docseq.helpers.specifications.FileSpecifications;
 import com.nergal.docseq.helpers.specifications.FolderSpecifications;
 import com.nergal.docseq.repositories.FileRepository;
 import com.nergal.docseq.repositories.FolderRepository;
-import com.nergal.docseq.repositories.PermissionRepository;
 import com.nergal.docseq.repositories.UserRepository;
 
 import lombok.extern.slf4j.Slf4j;
@@ -51,21 +49,18 @@ public class FolderService {
     private final UserRepository userRepository;
     private final StorageService storageService;
     private final PermissionService permissionService;
-    private final PermissionRepository permissionRepository;
 
     public FolderService(
             FolderRepository folderRepository,
             FileRepository fileRepository,
             UserRepository userRepository,
             StorageService storageService,
-            PermissionService permissionService,
-            PermissionRepository permissionRepository) {
+            PermissionService permissionService) {
         this.folderRepository = folderRepository;
         this.fileRepository = fileRepository;
         this.userRepository = userRepository;
         this.storageService = storageService;
         this.permissionService = permissionService;
-        this.permissionRepository = permissionRepository;
     }
 
     @Transactional(readOnly = true)
@@ -197,20 +192,23 @@ public class FolderService {
         Folder folder = new Folder();
         folder.setName(dto.name());
         folder.setParent(parent);
+        folder.copyPermissionsFrom(parent);
         folder.setTown(user.getTown());
         folder.setCreatedBy(user);
 
         folderRepository.save(folder);
 
-        if (user.getRole().getName().equals(Role.Values.basic)) {
-            Permission permission = new Permission();
-            permission.setUser(user);
-            permission.setFolder(folder);
-            permission.setPermissionType(PermissionType.DELETE);
-            permission.setGrantedBy(user);
-
-            permissionRepository.save(permission);
-        }
+        /*
+         * if (user.getRole().getName().equals(Role.Values.basic)) {
+         * Permission permission = new Permission();
+         * permission.setUser(user);
+         * permission.setFolder(folder);
+         * permission.setPermissionType(PermissionType.DELETE);
+         * permission.setGrantedBy(user);
+         * 
+         * permissionRepository.save(permission);
+         * }
+         */
     }
 
     // Update folder
@@ -547,4 +545,5 @@ public class FolderService {
     private UUID getTownId(JwtAuthenticationToken token) {
         return getUser(token).getTown().getTownId();
     }
+
 }

@@ -48,7 +48,7 @@ public class Folder {
    @OneToMany(mappedBy = "parent")
    private List<Folder> children = new ArrayList<>();
 
-   @OneToMany(mappedBy = "folder", cascade = CascadeType.REMOVE, orphanRemoval = true)
+   @OneToMany(mappedBy = "folder", cascade = CascadeType.ALL, orphanRemoval = true)
    private List<Permission> permissions = new ArrayList<>();
 
    /*
@@ -179,5 +179,21 @@ public class Folder {
 
    public List<Permission> getPermissions() {
       return permissions;
+   }
+
+   public void copyPermissionsFrom(Folder sourceFolder) {
+      if (sourceFolder.getPermissions() != null) {
+         this.permissions.clear();
+
+         for (Permission sourcePermission : sourceFolder.getPermissions()) {
+            Permission newPermission = new Permission();
+            newPermission.setFolder(this);
+            newPermission.setUser(sourcePermission.getUser());
+            newPermission.setGrantedBy(sourcePermission.getGrantedBy());
+            newPermission.setPermissionType(sourcePermission.getPermissionType());
+
+            this.permissions.add(newPermission);
+         }
+      }
    }
 }
