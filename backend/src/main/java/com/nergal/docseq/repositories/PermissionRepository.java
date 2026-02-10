@@ -20,40 +20,19 @@ public interface PermissionRepository extends JpaRepository<Permission, UUID>, J
                         "FROM Permission p " +
                         "WHERE p.user.userId = :userId " +
                         "AND p.folder.folderId = :folderId " +
-                        "AND p.permissionType IN :types " +
-                        "AND p.file IS NULL") // Garante que é permissão de folder
+                        "AND p.permissionType IN :types ") // Garante que é permissão de folder
         boolean existsByUserIdAndFolderIdAndPermissionTypeIn(
                         @Param("userId") UUID userId,
                         @Param("folderId") UUID folderId,
                         @Param("types") List<PermissionType> types);
 
-        // Para Files
-        @Query("SELECT CASE WHEN COUNT(p) > 0 THEN true ELSE false END " +
-                        "FROM Permission p " +
-                        "WHERE p.user.userId = :userId " +
-                        "AND p.file.fileId = :fileId " +
-                        "AND p.permissionType IN :types " +
-                        "AND p.folder IS NULL") // Garante que é permissão de file
-        boolean existsByUserIdAndFileIdAndPermissionTypeIn(
-                        @Param("userId") UUID userId,
-                        @Param("fileId") UUID fileId,
-                        @Param("types") List<PermissionType> types);
-
-        Optional<Permission> findByUserUserIdAndFolderFolderIdAndPermissionTypeAndFileIsNull(
+        Optional<Permission> findByUserUserIdAndFolderFolderIdAndPermissionType(
                         UUID userId, UUID folderId, PermissionType permissionType);
-
-        Optional<Permission> findByUserUserIdAndFileFileIdAndPermissionTypeAndFolderIsNull(
-                        UUID userId, UUID fileId, PermissionType permissionType);
 
         List<Permission> findByFolderFolderId(UUID folderId);
 
-        List<Permission> findByFileFileId(UUID fileId);
-
-        void deleteByUserUserIdAndFolderFolderIdAndPermissionTypeAndFileIsNull(
+        void deleteByUserUserIdAndFolderFolderIdAndPermissionType(
                         UUID userId, UUID folderId, PermissionType permissionType);
-
-        void deleteByUserUserIdAndFileFileIdAndPermissionTypeAndFolderIsNull(
-                        UUID userId, UUID fileId, PermissionType permissionType);
 
         List<Permission> findByUserUserId(UUID userId);
 

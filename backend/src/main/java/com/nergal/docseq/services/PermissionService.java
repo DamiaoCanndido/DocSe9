@@ -25,18 +25,15 @@ public class PermissionService {
     private final PermissionRepository permissionRepository;
     private final UserRepository userRepository;
     private final FolderRepository folderRepository;
-    private final FileRepository fileRepository;
     private final PermissionsCheckService permissionsCheckService;
 
     public PermissionService(PermissionRepository permissionRepository,
             UserRepository userRepository,
             FolderRepository folderRepository,
-            FileRepository fileRepository,
             PermissionsCheckService permissionsCheckService) {
         this.permissionRepository = permissionRepository;
         this.userRepository = userRepository;
         this.folderRepository = folderRepository;
-        this.fileRepository = fileRepository;
         this.permissionsCheckService = permissionsCheckService;
     }
 
@@ -50,34 +47,12 @@ public class PermissionService {
         validateBasicUser(targetUser);
         validateSameTown(managerUser, targetUser);
 
-        Folder folder = null;
-        File file = null;
-        String folderName = null;
-        String fileName = null;
+        Folder folder = folderRepository
+                .findByFolderIdAndTownTownIdAndDeletedAtIsNull(dto.folderId(), managerUser.getTown().getTownId())
+                .orElseThrow(() -> new NotFoundException("Folder not found or does not belong to your town"));
 
-        if (dto.folderId() != null) {
-            folder = folderRepository
-                    .findByFolderIdAndTownTownIdAndDeletedAtIsNull(dto.folderId(), managerUser.getTown().getTownId())
-                    .orElseThrow(() -> new NotFoundException("Folder not found or does not belong to your town"));
-            folderName = folder.getName();
-        } else if (dto.fileId() != null) {
-            file = fileRepository
-                    .findByFileIdAndTownTownIdAndDeletedAtIsNull(dto.fileId(), managerUser.getTown().getTownId())
-                    .orElseThrow(() -> new NotFoundException("File not found or does not belong to your town"));
-            fileName = file.getName();
-        } else {
-            throw new BadRequestException("Either folderId or fileId must be provided.");
-        }
-
-        // Check for existing permission
-        boolean permissionExists = false;
-        if (folder != null) {
-            permissionExists = permissionRepository.findByUserUserIdAndFolderFolderIdAndPermissionTypeAndFileIsNull(
-                    targetUser.getUserId(), folder.getFolderId(), dto.permissionType()).isPresent();
-        } else {
-            permissionExists = permissionRepository.findByUserUserIdAndFileFileIdAndPermissionTypeAndFolderIsNull(
-                    targetUser.getUserId(), file.getFileId(), dto.permissionType()).isPresent();
-        }
+        boolean permissionExists = permissionRepository.findByUserUserIdAndFolderFolderIdAndPermissionType(
+                targetUser.getUserId(), folder.getFolderId(), dto.permissionType()).isPresent();
 
         if (permissionExists) {
             throw new ConflictException("Permission already exists for this user and resource.");
@@ -86,7 +61,6 @@ public class PermissionService {
         Permission permission = new Permission();
         permission.setUser(targetUser);
         permission.setFolder(folder);
-        permission.setFile(file);
         permission.setPermissionType(dto.permissionType());
         permission.setGrantedBy(managerUser);
 
@@ -97,9 +71,7 @@ public class PermissionService {
                 targetUser.getUserId(),
                 targetUser.getUsername(),
                 folder != null ? folder.getFolderId() : null,
-                folderName,
-                file != null ? file.getFileId() : null,
-                fileName,
+                folder.getName(),
                 permission.getPermissionType(),
                 managerUser.getUserId(),
                 managerUser.getUsername(),
@@ -181,7 +153,7 @@ public class PermissionService {
 
     // Helper method to check if a user has a specific permission on a file/folder
     @Transactional(readOnly = true)
-    public boolean checkPermission(UUID targetEntityId, boolean isFolder, PermissionType type,
+    public boolean checkPermission(UUID folderId, PermissionType type,
             JwtAuthenticationToken token) {
         User user = getUser(token);
 
@@ -193,29 +165,16 @@ public class PermissionService {
         // Managers have full permissions within their town.
         if (user.getRole().getName().equals(Role.Values.manager)) {
             // Check if it's in the same town.
-            if (isFolder) {
-                Folder folder = folderRepository.findById(targetEntityId)
-                        .orElse(null);
-                if (folder != null && folder.getTown().getTownId().equals(user.getTown().getTownId())) {
-                    return true;
-                }
-            } else {
-                File file = fileRepository.findById(targetEntityId)
-                        .orElse(null);
-                if (file != null && file.getTown().getTownId().equals(user.getTown().getTownId())) {
-                    return true;
-                }
+            Folder folder = folderRepository.findById(folderId)
+                    .orElse(null);
+            if (folder != null && folder.getTown().getTownId().equals(user.getTown().getTownId())) {
+                return true;
             }
         }
 
         // For basic users, check explicit permissions with hierarchy.
-        if (isFolder) {
-            return permissionsCheckService.hasPermissionOptimized(
-                    user.getUserId(), targetEntityId, type, true);
-        } else {
-            return permissionsCheckService.hasPermissionOptimized(
-                    user.getUserId(), targetEntityId, type, false);
-        }
+        return permissionsCheckService.hasPermissionOptimized(
+                user.getUserId(), folderId, type, true);
     }
 
     private User getUser(JwtAuthenticationToken token) {
@@ -248,8 +207,6 @@ public class PermissionService {
                 permission.getUser().getUsername(),
                 permission.getFolder() != null ? permission.getFolder().getFolderId() : null,
                 permission.getFolder() != null ? permission.getFolder().getName() : null,
-                permission.getFile() != null ? permission.getFile().getFileId() : null,
-                permission.getFile() != null ? permission.getFile().getName() : null,
                 permission.getPermissionType(),
                 permission.getGrantedBy().getUserId(),
                 permission.getGrantedBy().getUsername(),

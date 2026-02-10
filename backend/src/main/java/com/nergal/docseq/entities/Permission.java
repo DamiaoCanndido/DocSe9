@@ -35,10 +35,6 @@ public class Permission {
     @JoinColumn(name = "folder_id")
     private Folder folder; // Nullable, if permission is for a file
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "file_id")
-    private File file; // Nullable, if permission is for a folder
-
     @Enumerated(EnumType.STRING)
     @Column(name = "permission_type", nullable = false)
     private PermissionType permissionType;
@@ -76,14 +72,6 @@ public class Permission {
 
     public void setFolder(Folder folder) {
         this.folder = folder;
-    }
-
-    public File getFile() {
-        return file;
-    }
-
-    public void setFile(File file) {
-        this.file = file;
     }
 
     public PermissionType getPermissionType() {

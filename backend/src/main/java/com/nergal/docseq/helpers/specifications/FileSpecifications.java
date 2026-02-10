@@ -9,17 +9,21 @@ import java.util.stream.Collectors;
 import org.springframework.data.jpa.domain.Specification;
 
 import com.nergal.docseq.entities.File;
+import com.nergal.docseq.entities.Folder;
 import com.nergal.docseq.entities.Permission;
 import com.nergal.docseq.entities.PermissionType;
+import com.nergal.docseq.entities.Role;
+import com.nergal.docseq.entities.User;
 
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 
 public class FileSpecifications {
 
-    public static Specification<File> withSubFoldersFilters(UUID townId, UUID folderId, String name,
-            PermissionType permissionType, UUID userId) {
+    public static Specification<File> withSubFoldersFilters(UUID townId, UUID folderId, String name) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
             predicates.add(cb.equal(root.get("town").get("townId"), townId));
@@ -33,21 +37,6 @@ public class FileSpecifications {
                         "%" + name.toLowerCase() + "%"));
             }
 
-            if (permissionType != null || userId != null) {
-                Join<File, Permission> permissionsJoin = root.join("permissions", JoinType.INNER);
-
-                if (permissionType != null) {
-                    List<PermissionType> acceptablePermissions = getAcceptablePermissions(permissionType);
-                    predicates.add(permissionsJoin.get("permissionType").in(acceptablePermissions));
-                }
-
-                if (userId != null) {
-                    predicates.add(cb.equal(permissionsJoin.get("user").get("userId"), userId));
-                }
-
-                query.distinct(true);
-            }
-
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
@@ -58,29 +47,43 @@ public class FileSpecifications {
                 .collect(Collectors.toList());
     }
 
-    public static Specification<File> userCanRead(UUID userId) {
+    public static Specification<File> withFolderPermissions(
+            Role.Values userRole,
+            UUID userId,
+            PermissionType required) {
         return (root, query, cb) -> {
-            Join<File, Permission> permissions = root.join("permissions", JoinType.INNER);
 
-            query.distinct(true);
+            if (userRole.equals(Role.Values.manager)) {
+                return cb.conjunction();
+            }
 
-            return cb.and(
-                    cb.equal(permissions.get("user").get("userId"), userId),
-                    permissions.get("permissionType").in(
-                            PermissionType.READ,
-                            PermissionType.WRITE,
-                            PermissionType.SHARE,
-                            PermissionType.DELETE));
+            // Calcula as permissões aceitáveis (DELETE >= WRITE >= READ)
+            List<PermissionType> acceptablePermissions = getAcceptablePermissions(required);
+
+            // BASIC: DEVE ter uma das permissões aceitáveis
+            Subquery<Long> subquery = query.subquery(Long.class);
+            Root<Folder> folderRoot = subquery.from(Folder.class);
+            Join<Folder, Permission> permissionsJoin = folderRoot.join("permissions", JoinType.INNER);
+            Join<Permission, User> userJoin = permissionsJoin.join("user", JoinType.INNER);
+
+            List<Predicate> subPredicates = new ArrayList<>();
+            subPredicates.add(cb.equal(folderRoot.get("folderId"), root.get("folder").get("folderId")));
+            subPredicates.add(cb.equal(userJoin.get("userId"), userId));
+            subPredicates.add(permissionsJoin.get("permissionType").in(acceptablePermissions));
+
+            subquery.select(cb.literal(1L))
+                    .where(cb.and(subPredicates.toArray(new Predicate[0])));
+
+            return cb.exists(subquery);
         };
     }
 
     public static Specification<File> withEagerLoading() {
         return (root, query, cb) -> {
             if (query.getResultType() != Long.class && query.getResultType() != long.class) {
-                root.fetch("permissions", JoinType.LEFT);
                 root.fetch("folder", JoinType.LEFT);
                 root.fetch("town", JoinType.LEFT);
-                root.fetch("createdBy", JoinType.LEFT);
+                root.fetch("uploadedBy", JoinType.LEFT);
                 query.distinct(true);
             }
             return cb.conjunction();

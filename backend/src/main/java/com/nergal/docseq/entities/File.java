@@ -1,14 +1,11 @@
 package com.nergal.docseq.entities;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -17,7 +14,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
@@ -57,9 +53,6 @@ public class File {
    @ManyToOne(fetch = FetchType.LAZY)
    @JoinColumn(name = "town_id", nullable = false)
    private Town town;
-
-   @OneToMany(mappedBy = "file", cascade = CascadeType.REMOVE, orphanRemoval = true)
-   private List<Permission> permissions = new ArrayList<>();
 
    /*
     * ======================
@@ -157,10 +150,6 @@ public class File {
 
    public Instant getDeletedAt() {
       return deletedAt;
-   }
-
-   public List<Permission> getPermissions() {
-      return permissions;
    }
 
    public void setName(String name) {

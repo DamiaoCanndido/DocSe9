@@ -82,7 +82,8 @@ public class FolderService {
         var folderPage = folderRepository
                 .findAll(
                         FolderSpecifications.withRootFilters(town_id, name, !isManager ? PermissionType.READ : null,
-                                !isManager ? user.getUserId() : null),
+                                !isManager ? user.getUserId() : null)
+                                .and(FolderSpecifications.withEagerLoading()),
                         pageable)
                 .map(FolderMapper::toDTO);
 
@@ -90,7 +91,12 @@ public class FolderService {
                 .findAll(FileSpecifications.withSubFoldersFilters(
                         town_id,
                         folderPage.getContent().isEmpty() ? null : folderPage.getContent().get(0).parentId(),
-                        name, !isManager ? PermissionType.READ : null, !isManager ? user.getUserId() : null), pageable)
+                        name)
+                        .and(FileSpecifications.withFolderPermissions(
+                                user.getRole().getName(),
+                                user.getUserId(),
+                                PermissionType.READ))
+                        .and(FileSpecifications.withEagerLoading()), pageable)
                 .map(FileMapper::toResponse);
 
         return new FolderContentResponse(
@@ -126,9 +132,12 @@ public class FolderService {
                 .map(FolderMapper::toDTO);
 
         var filePage = fileRepository
-                .findAll(FileSpecifications.withSubFoldersFilters(town_id, parentId, name,
-                        !isManager ? PermissionType.READ : null,
-                        !isManager ? user.getUserId() : null), pageable)
+                .findAll(FileSpecifications.withSubFoldersFilters(town_id, parentId, name)
+                        .and(FileSpecifications.withFolderPermissions(
+                                user.getRole().getName(),
+                                user.getUserId(),
+                                PermissionType.READ))
+                        .and(FileSpecifications.withEagerLoading()), pageable)
                 .map(FileMapper::toResponse);
 
         return new FolderContentResponse(
@@ -172,7 +181,7 @@ public class FolderService {
                     .orElseThrow(() -> new NotFoundException("parent folder not found"));
 
             // New permission check for parent folder
-            if (!permissionService.checkPermission(dto.parentId(), true, PermissionType.WRITE, token)) {
+            if (!permissionService.checkPermission(dto.parentId(), PermissionType.WRITE, token)) {
                 throw new ForbiddenException("You do not have write permission for the parent folder.");
             }
         } else { // Creating a root folder
@@ -197,7 +206,6 @@ public class FolderService {
             Permission permission = new Permission();
             permission.setUser(user);
             permission.setFolder(folder);
-            permission.setFile(null);
             permission.setPermissionType(PermissionType.DELETE);
             permission.setGrantedBy(user);
 
@@ -220,7 +228,7 @@ public class FolderService {
                 .orElseThrow(() -> new NotFoundException("folder not found"));
 
         // New permission check
-        if (!permissionService.checkPermission(folderId, true, PermissionType.WRITE, token)) {
+        if (!permissionService.checkPermission(folderId, PermissionType.WRITE, token)) {
             throw new ForbiddenException("You do not have write permission for this folder.");
         }
 
@@ -254,10 +262,10 @@ public class FolderService {
                 .orElseThrow(() -> new NotFoundException("Target folder not found"));
 
         // New permission checks
-        if (!permissionService.checkPermission(folderId, true, PermissionType.WRITE, token)) {
+        if (!permissionService.checkPermission(folderId, PermissionType.WRITE, token)) {
             throw new ForbiddenException("You do not have write permission for the source folder.");
         }
-        if (!permissionService.checkPermission(targetFolderId, true, PermissionType.WRITE, token)) {
+        if (!permissionService.checkPermission(targetFolderId, PermissionType.WRITE, token)) {
             throw new ForbiddenException("You do not have write permission for the target folder.");
         }
 
@@ -308,7 +316,7 @@ public class FolderService {
                 .orElseThrow(() -> new NotFoundException("folder not found"));
 
         // New permission check
-        if (!permissionService.checkPermission(folderId, true, PermissionType.DELETE, token)) {
+        if (!permissionService.checkPermission(folderId, PermissionType.DELETE, token)) {
             throw new ForbiddenException("You do not have delete permission for this folder.");
         }
 
@@ -376,7 +384,7 @@ public class FolderService {
         }
 
         // New permission check
-        if (!permissionService.checkPermission(folderId, true, PermissionType.DELETE, token)) {
+        if (!permissionService.checkPermission(folderId, PermissionType.DELETE, token)) {
             throw new ForbiddenException("You do not have delete permission to permanently delete this folder.");
         }
 
@@ -458,7 +466,7 @@ public class FolderService {
                 .orElseThrow(() -> new NotFoundException("folder not found"));
 
         // New permission check
-        if (!permissionService.checkPermission(folderId, true, PermissionType.WRITE, token)) {
+        if (!permissionService.checkPermission(folderId, PermissionType.WRITE, token)) {
             throw new ForbiddenException("You do not have write permission to restore this folder.");
         }
 
@@ -522,7 +530,7 @@ public class FolderService {
                 .orElseThrow(() -> new NotFoundException("folder not found"));
 
         // New permission check
-        if (!permissionService.checkPermission(folderId, true, PermissionType.WRITE, token)) {
+        if (!permissionService.checkPermission(folderId, PermissionType.WRITE, token)) {
             throw new ForbiddenException("You do not have write permission to favorite/unfavorite this folder.");
         }
 

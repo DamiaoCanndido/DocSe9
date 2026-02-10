@@ -16,7 +16,6 @@ public class PermissionSpecifications {
             // Evita fazer fetch em queries de contagem (count)
             if (query.getResultType() != Long.class && query.getResultType() != long.class) {
                 root.fetch("folder", JoinType.LEFT);
-                root.fetch("file", JoinType.LEFT);
                 root.fetch("user", JoinType.INNER);
                 root.fetch("grantedBy", JoinType.INNER);
                 query.distinct(true);
