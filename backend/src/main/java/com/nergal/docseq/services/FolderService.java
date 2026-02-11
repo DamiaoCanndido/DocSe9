@@ -76,8 +76,9 @@ public class FolderService {
 
         var folderPage = folderRepository
                 .findAll(
-                        FolderSpecifications.withRootFilters(town_id, name, !isManager ? PermissionType.READ : null,
-                                !isManager ? user.getUserId() : null)
+                        FolderSpecifications.withRootFilters(
+                                town_id, name, PermissionType.READ,
+                                user.getUserId(), isManager)
                                 .and(FolderSpecifications.withEagerLoading()),
                         pageable)
                 .map(FolderMapper::toDTO);
@@ -121,9 +122,13 @@ public class FolderService {
         var townId = getTownId(token);
 
         var folderPage = folderRepository
-                .findAll(FolderSpecifications.withSubFoldersFilters(townId, parentId, name,
-                        !isManager ? PermissionType.READ : null,
-                        !isManager ? user.getUserId() : null), pageable)
+                .findAll(FolderSpecifications.withSubFoldersFilters(
+                        townId,
+                        parentId,
+                        name,
+                        PermissionType.READ,
+                        user.getUserId(),
+                        isManager), pageable)
                 .map(FolderMapper::toDTO);
 
         var filePage = fileRepository
