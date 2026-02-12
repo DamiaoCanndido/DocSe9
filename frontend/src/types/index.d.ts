@@ -25,6 +25,6 @@ declare interface UserResProps {
   username: string;
   email: string;
   role: RoleResProps;
-  town: TownResProps;
+  town: TownResProps | null;
   createdAt: string;
 }
