@@ -1,5 +1,6 @@
 'use client';
 
+import { motion } from 'framer-motion';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, EyeOff, Lock, Mail, UserPlus2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -402,10 +403,12 @@ const AuthForm = ({ type }: { type: FormType }) => {
           />
         )}
         {/* BUTTON */}
-        <Button
-          className="w-full cursor-pointer bg-blue-600 text-white rounded-2xl py-8 font-semibold text-base transition-all shadow-md shadow-blue-100 hover:bg-blue-700 hover:shadow-lg active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4"
+        <motion.button
+          className="w-full cursor-pointer bg-blue-600 text-white rounded-2xl py-4 font-semibold text-base transition-all shadow-md shadow-blue-100 hover:bg-blue-700 hover:shadow-lg active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center"
           type="submit"
           disabled={isLoading}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
         >
           {isLoading ? (
             <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -414,7 +417,7 @@ const AuthForm = ({ type }: { type: FormType }) => {
           ) : (
             'Criar conta'
           )}
-        </Button>
+        </motion.button>
       </form>
     </Form>
   );
