@@ -16,17 +16,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-
-export type ViewType =
-  | 'dashboard'
-  | 'my-drive'
-  | 'shared'
-  | 'starred'
-  | 'trash'
-  | 'settings'
-  | 'search'
-  | 'recent'
-  | 'admin';
+import { ViewType, useApp } from '@/contexts/AppContext';
 
 const onUpload = () => {};
 
@@ -43,10 +33,9 @@ export const Sidebar: React.FC = () => {
 
   const router = useRouter();
 
-  const [currentView, setCurrentView] = useState<ViewType>('dashboard');
-  const [isOpen, setIsOpen] = useState(true);
+  const { isSidebarOpen, toggleSidebar } = useApp();
 
-  const onClose = () => setIsOpen(false);
+  const [currentView, setCurrentView] = useState<ViewType>('dashboard');
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full p-4">
@@ -61,7 +50,7 @@ export const Sidebar: React.FC = () => {
           </span>
         </div>
         <button
-          onClick={onClose}
+          onClick={toggleSidebar}
           className="lg:hidden p-2 hover:bg-gray-100 rounded-full"
         >
           <X className="w-5 h-5 text-[#5F6368]" />
@@ -74,7 +63,7 @@ export const Sidebar: React.FC = () => {
         whileTap={{ scale: 0.98 }}
         onClick={() => {
           onUpload();
-          onClose();
+          toggleSidebar();
         }}
         className="flex items-center gap-3 px-4 py-4 bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow mb-8 text-[#1F1F1F] font-medium border border-[#E0E0E0]"
       >
@@ -101,7 +90,7 @@ export const Sidebar: React.FC = () => {
                     router.push('/admin-panel');
                     break;
                 }
-                onClose();
+                toggleSidebar();
               }}
               className={`w-full flex items-center gap-4 px-4 py-3 rounded-full transition-colors text-sm font-medium ${
                 isActive
@@ -151,13 +140,13 @@ export const Sidebar: React.FC = () => {
 
       {/* Mobile Drawer */}
       <AnimatePresence>
-        {isOpen && (
+        {isSidebarOpen && (
           <>
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={onClose}
+              onClick={toggleSidebar}
               className="fixed inset-0 bg-black/40 backdrop-blur-sm z-60 lg:hidden"
             />
             <motion.div

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Special_Elite } from 'next/font/google';
 import './globals.css';
 import { Toaster } from '@/components/ui/sonner';
+import { AppProvider } from '@/contexts/AppContext';
 
 const specialElite = Special_Elite({
   weight: '400',
@@ -24,7 +25,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${specialElite.className} antialiased`}>
-        {children}
+        <AppProvider>{children}</AppProvider>
         <Toaster
           position="top-right"
           expand={false}
