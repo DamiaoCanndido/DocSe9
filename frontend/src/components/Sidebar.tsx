@@ -20,7 +20,9 @@ import { ViewType, useApp } from '@/contexts/AppContext';
 
 const onUpload = () => {};
 
-export const Sidebar: React.FC = () => {
+export const Sidebar: React.FC<{ currentUser: UserResProps }> = ({
+  currentUser,
+}) => {
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'my-drive', label: 'My Drive', icon: HardDrive },
@@ -58,55 +60,72 @@ export const Sidebar: React.FC = () => {
       </div>
 
       {/* New Button */}
-      <motion.button
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        onClick={() => {
-          onUpload();
-          toggleSidebar();
-        }}
-        className="flex items-center gap-3 px-4 py-4 bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow mb-8 text-[#1F1F1F] font-medium border border-[#E0E0E0]"
-      >
-        <Plus className="w-6 h-6 text-blue-600" />
-        <span>New</span>
-      </motion.button>
+      {currentUser.role.name !== 'admin' && (
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => {
+            onUpload();
+            toggleSidebar();
+          }}
+          className="flex items-center gap-3 px-4 py-4 bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow mb-8 text-[#1F1F1F] font-medium border border-[#E0E0E0]"
+        >
+          <Plus className="w-6 h-6 text-blue-600" />
+          <span>New</span>
+        </motion.button>
+      )}
 
       {/* Navigation */}
       <nav className="flex-1 space-y-1 overflow-y-auto">
-        {navItems.map((item) => {
-          const isActive = currentView === item.id;
-          const Icon = item.icon;
+        {navItems
+          .filter((item) => {
+            if (item.id === 'admin') {
+              return currentUser.role.name !== 'basic';
+            }
+            return true;
+          })
+          .filter((item) => {
+            if (item.id !== 'dashboard' && item.id !== 'admin') {
+              return currentUser.role.name !== 'admin';
+            }
+            return true;
+          })
+          .map((item) => {
+            const isActive = currentView === item.id;
+            const Icon = item.icon;
 
-          return (
-            <button
-              key={item.id}
-              onClick={() => {
-                setCurrentView(item.id as ViewType);
-                switch (item.id) {
-                  case 'dashboard':
-                    router.push('/dashboard');
-                    break;
-                  case 'admin':
-                    router.push('/admin-panel');
-                    break;
-                }
-                toggleSidebar();
-              }}
-              className={`w-full flex items-center gap-4 px-4 py-3 rounded-full transition-colors text-sm font-medium ${
-                isActive
-                  ? 'bg-blue-50 text-blue-700'
-                  : 'text-[#444746] hover:bg-[#F1F3F4]'
-              }`}
-            >
-              <Icon
-                className={`w-5 h-5 ${
-                  isActive ? 'text-blue-700' : 'text-[#444746]'
+            return (
+              <button
+                key={item.id}
+                onClick={() => {
+                  setCurrentView(item.id as ViewType);
+                  switch (item.id) {
+                    case 'dashboard':
+                      router.push('/dashboard');
+                      break;
+                    case 'admin':
+                      if (currentUser.role.name !== 'basic') {
+                        router.push('/admin-panel');
+                      }
+                      break;
+                  }
+                  toggleSidebar();
+                }}
+                className={`w-full flex items-center gap-4 px-4 py-3 rounded-full transition-colors text-sm font-medium ${
+                  isActive
+                    ? 'bg-blue-50 text-blue-700'
+                    : 'text-[#444746] hover:bg-[#F1F3F4]'
                 }`}
-              />
-              {item.label}
-            </button>
-          );
-        })}
+              >
+                <Icon
+                  className={`w-5 h-5 ${
+                    isActive ? 'text-blue-700' : 'text-[#444746]'
+                  }`}
+                />
+                {item.label}
+              </button>
+            );
+          })}
       </nav>
 
       {/* Storage Indicator */}

@@ -13,8 +13,11 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import { useApp } from '@/contexts/AppContext';
+import { signOutUser } from '@/lib/data';
 
-export const Navbar: React.FC = () => {
+export const Navbar: React.FC<{ currentUser: UserResProps }> = ({
+  currentUser,
+}) => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   const { toggleSidebar } = useApp();
@@ -71,7 +74,7 @@ export const Navbar: React.FC = () => {
           >
             <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full overflow-hidden border border-[#E0E0E0]">
               <Image
-                src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Bras%C3%A3o_Passagem_%28PB%29.jpg/960px-Bras%C3%A3o_Passagem_%28PB%29.jpg"
+                src={currentUser?.town?.imageUrl || '/admin-icon.png'}
                 alt="Profile"
                 width={30}
                 height={30}
@@ -99,7 +102,8 @@ export const Navbar: React.FC = () => {
                 <div className="h-px bg-[#E0E0E0] my-1" />
                 <button
                   onClick={() => {
-                    /* onLogout(); */ setShowProfileMenu(false);
+                    signOutUser();
+                    setShowProfileMenu(false);
                   }}
                   className="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 flex items-center gap-3 font-semibold"
                 >
