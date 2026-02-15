@@ -2,6 +2,7 @@ package com.nergal.docseq.services;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -439,15 +440,29 @@ public class FolderService {
             JwtAuthenticationToken token) {
         var townId = getTownId(token);
 
+        var user = getUser(token);
+
+        List<PermissionType> permissions = new ArrayList<>(Arrays.asList(
+                PermissionType.READ,
+                PermissionType.WRITE,
+                PermissionType.SHARE,
+                PermissionType.DELETE));
+
         var folderPage = folderRepository
-                .findByTownTownIdAndDeletedAtIsNotNull(
+                .findTrashByTownAndPermissions(
                         townId,
+                        user.getUserId(),
+                        user.getRole().getName().name(),
+                        permissions,
                         pageable)
                 .map(FolderMapper::toDTO);
 
         var filePage = fileRepository
-                .findByTownTownIdAndDeletedAtIsNotNull(
+                .findTrashByTownAndPermissions(
                         townId,
+                        user.getUserId(),
+                        user.getRole().getName().name(),
+                        permissions,
                         pageable)
                 .map(FileMapper::toResponse);
 
