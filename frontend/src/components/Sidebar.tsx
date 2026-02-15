@@ -24,13 +24,13 @@ export const Sidebar: React.FC<{ currentUser: UserResProps }> = ({
   currentUser,
 }) => {
   const navItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'my-drive', label: 'My Drive', icon: HardDrive },
+    { id: 'dashboard', label: 'Painel inicial', icon: LayoutDashboard },
+    { id: 'my-docs', label: 'Meus documentos', icon: HardDrive },
     { id: 'shared', label: 'Shared', icon: Users },
     { id: 'recent', label: 'Recent', icon: Clock },
     { id: 'starred', label: 'Starred', icon: Star },
     { id: 'trash', label: 'Trash', icon: Trash2 },
-    { id: 'admin', label: 'Admin Panel', icon: ShieldCheck },
+    { id: 'admin', label: 'Administração', icon: ShieldCheck },
   ];
 
   const router = useRouter();
@@ -48,7 +48,7 @@ export const Sidebar: React.FC<{ currentUser: UserResProps }> = ({
             <Cloud className="text-white w-5 h-5" />
           </div>
           <span className="font-semibold text-xl tracking-tight text-[#444746]">
-            CloudDrive
+            DocSeq
           </span>
         </div>
         <button
@@ -100,14 +100,20 @@ export const Sidebar: React.FC<{ currentUser: UserResProps }> = ({
                 onClick={() => {
                   setCurrentView(item.id as ViewType);
                   switch (item.id) {
-                    case 'dashboard':
-                      router.push('/dashboard');
+                    case 'my-docs':
+                    case 'shared':
+                    case 'recent':
+                    case 'starred':
+                    case 'trash':
+                      router.push('/my-docs');
                       break;
                     case 'admin':
                       if (currentUser.role.name !== 'basic') {
                         router.push('/admin-panel');
                       }
                       break;
+                    default:
+                      router.push('/dashboard');
                   }
                   toggleSidebar();
                 }}

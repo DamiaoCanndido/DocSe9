@@ -28,3 +28,53 @@ declare interface UserResProps {
   town: TownResProps | null;
   createdAt: string;
 }
+
+declare interface FolderResProps {
+  folderId: string;
+  name: string;
+  parentId: string;
+  favorite: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface FileResProps {
+  fileId: string;
+  name: string;
+  size: number;
+  contentType: string;
+  objectKey: string;
+  favorite: boolean;
+  lastSeen: string | null;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  folderId: string;
+  uploadedBy: string | null;
+}
+
+interface PaginatedResponse<T> {
+  content: T[];
+  page: number;
+  pageSize: number;
+  totalElements: number;
+  totalPages: number;
+  last: boolean;
+}
+
+interface ApiResponse {
+  folders: PaginatedResponse<FolderResProps>;
+  files: PaginatedResponse<FileResProps>;
+}
+
+declare interface SearchParamProps {
+  params?: Promise<SegmentParams>;
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+declare interface DocsGetInput {
+  name?: string;
+  page?: string;
+  size?: string;
+  sort?: string;
+}
