@@ -281,7 +281,7 @@ public class FileService {
         UUID folderId = fileRepository
                 .findById(
                         fileId)
-                .orElseThrow(() -> new NotFoundException("File not found")).getFileId();
+                .orElseThrow(() -> new NotFoundException("File not found")).getFolder().getFolderId();
         return folderId;
     }
 }

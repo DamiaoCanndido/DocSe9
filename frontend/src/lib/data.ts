@@ -34,20 +34,43 @@ export const signOutUser = async () => {
   }
 };
 
-export const getRootFolders = async ({
-  name,
-  page,
-  size,
-  sort,
-}: DocsGetInput) => {
+export const getRootFolders = async (queries: DocsGetInput) => {
   try {
     const token = await getToken();
-    const docs = await apiServer.get(
-      `/folders/root?name=${name}&page=${page}&size=${size}&sort=${sort}`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
+    const docs = await apiServer.get('/folders/root', {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { ...queries },
+    });
+    return parseStringify(docs.data);
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return redirect('/login');
+    }
+  }
+};
+
+export const getChildrenFolders = async (id: string, queries: DocsGetInput) => {
+  try {
+    const token = await getToken();
+    const docs = await apiServer.get(`/folders/${id}/children`, {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { ...queries },
+    });
+    return parseStringify(docs.data);
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return redirect('/login');
+    }
+  }
+};
+
+export const getTrashFolders = async (queries: DocsGetInput) => {
+  try {
+    const token = await getToken();
+    const docs = await apiServer.get('/folders/trash', {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { ...queries },
+    });
     return parseStringify(docs.data);
   } catch (error) {
     if (error instanceof AxiosError) {

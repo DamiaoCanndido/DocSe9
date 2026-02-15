@@ -1,3 +1,5 @@
+'use client';
+
 import {
   ContextMenu,
   ContextMenuContent,
@@ -12,7 +14,7 @@ const DocsContent = (data: ApiResponse) => {
   return (
     <>
       <ContextMenu>
-        <ContextMenuTrigger className="hidden lg:flex min-h-100 w-full border rounded-lg p-4">
+        <ContextMenuTrigger className="hidden lg:flex h-full w-full border rounded-lg p-4">
           <div className="space-y-1">
             {/* Folders */}
             {data.folders.content.map((item) => (

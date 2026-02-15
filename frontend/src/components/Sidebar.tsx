@@ -104,8 +104,10 @@ export const Sidebar: React.FC<{ currentUser: UserResProps }> = ({
                     case 'shared':
                     case 'recent':
                     case 'starred':
-                    case 'trash':
                       router.push('/my-docs');
+                      break;
+                    case 'trash':
+                      router.push('/trash');
                       break;
                     case 'admin':
                       if (currentUser.role.name !== 'basic') {
