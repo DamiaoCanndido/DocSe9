@@ -1,16 +1,38 @@
 import DocsContent from '@/components/DocsContent';
 import { getRootFolders, getTrashFolders } from '@/lib/data';
 
-type ViewType = 'my-docs' | 'shared' | 'starred' | 'trash' | 'recent';
+export type ViewDocsType =
+  | 'my-docs'
+  | 'shared'
+  | 'starred'
+  | 'trash'
+  | 'recent';
 
 export default async function DocsLoad({
   queries,
   type,
 }: {
   queries: DocsGetInput;
-  type: ViewType;
+  type: ViewDocsType;
 }) {
-  let data: ApiResponse;
+  let data: ApiResponse = {
+    folders: {
+      content: [],
+      page: 0,
+      pageSize: 0,
+      totalElements: 0,
+      totalPages: 0,
+      last: true,
+    },
+    files: {
+      content: [],
+      page: 0,
+      pageSize: 0,
+      totalElements: 0,
+      totalPages: 0,
+      last: true,
+    },
+  };
 
   switch (type) {
     case 'my-docs':
@@ -33,6 +55,6 @@ export default async function DocsLoad({
 
   return (
     /* Desktop docs */
-    <DocsContent folders={data!.folders} files={data!.files} />
+    <DocsContent folders={data.folders} files={data.files} type={type} />
   );
 }

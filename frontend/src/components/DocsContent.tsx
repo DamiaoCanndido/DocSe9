@@ -9,8 +9,19 @@ import {
 } from '@/components/ui/context-menu';
 import { Folder } from 'lucide-react';
 import FolderCtxMenu from '@/components/FolderCtxMenu';
+import Link from 'next/link';
+import { ViewDocsType } from '@/components/DocsLoad';
+import { getViewUrl } from '@/lib/data';
+import { usePathname } from 'next/navigation';
 
-const DocsContent = (data: ApiResponse) => {
+const DocsContent = (data: ApiResponse & { type: ViewDocsType }) => {
+  const path = usePathname();
+
+  const getFileLink = async (fileId: string, path: string) => {
+    const url = await getViewUrl(fileId, path);
+    return url;
+  };
+
   return (
     <>
       <ContextMenu>
@@ -19,13 +30,19 @@ const DocsContent = (data: ApiResponse) => {
             {/* Folders */}
             {data.folders.content.map((item) => (
               <ContextMenu key={item.folderId}>
-                <ContextMenuTrigger>
-                  <div className="flex items-center gap-2 p-2 hover:bg-accent rounded">
-                    <Folder className="h-4 w-4" />
+                <Link
+                  href={
+                    data.type === 'my-docs' ? `/my-docs/${item.folderId}` : ``
+                  }
+                >
+                  <ContextMenuTrigger>
+                    <div className="flex items-center gap-2 p-2 hover:bg-accent rounded">
+                      <Folder className="h-4 w-4" />
 
-                    <span>{item.name}</span>
-                  </div>
-                </ContextMenuTrigger>
+                      <span>{item.name}</span>
+                    </div>
+                  </ContextMenuTrigger>
+                </Link>
 
                 <FolderCtxMenu />
               </ContextMenu>
@@ -34,7 +51,13 @@ const DocsContent = (data: ApiResponse) => {
             {/* Files */}
             {data.files.content.map((item) => (
               <ContextMenu key={item.fileId}>
-                <ContextMenuTrigger>
+                <ContextMenuTrigger
+                  className="cursor-pointer"
+                  onClick={async () => {
+                    const result = await getFileLink(item.fileId, path);
+                    window.open(result.url, '_blank', 'noopener,noreferrer');
+                  }}
+                >
                   <div className="flex items-center gap-2 p-2 hover:bg-accent rounded">
                     <Folder className="h-4 w-4" />
 

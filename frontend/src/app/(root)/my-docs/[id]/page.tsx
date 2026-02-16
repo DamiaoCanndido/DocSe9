@@ -1,5 +1,5 @@
 import DocsContent from '@/components/DocsContent';
-import { getChildrenFolders, getRootFolders } from '@/lib/data';
+import { getChildrenFolders } from '@/lib/data';
 
 export default async function MySubDocs({
   searchParams,
@@ -18,5 +18,5 @@ export default async function MySubDocs({
     sort,
   });
 
-  return <DocsContent folders={folders} files={files} />;
+  return <DocsContent folders={folders} files={files} type="my-docs" />;
 }
