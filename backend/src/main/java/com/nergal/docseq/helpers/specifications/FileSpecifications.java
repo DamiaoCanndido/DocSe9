@@ -41,6 +41,20 @@ public class FileSpecifications {
         };
     }
 
+    public static Specification<File> withNameSearch(UUID townId, String name) {
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            predicates.add(cb.equal(root.get("town").get("townId"), townId));
+            predicates.add(cb.isNull(root.get("deletedAt")));
+
+            if (name != null && !name.isEmpty()) {
+                predicates.add(cb.like(cb.lower(root.get("name")), "%" + name.toLowerCase() + "%"));
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+    }
+
     private static List<PermissionType> getAcceptablePermissions(PermissionType required) {
         return Arrays.stream(PermissionType.values())
                 .filter(p -> p.implies(required))

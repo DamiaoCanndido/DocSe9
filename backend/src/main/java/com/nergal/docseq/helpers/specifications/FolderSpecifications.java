@@ -178,6 +178,38 @@ public class FolderSpecifications {
         };
     }
 
+    public static Specification<Folder> withNameSearch(
+            UUID townId,
+            String name,
+            PermissionType permissionType,
+            UUID userId,
+            boolean isManager) {
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            predicates.add(cb.equal(root.get("town").get("townId"), townId));
+            predicates.add(cb.isNull(root.get("deletedAt")));
+
+            if (name != null && !name.isEmpty()) {
+                predicates.add(cb.like(
+                        cb.lower(root.get("name")),
+                        "%" + name.toLowerCase() + "%"));
+            }
+
+            if (!isManager && userId != null) {
+                Join<Folder, Permission> permissionsJoin = root.join("permissions", JoinType.INNER);
+                predicates.add(cb.equal(permissionsJoin.get("user").get("userId"), userId));
+
+                if (permissionType != null) {
+                    List<PermissionType> acceptablePermissions = getAcceptablePermissions(permissionType);
+                    predicates.add(permissionsJoin.get("permissionType").in(acceptablePermissions));
+                }
+                query.distinct(true);
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+    }
+
     private static List<PermissionType> getAcceptablePermissions(PermissionType required) {
         return Arrays.stream(PermissionType.values())
                 .filter(p -> p.implies(required))

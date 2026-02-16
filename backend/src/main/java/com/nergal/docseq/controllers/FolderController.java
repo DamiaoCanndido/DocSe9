@@ -21,6 +21,7 @@ import com.nergal.docseq.dto.folders.FolderContentResponse;
 import com.nergal.docseq.dto.folders.FolderRequestDTO;
 import com.nergal.docseq.dto.folders.FolderTreeResponseDTO;
 import com.nergal.docseq.dto.folders.FolderUpdateDTO;
+import com.nergal.docseq.dto.search.SearchResponseDTO;
 import com.nergal.docseq.services.FolderService;
 
 import jakarta.validation.Valid;
@@ -80,6 +81,16 @@ public class FolderController {
             Pageable pageable,
             JwtAuthenticationToken token) {
         return ResponseEntity.ok(folderService.listChildren(folderId, name, pageable, token));
+    }
+
+    /**
+     * Search for folders and files by name
+     */
+    @GetMapping("/search")
+    public ResponseEntity<SearchResponseDTO> search(
+            @RequestParam(required = false) String name,
+            JwtAuthenticationToken token) {
+        return ResponseEntity.ok(folderService.searchFoldersAndFiles(name, token));
     }
 
     /**

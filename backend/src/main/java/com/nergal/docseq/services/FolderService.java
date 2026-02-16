@@ -16,10 +16,13 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.nergal.docseq.dto.files.FileResponseDTO;
 import com.nergal.docseq.dto.folders.FolderContentResponse;
 import com.nergal.docseq.dto.folders.FolderRequestDTO;
+import com.nergal.docseq.dto.folders.FolderResponseDTO;
 import com.nergal.docseq.dto.folders.FolderTreeResponseDTO;
 import com.nergal.docseq.dto.folders.FolderUpdateDTO;
+import com.nergal.docseq.dto.search.SearchResponseDTO;
 import com.nergal.docseq.entities.File;
 import com.nergal.docseq.entities.Folder;
 import com.nergal.docseq.entities.PermissionType;
@@ -146,6 +149,44 @@ public class FolderService {
                         folderPage),
                 PageMapper.toPageResponse(
                         filePage));
+    }
+
+    @Transactional(readOnly = true)
+    public SearchResponseDTO searchFoldersAndFiles(String name, JwtAuthenticationToken token) {
+        User user = getUser(token);
+        boolean isManager = user.getRole().getName().equals(Role.Values.manager);
+        UUID townId = user.getTown().getTownId();
+
+        // Search for folders
+        List<Folder> folders = folderRepository.findAll(
+                FolderSpecifications.withNameSearch(
+                        townId,
+                        name,
+                        PermissionType.READ,
+                        user.getUserId(),
+                        isManager)
+                        .and(FolderSpecifications.withEagerLoading()));
+
+        List<FolderResponseDTO> folderDTOs = folders.stream()
+                .map(FolderMapper::toDTO)
+                .collect(Collectors.toList());
+
+        // Search for files
+        List<File> files = fileRepository.findAll(
+                FileSpecifications.withNameSearch(
+                        townId,
+                        name)
+                        .and(FileSpecifications.withFolderPermissions(
+                                user.getRole().getName(),
+                                user.getUserId(),
+                                PermissionType.READ))
+                        .and(FileSpecifications.withEagerLoading()));
+
+        List<FileResponseDTO> fileDTOs = files.stream()
+                .map(FileMapper::toResponse)
+                .collect(Collectors.toList());
+
+        return new SearchResponseDTO(folderDTOs, fileDTOs);
     }
 
     // Complete tree
