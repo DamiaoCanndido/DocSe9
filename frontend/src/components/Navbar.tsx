@@ -14,6 +14,7 @@ import {
 import Image from 'next/image';
 import { useApp } from '@/contexts/AppContext';
 import { signOutUser } from '@/lib/data';
+import SearchFoldersAndFiles from '@/components/Search';
 
 export const Navbar: React.FC<{ currentUser: UserResProps }> = ({
   currentUser,
@@ -34,26 +35,7 @@ export const Navbar: React.FC<{ currentUser: UserResProps }> = ({
         </button>
       </div>
 
-      {/* Search Bar */}
-      <div className="flex-1 max-w-3xl">
-        <div className="relative group">
-          <div className="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center cursor-pointer">
-            <Search className="h-5 w-5 text-[#5F6368] group-focus-within:text-blue-600 transition-colors" />
-          </div>
-          <input
-            type="text"
-            className="block w-full bg-[#EDF2FC] border-none rounded-full py-2.5 sm:py-3 pl-10 sm:pl-12 pr-10 sm:pr-12 text-[#1F1F1F] placeholder-[#5F6368] focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all outline-none text-sm sm:text-base"
-            placeholder="Search in Drive"
-            value={''}
-            onChange={(e) => {}}
-          />
-          <div className="absolute inset-y-0 right-0 pr-2 sm:pr-3 flex items-center">
-            <button className="p-1.5 sm:p-2 hover:bg-[#F1F3F4] rounded-full text-[#5F6368] transition-colors">
-              <Filter className="h-4 w-4 sm:h-5 sm:w-5" />
-            </button>
-          </div>
-        </div>
-      </div>
+      <SearchFoldersAndFiles />
 
       {/* Right Actions */}
       <div className="flex items-center gap-1 sm:gap-2 ml-2 sm:ml-4 shrink-0">

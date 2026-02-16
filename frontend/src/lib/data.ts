@@ -50,6 +50,21 @@ export const getRootFolders = async (queries: DocsGetInput) => {
   }
 };
 
+export const getSearchResults = async (queries: DocsGetInput) => {
+  try {
+    const token = await getToken();
+    const docs = await apiServer.get('/folders/search', {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { ...queries },
+    });
+    return parseStringify(docs.data);
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return redirect('/login');
+    }
+  }
+};
+
 export const getChildrenFolders = async (id: string, queries: DocsGetInput) => {
   try {
     const token = await getToken();

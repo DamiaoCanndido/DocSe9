@@ -62,6 +62,11 @@ interface PaginatedResponse<T> {
   last: boolean;
 }
 
+interface SearchResults {
+  folders: FolderResProps[];
+  files: FileResProps[];
+}
+
 interface ApiResponse {
   folders: PaginatedResponse<FolderResProps>;
   files: PaginatedResponse<FileResProps>;
