@@ -26,10 +26,10 @@ export const Sidebar: React.FC<{ currentUser: UserResProps }> = ({
   const navItems = [
     { id: 'dashboard', label: 'Painel inicial', icon: LayoutDashboard },
     { id: 'my-docs', label: 'Meus documentos', icon: HardDrive },
-    { id: 'shared', label: 'Shared', icon: Users },
-    { id: 'recent', label: 'Recent', icon: Clock },
-    { id: 'starred', label: 'Starred', icon: Star },
-    { id: 'trash', label: 'Trash', icon: Trash2 },
+    { id: 'shared', label: 'Compartilhados', icon: Users },
+    { id: 'recent', label: 'Recentes', icon: Clock },
+    { id: 'starred', label: 'Favoritos', icon: Star },
+    { id: 'trash', label: 'Lixeira', icon: Trash2 },
     { id: 'admin', label: 'Administração', icon: ShieldCheck },
   ];
 

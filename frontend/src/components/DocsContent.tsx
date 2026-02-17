@@ -7,7 +7,7 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from '@/components/ui/context-menu';
-import { Folder } from 'lucide-react';
+import { File, Folder } from 'lucide-react';
 import FolderCtxMenu from '@/components/FolderCtxMenu';
 import Link from 'next/link';
 import { ViewDocsType } from '@/components/DocsLoad';
@@ -32,7 +32,7 @@ const DocsContent = (data: ApiResponse & { type: ViewDocsType }) => {
               <ContextMenu key={item.folderId}>
                 <Link
                   href={
-                    data.type === 'my-docs' ? `/my-docs/${item.folderId}` : ``
+                    data.type !== 'trash' ? `/my-docs/${item.folderId}` : ``
                   }
                 >
                   <ContextMenuTrigger>
@@ -54,12 +54,13 @@ const DocsContent = (data: ApiResponse & { type: ViewDocsType }) => {
                 <ContextMenuTrigger
                   className="cursor-pointer"
                   onClick={async () => {
+                    if (data.type === 'trash') return;
                     const result = await getFileLink(item.fileId, path);
                     window.open(result.url, '_blank', 'noopener,noreferrer');
                   }}
                 >
                   <div className="flex items-center gap-2 p-2 hover:bg-accent rounded">
-                    <Folder className="h-4 w-4" />
+                    <File className="h-4 w-4" />
 
                     <span>{item.name}</span>
                   </div>
