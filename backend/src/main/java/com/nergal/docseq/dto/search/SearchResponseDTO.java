@@ -7,6 +7,5 @@ import java.util.List;
 
 public record SearchResponseDTO(
         List<FolderResponseDTO> folders,
-        List<FileResponseDTO> files
-) {
+        List<FileResponseDTO> files) {
 }

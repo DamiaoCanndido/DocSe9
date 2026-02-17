@@ -5,10 +5,10 @@ import jakarta.validation.constraints.NotNull;
 import java.util.UUID;
 
 public record PermissionRequestDTO(
-        @NotNull(message = "User ID is required") UUID userId,
+                @NotNull(message = "User ID is required") UUID userId,
 
-        @NotNull(message = "folder ID is required") UUID folderId,
+                @NotNull(message = "folder or file is required") UUID nodeId,
 
-        @NotNull(message = "Permission type is required") PermissionType permissionType) {
+                @NotNull(message = "Permission type is required") PermissionType permissionType) {
 
 }

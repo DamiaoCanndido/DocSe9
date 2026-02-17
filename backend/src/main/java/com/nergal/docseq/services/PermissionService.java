@@ -49,7 +49,7 @@ public class PermissionService {
         validateSameTown(managerUser, targetUser);
 
         Folder folder = folderRepository
-                .findByFolderIdAndTownTownIdAndDeletedAtIsNull(dto.folderId(), managerUser.getTown().getTownId())
+                .findByFolderIdAndTownTownIdAndDeletedAtIsNull(dto.nodeId(), managerUser.getTown().getTownId())
                 .orElseThrow(() -> new NotFoundException("Folder not found or does not belong to your town"));
 
         boolean permissionExists = permissionRepository.findByUserUserIdAndFolderFolderIdAndPermissionType(
