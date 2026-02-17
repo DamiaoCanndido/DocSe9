@@ -43,7 +43,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(HttpMethod.POST, "/login")
+                        .requestMatchers(HttpMethod.POST, "/login", "/v2/login")
                         .permitAll()
                         .requestMatchers(HttpMethod.GET, "/uploads/**")
                         .permitAll()

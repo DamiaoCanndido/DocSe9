@@ -55,7 +55,7 @@ public class AdminUserConfig implements CommandLineRunner {
             return roleRepository.save(newBasicRole);
         });
 
-        var userAdmin = userRepository.findByEmail(adminEnvConfig.getEmail());
+        var userAdmin = userRepository.findByEmail("admin@admin.com");
 
         userAdmin.ifPresentOrElse(
                 user -> {
