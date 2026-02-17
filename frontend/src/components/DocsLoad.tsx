@@ -34,22 +34,19 @@ export default async function DocsLoad({
     },
   };
 
+  const setQueries = {
+    name: queries.name,
+    page: queries.page,
+    size: queries.size,
+    sort: queries.sort,
+  };
+
   switch (type) {
     case 'my-docs':
-      data = await getRootFolders({
-        name: queries.name,
-        page: queries.page,
-        size: queries.size,
-        sort: queries.sort,
-      });
+      data = await getRootFolders(setQueries);
       break;
     case 'trash':
-      data = await getTrashFolders({
-        name: queries.name,
-        page: queries.page,
-        size: queries.size,
-        sort: queries.sort,
-      });
+      data = await getTrashFolders(setQueries);
       break;
   }
 

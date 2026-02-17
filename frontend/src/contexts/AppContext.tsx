@@ -13,6 +13,8 @@ export type ViewType =
   | 'recent'
   | 'admin';
 
+export type DisplayMode = 'grid' | 'list';
+
 interface AppContextType {
   // Sidebar
   isSidebarOpen: boolean;
@@ -23,6 +25,10 @@ interface AppContextType {
   // View (opcional)
   currentView: ViewType;
   setCurrentView: (view: ViewType) => void;
+
+  // Display mode  displayMode: DisplayMode;
+  displayMode: DisplayMode;
+  setDisplayMode: (mode: DisplayMode) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -30,6 +36,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export function AppProvider({ children }: { children: ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [currentView, setCurrentView] = useState<ViewType>('dashboard');
+  const [displayMode, setDisplayMode] = useState<DisplayMode>('list');
 
   return (
     <AppContext.Provider
@@ -43,6 +50,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         // View
         currentView,
         setCurrentView,
+
+        // Display mode
+        displayMode,
+        setDisplayMode,
       }}
     >
       {children}
