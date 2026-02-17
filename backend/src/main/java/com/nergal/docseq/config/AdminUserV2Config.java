@@ -8,24 +8,24 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.nergal.docseq.entities.Role;
-import com.nergal.docseq.entities.User;
+import com.nergal.docseq.entities.UserV2;
 import com.nergal.docseq.repositories.RoleRepository;
-import com.nergal.docseq.repositories.UserRepository;
+import com.nergal.docseq.repositories.UserV2Repository;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Configuration
-public class AdminUserConfig implements CommandLineRunner {
+public class AdminUserV2Config implements CommandLineRunner {
 
     private RoleRepository roleRepository;
-    private UserRepository userRepository;
+    private UserV2Repository userRepository;
     private BCryptPasswordEncoder passwordEncoder;
     private AdminEnvsConfig adminEnvConfig;
 
-    public AdminUserConfig(
+    public AdminUserV2Config(
             RoleRepository roleRepository,
-            UserRepository userRepository,
+            UserV2Repository userRepository,
             BCryptPasswordEncoder passwordEncoder,
             AdminEnvsConfig adminEnvConfig) {
         this.roleRepository = roleRepository;
@@ -59,12 +59,12 @@ public class AdminUserConfig implements CommandLineRunner {
 
         userAdmin.ifPresentOrElse(
                 user -> {
-                    log.info("Admin user already exists.");
+                    log.info("Admin V2 user already exists.");
                 },
                 () -> {
-                    var user = new User();
-                    user.setUsername("admin");
-                    user.setEmail("admin@admin.com");
+                    var user = new UserV2();
+                    user.setUsername(adminEnvConfig.getUsername());
+                    user.setEmail(adminEnvConfig.getEmail());
                     user.setPassword(passwordEncoder.encode(adminEnvConfig.getPassword()));
                     user.setRole(adminRole);
                     userRepository.save(user);
