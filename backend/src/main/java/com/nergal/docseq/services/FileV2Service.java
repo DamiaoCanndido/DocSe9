@@ -63,7 +63,7 @@ public class FileV2Service {
                         NodeType.folder)
                 .orElseThrow(() -> new NotFoundException("Folder not found"));
 
-        // New permission check
+        // Check for folder permissions.
         if (!permissionService.checkPermission(folderId, PermissionType.WRITE, token)) {
             throw new ForbiddenException("You do not have write permission for this folder.");
         }
@@ -92,12 +92,10 @@ public class FileV2Service {
 
         UserV2 user = getUser(token);
 
-        UUID folderId = getRootFolderId(fileId);
-
         Node file = getFileBelongsOrganization(fileId, user.getTown().getTownId());
 
         // New permission check
-        if (!permissionService.checkPermission(folderId, PermissionType.DELETE, token)) {
+        if (!permissionService.checkPermission(file.getNodeId(), PermissionType.DELETE, token)) {
             throw new ForbiddenException("You do not have delete permission for this file.");
         }
 
@@ -110,17 +108,15 @@ public class FileV2Service {
     public void restore(UUID fileId, JwtAuthenticationToken token) {
         UserV2 user = getUser(token);
 
-        UUID folderId = getRootFolderId(fileId);
-
         Node file = fileRepository
-                .findByNodeIdAndTownTownIdAndNodeTypeAndDeletedAtIsNull(
+                .findByNodeIdAndTownTownIdAndNodeTypeAndDeletedAtIsNotNull(
                         fileId,
                         user.getTown().getTownId(),
                         NodeType.file)
                 .orElseThrow(() -> new NotFoundException("File not found"));
 
         // New permission check
-        if (!permissionService.checkPermission(folderId, PermissionType.WRITE, token)) {
+        if (!permissionService.checkPermission(file.getNodeId(), PermissionType.WRITE, token)) {
             throw new ForbiddenException("You do not have write permission to restore this file.");
         }
 
@@ -158,10 +154,8 @@ public class FileV2Service {
 
         UserV2 user = getUser(token);
 
-        UUID folderId = getRootFolderId(fileId);
-
         Node file = fileRepository
-                .findByNodeIdAndTownTownIdAndNodeTypeAndDeletedAtIsNull(
+                .findByNodeIdAndTownTownIdAndNodeTypeAndDeletedAtIsNotNull(
                         fileId,
                         user.getTown().getTownId(),
                         NodeType.file)
@@ -172,7 +166,7 @@ public class FileV2Service {
         }
 
         // New permission check
-        if (!permissionService.checkPermission(folderId, PermissionType.DELETE, token)) {
+        if (!permissionService.checkPermission(file.getNodeId(), PermissionType.DELETE, token)) {
             throw new ForbiddenException("You do not have delete permission to permanently delete this file.");
         }
 
@@ -184,12 +178,10 @@ public class FileV2Service {
     public void rename(UUID fileId, FileUpdateDTO dto, JwtAuthenticationToken token) {
         UserV2 user = getUser(token);
 
-        UUID folderId = getRootFolderId(fileId);
-
         Node file = getFileBelongsOrganization(fileId, user.getTown().getTownId());
 
         // New permission check
-        if (!permissionService.checkPermission(folderId, PermissionType.WRITE, token)) {
+        if (!permissionService.checkPermission(file.getNodeId(), PermissionType.WRITE, token)) {
             throw new ForbiddenException("You do not have write permission to rename this file.");
         }
 
@@ -202,7 +194,7 @@ public class FileV2Service {
     @Transactional
     public void move(UUID fileId, UUID targetFolderId, JwtAuthenticationToken token) {
         UserV2 user = getUser(token);
-        UUID folderId = getRootFolderId(fileId);
+
         Node file = getFileBelongsOrganization(fileId, user.getTown().getTownId());
         Node targetFolder = nodeRepository
                 .findByNodeIdAndTownTownIdAndNodeTypeAndDeletedAtIsNull(
@@ -212,7 +204,7 @@ public class FileV2Service {
                 .orElseThrow(() -> new NotFoundException("Target folder not found"));
 
         // New permission checks
-        if (!permissionService.checkPermission(folderId, PermissionType.WRITE, token)) {
+        if (!permissionService.checkPermission(file.getNodeId(), PermissionType.WRITE, token)) {
             throw new ForbiddenException("You do not have write permission for the original file.");
         }
         if (!permissionService.checkPermission(targetFolderId, PermissionType.WRITE, token)) {
@@ -227,12 +219,10 @@ public class FileV2Service {
     public void toggleFavorite(UUID fileId, JwtAuthenticationToken token) {
         UserV2 user = getUser(token);
 
-        UUID folderId = getRootFolderId(fileId);
-
         Node file = getFileBelongsOrganization(fileId, user.getTown().getTownId());
 
         // New permission check
-        if (!permissionService.checkPermission(folderId, PermissionType.WRITE, token)) {
+        if (!permissionService.checkPermission(file.getNodeId(), PermissionType.WRITE, token)) {
             throw new ForbiddenException("You do not have write permission to favorite/unfavorite this file.");
         }
 
@@ -244,12 +234,10 @@ public class FileV2Service {
     public String generateViewUrl(UUID fileId, JwtAuthenticationToken token) {
         UserV2 user = getUser(token);
 
-        UUID folderId = getRootFolderId(fileId);
-
         Node file = getFileBelongsOrganization(fileId, user.getTown().getTownId());
 
         // New permission check
-        if (!permissionService.checkPermission(folderId, PermissionType.READ, token)) {
+        if (!permissionService.checkPermission(file.getNodeId(), PermissionType.READ, token)) {
             throw new ForbiddenException("You do not have read permission for this file.");
         }
 
@@ -282,13 +270,5 @@ public class FileV2Service {
 
     private UserV2 getUser(JwtAuthenticationToken token) {
         return userRepository.getReferenceById(UUID.fromString(token.getName()));
-    }
-
-    private UUID getRootFolderId(UUID fileId) {
-        UUID folderId = fileRepository
-                .findById(
-                        fileId)
-                .orElseThrow(() -> new NotFoundException("File not found")).getParent().getNodeId();
-        return folderId;
     }
 }
