@@ -1,7 +1,6 @@
 package com.nergal.docseq.helpers.specifications;
 
 import com.nergal.docseq.entities.Node;
-import com.nergal.docseq.entities.NodeType;
 import com.nergal.docseq.entities.PermissionV2;
 import com.nergal.docseq.entities.PermissionType;
 import com.nergal.docseq.entities.UserV2;
@@ -28,7 +27,7 @@ public class FolderV2Specifications { // Renamed from FolderSpecifications
             boolean isManager) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
-            predicates.add(cb.equal(root.get("nodeType"), NodeType.folder)); // Added NodeType check
+
             predicates.add(cb.equal(root.get("town").get("townId"), townId));
             predicates.add(cb.isNull(root.get("deletedAt")));
 
@@ -125,7 +124,7 @@ public class FolderV2Specifications { // Renamed from FolderSpecifications
             boolean isManager) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
-            predicates.add(cb.equal(root.get("nodeType"), NodeType.folder)); // Added NodeType check
+
             predicates.add(cb.equal(root.get("town").get("townId"), townId));
             predicates.add(cb.isNull(root.get("deletedAt")));
 

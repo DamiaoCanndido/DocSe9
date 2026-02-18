@@ -18,9 +18,6 @@ import java.util.UUID;
 @Repository
 public interface NodeRepository extends JpaRepository<Node, UUID>, JpaSpecificationExecutor<Node> {
 
-    // Search ALL nodes in the organization (full tree), can be folder or file
-    List<Node> findByTownTownIdAndDeletedAtIsNull(UUID townId);
-
     // Recycle Bin – List deleted nodes (folders or files)
     Page<Node> findByTownTownIdAndDeletedAtIsNotNull(UUID townId, Pageable page);
 
@@ -50,9 +47,6 @@ public interface NodeRepository extends JpaRepository<Node, UUID>, JpaSpecificat
     // Check for duplicate names in the same folder
     boolean existsByNameAndParentAndNodeTypeAndDeletedAtIsNull(String name, Node parent, NodeType nodeType);
 
-    // Search for specific node
-    Optional<Node> findByNodeIdAndTownTownIdAndDeletedAtIsNull(UUID nodeId, UUID townId);
-
     // Search for "restore" in the trash can.
     Optional<Node> findByNodeIdAndTownTownIdAndDeletedAtIsNotNull(UUID nodeId, UUID townId);
 
@@ -67,7 +61,7 @@ public interface NodeRepository extends JpaRepository<Node, UUID>, JpaSpecificat
                        created_by, updated_by, deleted_by, created_at, updated_at, deleted_at,
                        content_type, size, object_key, last_seen
                 FROM tb_nodes
-                WHERE node_id = :nodeId AND node_type = 'FOLDER'
+                WHERE node_id = :nodeId AND node_type = 'folder'
 
                 UNION ALL
 
@@ -81,7 +75,6 @@ public interface NodeRepository extends JpaRepository<Node, UUID>, JpaSpecificat
             """, nativeQuery = true)
     List<Node> findAllChildNodesRecursive(@Param("nodeId") UUID nodeId);
 
-
     // QUERY RECURSIVA PARA BUSCAR TODAS AS PASTAS PAI (até a raiz)
     @Query(value = """
             WITH RECURSIVE parent_tree AS (
@@ -89,7 +82,7 @@ public interface NodeRepository extends JpaRepository<Node, UUID>, JpaSpecificat
                        created_by, updated_by, deleted_by, created_at, updated_at, deleted_at,
                        content_type, size, object_key, last_seen
                 FROM tb_nodes
-                WHERE node_id = :nodeId AND node_type = 'FOLDER'
+                WHERE node_id = :nodeId AND node_type = 'folder'
 
                 UNION ALL
 
@@ -114,9 +107,12 @@ public interface NodeRepository extends JpaRepository<Node, UUID>, JpaSpecificat
 
     Optional<Node> findByNodeIdAndTownTownIdAndNodeTypeAndDeletedAtIsNull(UUID nodeId, UUID townId, NodeType nodeType);
 
+    Optional<Node> findByNodeIdAndTownTownIdAndDeletedAtIsNull(UUID nodeId, UUID townId);
+
     // List nodes by parent and town, order by nodeType then name
     List<Node> findByParentAndTownTownIdAndDeletedAtIsNullOrderByNodeTypeDescNameAsc(Node parent, UUID townId);
 
-    // Find all nodes that are files (node_type = 'FILE') within a town and not deleted
+    // Find all nodes that are files (node_type = 'FILE') within a town and not
+    // deleted
     List<Node> findByTownTownIdAndNodeTypeAndDeletedAtIsNull(UUID townId, NodeType nodeType);
 }

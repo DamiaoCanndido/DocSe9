@@ -51,7 +51,9 @@ public class PermissionV2Service {
         validateSameTown(managerUser, targetUser);
 
         Node node = nodeRepository
-                .findByNodeIdAndTownTownIdAndDeletedAtIsNull(dto.nodeId(), managerUser.getTown().getTownId())
+                .findByNodeIdAndTownTownIdAndDeletedAtIsNull(
+                        dto.nodeId(),
+                        managerUser.getTown().getTownId())
                 .orElseThrow(() -> new NotFoundException("Node not found or does not belong to your town"));
 
         boolean permissionExists = permissionV2Repository.findByUserUserIdAndNodeNodeIdAndPermissionType(

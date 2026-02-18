@@ -88,9 +88,10 @@ public class NodeService {
         boolean isManager = user.getRole().getName().equals(Role.Values.manager);
         UUID townId = user.getTown().getTownId();
 
-        var node = nodeRepository.findByNodeIdAndTownTownIdAndDeletedAtIsNull(
+        var node = nodeRepository.findByNodeIdAndTownTownIdAndNodeTypeAndDeletedAtIsNull(
                 parentId,
-                townId)
+                townId,
+                NodeType.folder)
                 .orElseThrow(() -> new NotFoundException("Parent node not found"));
 
         isFile(node);
@@ -147,9 +148,8 @@ public class NodeService {
         UUID townId = user.getTown().getTownId();
 
         var nodes = nodeRepository
-                .findByTownTownIdAndDeletedAtIsNull(townId)
+                .findByTownTownIdAndNodeTypeAndDeletedAtIsNull(townId, NodeType.folder)
                 .stream()
-                .filter(node -> node.getNodeType() == NodeType.folder) // Only include folders in the tree
                 .collect(Collectors.toList());
 
         return NodeMapper.buildNodeTree(nodes);
@@ -159,15 +159,12 @@ public class NodeService {
     public void create(NodeRequestDTO dto, JwtAuthenticationToken token) {
         UserV2 user = getUser(token);
 
-        if (dto.nodeType().equals(NodeType.file)) {
-            throw new BadRequestException("Cannot create a file node.");
-        }
-
         Node parent = null;
         if (dto.parentId() != null) {
-            parent = nodeRepository.findByNodeIdAndTownTownIdAndDeletedAtIsNull(
+            parent = nodeRepository.findByNodeIdAndTownTownIdAndNodeTypeAndDeletedAtIsNull(
                     dto.parentId(),
-                    user.getTown().getTownId())
+                    user.getTown().getTownId(),
+                    NodeType.folder)
                     .orElseThrow(() -> new NotFoundException("Parent node not found"));
 
             if (parent.getNodeType() != NodeType.folder) {
@@ -183,13 +180,13 @@ public class NodeService {
             }
         }
 
-        if (nodeRepository.existsByNameAndParentAndNodeTypeAndDeletedAtIsNull(dto.name(), parent, dto.nodeType())) {
+        if (nodeRepository.existsByNameAndParentAndNodeTypeAndDeletedAtIsNull(dto.name(), parent, NodeType.folder)) {
             throw new ConflictException("Node with the same name and type already exists in this parent.");
         }
 
         Node node = new Node();
         node.setName(dto.name());
-        node.setNodeType(dto.nodeType());
+        node.setNodeType(NodeType.folder);
         node.setParent(parent);
         if (dto.parentId() != null) {
             node.copyPermissionsFrom(parent);
@@ -208,9 +205,10 @@ public class NodeService {
         UserV2 user = getUser(token);
 
         Node node = nodeRepository
-                .findByNodeIdAndTownTownIdAndDeletedAtIsNull(
+                .findByNodeIdAndTownTownIdAndNodeTypeAndDeletedAtIsNull(
                         nodeId,
-                        user.getTown().getTownId())
+                        user.getTown().getTownId(),
+                        NodeType.folder)
                 .orElseThrow(() -> new NotFoundException("Node not found"));
 
         isFile(node);
@@ -237,15 +235,15 @@ public class NodeService {
         UUID townId = getTownId(token);
 
         Node nodeToMove = nodeRepository
-                .findByNodeIdAndTownTownIdAndDeletedAtIsNull(
-                        nodeId, townId)
+                .findByNodeIdAndTownTownIdAndNodeTypeAndDeletedAtIsNull(
+                        nodeId, townId, NodeType.folder)
                 .orElseThrow(() -> new NotFoundException("Node to move not found"));
 
         isFile(nodeToMove);
 
         Node targetNode = nodeRepository
-                .findByNodeIdAndTownTownIdAndDeletedAtIsNull(
-                        targetNodeId, townId)
+                .findByNodeIdAndTownTownIdAndNodeTypeAndDeletedAtIsNull(
+                        targetNodeId, townId, NodeType.folder)
                 .orElseThrow(() -> new NotFoundException("Target node not found"));
 
         if (!permissionServiceV2.checkPermission(nodeId, PermissionType.WRITE, token)) {
@@ -297,9 +295,10 @@ public class NodeService {
         UserV2 user = getUser(token);
 
         Node node = nodeRepository
-                .findByNodeIdAndTownTownIdAndDeletedAtIsNull(
+                .findByNodeIdAndTownTownIdAndNodeTypeAndDeletedAtIsNull(
                         nodeId,
-                        user.getTown().getTownId())
+                        user.getTown().getTownId(),
+                        NodeType.folder)
                 .orElseThrow(() -> new NotFoundException("Node not found"));
 
         isFile(node);
@@ -315,7 +314,8 @@ public class NodeService {
     public void softDeleteRecursively(Node root, UserV2 deletedBy) {
         Instant now = Instant.now();
 
-        List<Node> allNodesInTown = nodeRepository.findByTownTownIdAndDeletedAtIsNull(root.getTown().getTownId());
+        List<Node> allNodesInTown = nodeRepository.findByTownTownIdAndNodeTypeAndDeletedAtIsNull(
+                root.getTown().getTownId(), NodeType.folder);
         Map<UUID, List<Node>> parentToChildrenMap = allNodesInTown.stream()
                 .filter(n -> n.getParent() != null)
                 .collect(Collectors.groupingBy(n -> n.getParent().getNodeId()));
@@ -487,9 +487,10 @@ public class NodeService {
         UserV2 user = getUser(token);
 
         Node node = nodeRepository
-                .findByNodeIdAndTownTownIdAndDeletedAtIsNull(
+                .findByNodeIdAndTownTownIdAndNodeTypeAndDeletedAtIsNull(
                         nodeId,
-                        user.getTown().getTownId())
+                        user.getTown().getTownId(),
+                        NodeType.folder)
                 .orElseThrow(() -> new NotFoundException("Node not found"));
 
         isFile(node);
