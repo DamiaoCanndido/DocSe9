@@ -1,5 +1,6 @@
 import DocsContent from '@/components/DocsContent';
 import { getChildrenFolders } from '@/lib/data';
+import { ApiResponse, SearchParamProps } from '@/types';
 
 export default async function MySubDocs({
   searchParams,
@@ -11,12 +12,12 @@ export default async function MySubDocs({
   const size = ((await searchParams)?.size as string) || '';
   const sort = ((await searchParams)?.sort as string) || '';
 
-  const { folders, files }: ApiResponse = await getChildrenFolders(id, {
+  const { content }: ApiResponse = await getChildrenFolders(id, {
     name,
     page,
     size,
     sort,
   });
 
-  return <DocsContent folders={folders} files={files} type="my-docs" />;
+  return <DocsContent content={content} type="my-docs" />;
 }

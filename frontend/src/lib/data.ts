@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation';
 import { AxiosError } from 'axios';
 import { parseStringify } from '@/lib/utils';
 import { revalidatePath } from 'next/cache';
+import { DocsGetInput } from '@/types';
 
 async function getToken() {
   const token = (await cookies()).get('docse9-auth-token');
@@ -15,7 +16,7 @@ async function getToken() {
 export async function getMe() {
   try {
     const token = await getToken();
-    const me = await apiServer.get('/get-me', {
+    const me = await apiServer.get('/v2/get-me', {
       headers: { Authorization: `Bearer ${token}` },
     });
 
@@ -38,7 +39,7 @@ export const signOutUser = async () => {
 export const getRootFolders = async (queries: DocsGetInput) => {
   try {
     const token = await getToken();
-    const docs = await apiServer.get('/folders/root', {
+    const docs = await apiServer.get('/v2/folders/root', {
       headers: { Authorization: `Bearer ${token}` },
       params: { ...queries },
     });
@@ -53,7 +54,7 @@ export const getRootFolders = async (queries: DocsGetInput) => {
 export const getSearchResults = async (queries: DocsGetInput) => {
   try {
     const token = await getToken();
-    const docs = await apiServer.get('/folders/search', {
+    const docs = await apiServer.get('/v2/folders/search', {
       headers: { Authorization: `Bearer ${token}` },
       params: { ...queries },
     });
@@ -68,7 +69,7 @@ export const getSearchResults = async (queries: DocsGetInput) => {
 export const getChildrenFolders = async (id: string, queries: DocsGetInput) => {
   try {
     const token = await getToken();
-    const docs = await apiServer.get(`/folders/${id}/children`, {
+    const docs = await apiServer.get(`/v2/folders/${id}/children`, {
       headers: { Authorization: `Bearer ${token}` },
       params: { ...queries },
     });
@@ -83,7 +84,7 @@ export const getChildrenFolders = async (id: string, queries: DocsGetInput) => {
 export const getTrashFolders = async (queries: DocsGetInput) => {
   try {
     const token = await getToken();
-    const docs = await apiServer.get('/folders/trash', {
+    const docs = await apiServer.get('/v2/folders/trash', {
       headers: { Authorization: `Bearer ${token}` },
       params: { ...queries },
     });
@@ -98,7 +99,7 @@ export const getTrashFolders = async (queries: DocsGetInput) => {
 export const getViewUrl = async (fileId: string, path: string) => {
   try {
     const token = await getToken();
-    const docs = await apiServer.get(`/files/${fileId}/view-url`, {
+    const docs = await apiServer.get(`/v2/files/${fileId}/view-url`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     revalidatePath(path);

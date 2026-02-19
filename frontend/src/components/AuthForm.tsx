@@ -27,6 +27,7 @@ import {
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { apiClient } from '@/lib/axios';
+import { TownResProps } from '@/types';
 
 type FormType = 'login' | 'register';
 

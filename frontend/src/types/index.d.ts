@@ -29,32 +29,30 @@ declare interface UserResProps {
   createdAt: string;
 }
 
-declare interface FolderResProps {
-  folderId: string;
+export interface NodeResProps {
+  id: string;
   name: string;
-  parentId: string;
+  nodeType: 'file' | 'folder';
   favorite: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface FileResProps {
-  fileId: string;
-  name: string;
-  size: number;
-  contentType: string;
-  objectKey: string;
-  favorite: boolean;
-  lastSeen: string | null;
+  parentId: string | null;
+  townId: string;
+  createdBy: string;
+  createdByName: string;
+  updatedBy: string | null;
+  updatedByName: string | null;
+  deletedBy: string | null;
+  deletedByName: string | null;
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;
-  folderId: string;
-  uploadedBy: string | null;
+  contentType: string | null;
+  size: number | null;
+  objectKey: string | null;
+  lastSeen: string | null;
 }
 
 interface PaginatedResponse<T> {
-  content: T[];
+  nodes: T[];
   page: number;
   pageSize: number;
   totalElements: number;
@@ -63,13 +61,12 @@ interface PaginatedResponse<T> {
 }
 
 interface SearchResults {
-  folders: FolderResProps[];
-  files: FileResProps[];
+  folders: NodeResProps[];
+  files: NodeResProps[];
 }
 
 interface ApiResponse {
-  folders: PaginatedResponse<FolderResProps>;
-  files: PaginatedResponse<FileResProps>;
+  content: PaginatedResponse<NodeResProps>;
 }
 
 declare interface SearchParamProps {

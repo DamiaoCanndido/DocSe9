@@ -1,5 +1,6 @@
 import DocsContent from '@/components/DocsContent';
 import { getRootFolders, getTrashFolders } from '@/lib/data';
+import { ApiResponse, DocsGetInput } from '@/types';
 
 export type ViewDocsType =
   | 'my-docs'
@@ -16,16 +17,8 @@ export default async function DocsLoad({
   type: ViewDocsType;
 }) {
   let data: ApiResponse = {
-    folders: {
-      content: [],
-      page: 0,
-      pageSize: 0,
-      totalElements: 0,
-      totalPages: 0,
-      last: true,
-    },
-    files: {
-      content: [],
+    content: {
+      nodes: [],
       page: 0,
       pageSize: 0,
       totalElements: 0,
@@ -52,6 +45,6 @@ export default async function DocsLoad({
 
   return (
     /* Desktop docs */
-    <DocsContent folders={data.folders} files={data.files} type={type} />
+    <DocsContent content={data.content} type={type} />
   );
 }

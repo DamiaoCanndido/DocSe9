@@ -1,11 +1,12 @@
 'use client';
 
-import { getChildrenFolders, getSearchResults, getViewUrl } from '@/lib/data';
-import { Search, Filter, Folder } from 'lucide-react';
+import { getSearchResults, getViewUrl } from '@/lib/data';
+import { Search, Filter, Folder, File } from 'lucide-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useDebounce } from 'use-debounce';
 import FormattedDateTime from './FormattedDateTime';
+import { NodeResProps, SearchResults } from '@/types';
 
 const SearchFoldersAndFiles = () => {
   const [query, setQuery] = useState('');
@@ -50,7 +51,7 @@ const SearchFoldersAndFiles = () => {
     }
   }, [searchQuery]);
 
-  const handleFolderClick = async (folder: FolderResProps) => {
+  const handleNodeClick = async (node: NodeResProps) => {
     setOpen(false);
     setResults({
       folders: [],
@@ -59,21 +60,12 @@ const SearchFoldersAndFiles = () => {
 
     setQuery('');
 
-    router.push(`/my-docs/${folder.folderId}`);
-  };
-
-  const handleFileClick = async (file: FileResProps) => {
-    setOpen(false);
-    setResults({
-      folders: [],
-      files: [],
-    });
-
-    setQuery('');
-
-    const result = await getViewUrl(file.fileId, path);
-
-    window.open(result.url, '_blank', 'noopener,noreferrer');
+    if (node.nodeType === 'folder') {
+      router.push(`/my-docs/${node.id}`);
+    } else {
+      const result = await getViewUrl(node.id, path);
+      window.open(result.url, '_blank', 'noopener,noreferrer');
+    }
   };
 
   return (
@@ -97,8 +89,8 @@ const SearchFoldersAndFiles = () => {
               results.folders.map((folder) => (
                 <li
                   className="flex items-center justify-between"
-                  key={folder.folderId}
-                  onClick={() => handleFolderClick(folder)}
+                  key={folder.id}
+                  onClick={() => handleNodeClick(folder)}
                 >
                   <div className="flex cursor-pointer items-center gap-4">
                     <Folder className="h-4 w-4" />
@@ -117,11 +109,11 @@ const SearchFoldersAndFiles = () => {
               results.files.map((file) => (
                 <li
                   className="flex items-center justify-between"
-                  key={file.fileId}
-                  onClick={() => handleFileClick(file)}
+                  key={file.id}
+                  onClick={() => handleNodeClick(file)}
                 >
                   <div className="flex cursor-pointer items-center gap-4">
-                    <Folder className="h-4 w-4" />
+                    <File className="h-4 w-4" />
                     <p className="subtitle-2 line-clamp-1 text-light-100">
                       {file.name}
                     </p>

@@ -23,10 +23,17 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useApp } from '@/contexts/AppContext';
+import { ApiResponse } from '@/types';
 
 export type DisplayMode = 'grid' | 'list';
 
-const DocsContent = (data: ApiResponse & { type: ViewDocsType }) => {
+const DocsContent = ({
+  content,
+  type,
+}: {
+  content: ApiResponse['content'];
+  type: ViewDocsType;
+}) => {
   const path = usePathname();
 
   const [sortBy, setSortBy] = useState<'name' | 'modified' | 'size'>('name');
@@ -40,7 +47,7 @@ const DocsContent = (data: ApiResponse & { type: ViewDocsType }) => {
   };
 
   const getTitle = () => {
-    switch (data.type) {
+    switch (type) {
       case 'my-docs':
         return 'Meus documentos';
       case 'shared':
@@ -112,58 +119,48 @@ const DocsContent = (data: ApiResponse & { type: ViewDocsType }) => {
                     </tr>
                   </thead>
                   <tbody>
-                    {data.folders.content.map((item) => (
-                      <ContextMenu key={item.folderId}>
-                        <ContextMenuTrigger asChild>
-                          <tr
-                            className="hover:bg-accent cursor-pointer"
-                            onClick={() => {
-                              if (data.type === 'trash') return;
-                              router.push(`/my-docs/${item.folderId}`);
-                            }}
-                          >
-                            <td className="py-2 px-2">
-                              <div className="flex items-center gap-2">
-                                <Folder className="h-4 w-4 shrink-0" />
-                                <span>{item.name}</span>
-                              </div>
-                            </td>
-                            <td className="hidden lg:table-cell py-2 px-2 text-muted-foreground">
-                              {new Date(item.createdAt).toLocaleDateString(
-                                'pt-BR'
-                              )}
-                            </td>
-                            <td className="hidden lg:table-cell py-2 px-2 text-muted-foreground">
-                              —
-                            </td>
-                          </tr>
-                        </ContextMenuTrigger>
-                        <FolderCtxMenu />
-                      </ContextMenu>
-                    ))}
-
-                    {data.files.content.map((item) => (
-                      <ContextMenu key={item.fileId}>
+                    {content.nodes.map((item) => (
+                      <ContextMenu key={item.id}>
                         <ContextMenuTrigger asChild>
                           <tr
                             className="hover:bg-accent cursor-pointer"
                             onClick={async () => {
-                              if (data.type === 'trash') return;
-                              const result = await getFileLink(
-                                item.fileId,
-                                path
-                              );
-                              window.open(
-                                result.url,
-                                '_blank',
-                                'noopener,noreferrer'
-                              );
+                              if (type === 'trash' && item.nodeType == 'folder')
+                                return;
+                              if (
+                                type === 'my-docs' &&
+                                item.nodeType == 'folder'
+                              ) {
+                                router.push(`/my-docs/${item.id}`);
+                              }
+                              if (type === 'trash' && item.nodeType == 'file')
+                                return;
+                              if (
+                                type === 'my-docs' &&
+                                item.nodeType == 'file'
+                              ) {
+                                const result = await getFileLink(item.id, path);
+                                window.open(
+                                  result.url,
+                                  '_blank',
+                                  'noopener,noreferrer'
+                                );
+                              }
                             }}
                           >
                             <td className="py-2 px-2">
                               <div className="flex items-center gap-2">
-                                <File className="h-4 w-4 shrink-0" />
-                                <span>{item.name}</span>
+                                {item.nodeType === 'folder' ? (
+                                  <>
+                                    <Folder className="h-4 w-4 shrink-0" />
+                                    <span>{item.name}</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <File className="h-4 w-4 shrink-0" />
+                                    <span>{item.name}</span>
+                                  </>
+                                )}
                               </div>
                             </td>
                             <td className="hidden lg:table-cell py-2 px-2 text-muted-foreground">
@@ -172,7 +169,7 @@ const DocsContent = (data: ApiResponse & { type: ViewDocsType }) => {
                               )}
                             </td>
                             <td className="hidden lg:table-cell py-2 px-2 text-muted-foreground">
-                              {item.size}
+                              {item.nodeType === 'folder' ? '-' : item.size}
                             </td>
                           </tr>
                         </ContextMenuTrigger>
@@ -185,46 +182,20 @@ const DocsContent = (data: ApiResponse & { type: ViewDocsType }) => {
             </ContextMenuTrigger>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-6">
-              {data.folders.content.map((folder) => (
+              {content.nodes.map((item) => (
                 <motion.div
-                  key={folder.folderId}
-                  whileHover={{ y: -2 }}
-                  onClick={() => {
-                    if (data.type === 'trash') return;
-                    router.push(`/my-docs/${folder.folderId}`);
-                  }}
-                  className="group cursor-pointer px-1.5 rounded-lg"
-                >
-                  <div className="aspect-square bg-white border border-[#E0E0E0] rounded-xl sm:rounded-2xl flex flex-col items-center justify-center mb-2 sm:mb-3 group-hover:shadow-md group-hover:border-blue-200 transition-all relative overflow-hidden">
-                    <div className="absolute top-1 sm:top-2 right-1 sm:right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button className="p-1 sm:p-1.5 bg-white/90 shadow-sm rounded-full text-[#5F6368] hover:text-blue-600">
-                        <EllipsisVertical className="w-3 h-3 sm:w-4 sm:h-4" />
-                      </button>
-                    </div>
-                    <Folder className="w-10 h-10 sm:w-16 sm:h-16 text-gray-200 fill-gray-100" />
-                    <div className="absolute inset-x-0 bottom-0 p-1.5 sm:p-3 bg-linear-to-t from-black/5 to-transparent flex items-center justify-center">
-                      <span className="text-[8px] sm:text-[10px] font-bold uppercase text-gray-400 bg-white px-1.5 py-0.5 rounded shadow-sm border border-gray-100">
-                        Pasta
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1.5 sm:gap-2 px-1">
-                    <Folder className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 shrink-0" />
-                    <span className="text-xs sm:text-sm font-medium text-[#1F1F1F] truncate flex-1">
-                      {folder.name}
-                    </span>
-                  </div>
-                </motion.div>
-              ))}
-
-              {data.files.content.map((file) => (
-                <motion.div
-                  key={file.fileId}
+                  key={item.id}
                   whileHover={{ y: -2 }}
                   onClick={async () => {
-                    if (data.type === 'trash') return;
-                    const result = await getFileLink(file.fileId, path);
-                    window.open(result.url, '_blank', 'noopener,noreferrer');
+                    if (type === 'trash' && item.nodeType == 'folder') return;
+                    if (type === 'my-docs' && item.nodeType == 'folder') {
+                      router.push(`/my-docs/${item.id}`);
+                    }
+                    if (type === 'trash' && item.nodeType == 'file') return;
+                    if (type === 'my-docs' && item.nodeType == 'file') {
+                      const result = await getFileLink(item.id, path);
+                      window.open(result.url, '_blank', 'noopener,noreferrer');
+                    }
                   }}
                   className="group cursor-pointer px-1.5 rounded-lg"
                 >
@@ -234,17 +205,25 @@ const DocsContent = (data: ApiResponse & { type: ViewDocsType }) => {
                         <EllipsisVertical className="w-3 h-3 sm:w-4 sm:h-4" />
                       </button>
                     </div>
-                    <File className="w-10 h-10 sm:w-16 sm:h-16 text-gray-200 fill-gray-100" />
+                    {item.nodeType === 'folder' ? (
+                      <Folder className="w-10 h-10 sm:w-16 sm:h-16 text-gray-200 fill-gray-100" />
+                    ) : (
+                      <File className="w-10 h-10 sm:w-16 sm:h-16 text-gray-200 fill-gray-100" />
+                    )}
                     <div className="absolute inset-x-0 bottom-0 p-1.5 sm:p-3 bg-linear-to-t from-black/5 to-transparent flex items-center justify-center">
                       <span className="text-[8px] sm:text-[10px] font-bold uppercase text-gray-400 bg-white px-1.5 py-0.5 rounded shadow-sm border border-gray-100">
-                        Arquivo
+                        {item.nodeType === 'folder' ? 'Pasta' : 'Arquivo'}
                       </span>
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5 sm:gap-2 px-1">
-                    <File className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 shrink-0" />
+                    {item.nodeType === 'folder' ? (
+                      <Folder className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 shrink-0" />
+                    ) : (
+                      <File className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 shrink-0" />
+                    )}
                     <span className="text-xs sm:text-sm font-medium text-[#1F1F1F] truncate flex-1">
-                      {file.name}
+                      {item.name}
                     </span>
                   </div>
                 </motion.div>
