@@ -48,9 +48,10 @@ public class UserV2Controller {
     public ResponseEntity<UserContentResponse> listUsers(
             @RequestParam(required = false) String name,
             @RequestParam(required = false) String town,
+            @RequestParam(required = false) String role,
             Pageable pageable,
             JwtAuthenticationToken token) {
-        return ResponseEntity.ok(userService.listUsers(pageable, name, town, token));
+        return ResponseEntity.ok(userService.listUsers(pageable, name, town, role, token));
     }
 
     @GetMapping("/get-me")

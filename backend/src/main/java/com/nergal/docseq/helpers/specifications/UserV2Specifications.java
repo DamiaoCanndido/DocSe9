@@ -10,7 +10,7 @@ import com.nergal.docseq.entities.UserV2;
 import jakarta.persistence.criteria.Predicate;
 
 public class UserV2Specifications {
-    public static Specification<UserV2> withFilters(String town, String name) {
+    public static Specification<UserV2> withFilters(String town, String name, String role) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -25,6 +25,13 @@ public class UserV2Specifications {
                 predicates.add(cb.like(
                         cb.lower(root.get("town").get("name")),
                         "%" + town.toLowerCase() + "%"));
+
+            }
+
+            if (role != null) {
+                predicates.add(cb.like(
+                        cb.lower(root.get("role").get("name")),
+                        "%" + role.toLowerCase() + "%"));
 
             }
 

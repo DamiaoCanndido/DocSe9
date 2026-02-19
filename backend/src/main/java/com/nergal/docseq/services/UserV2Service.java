@@ -133,7 +133,12 @@ public class UserV2Service {
     }
 
     @Transactional(readOnly = true)
-    public UserContentResponse listUsers(Pageable pageable, String name, String town, JwtAuthenticationToken token) {
+    public UserContentResponse listUsers(
+            Pageable pageable,
+            String name,
+            String town,
+            String role,
+            JwtAuthenticationToken token) {
 
         var userRole = getUser(token).getRole().getName();
 
@@ -141,7 +146,7 @@ public class UserV2Service {
             town = getUser(token).getTown().getName();
         }
 
-        var users = userRepository.findAll(UserV2Specifications.withFilters(town, name), pageable)
+        var users = userRepository.findAll(UserV2Specifications.withFilters(town, name, role), pageable)
                 .map(user -> new UserItemDTO(
                         user.getUserId(),
                         user.getUsername(),
