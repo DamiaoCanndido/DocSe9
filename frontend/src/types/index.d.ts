@@ -29,7 +29,7 @@ declare interface UserResProps {
   createdAt: string;
 }
 
-export interface NodeResProps {
+declare interface NodeResProps {
   id: string;
   name: string;
   nodeType: 'file' | 'folder';
@@ -51,7 +51,7 @@ export interface NodeResProps {
   lastSeen: string | null;
 }
 
-interface PaginatedResponse<T> {
+declare interface PaginatedResponse<T> {
   nodes: T[];
   page: number;
   pageSize: number;
@@ -60,12 +60,12 @@ interface PaginatedResponse<T> {
   last: boolean;
 }
 
-interface SearchResults {
+declare interface SearchResults {
   folders: NodeResProps[];
   files: NodeResProps[];
 }
 
-interface ApiResponse {
+declare interface ApiResponse {
   content: PaginatedResponse<NodeResProps>;
 }
 

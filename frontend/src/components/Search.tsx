@@ -6,7 +6,6 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useDebounce } from 'use-debounce';
 import FormattedDateTime from './FormattedDateTime';
-import { NodeResProps, SearchResults } from '@/types';
 
 const SearchFoldersAndFiles = () => {
   const [query, setQuery] = useState('');

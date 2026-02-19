@@ -23,7 +23,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useApp } from '@/contexts/AppContext';
-import { ApiResponse } from '@/types';
 
 export type DisplayMode = 'grid' | 'list';
 
@@ -181,54 +180,81 @@ const DocsContent = ({
               </div>
             </ContextMenuTrigger>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-6">
-              {content.nodes.map((item) => (
-                <motion.div
-                  key={item.id}
-                  whileHover={{ y: -2 }}
-                  onClick={async () => {
-                    if (type === 'trash' && item.nodeType == 'folder') return;
-                    if (type === 'my-docs' && item.nodeType == 'folder') {
-                      router.push(`/my-docs/${item.id}`);
-                    }
-                    if (type === 'trash' && item.nodeType == 'file') return;
-                    if (type === 'my-docs' && item.nodeType == 'file') {
-                      const result = await getFileLink(item.id, path);
-                      window.open(result.url, '_blank', 'noopener,noreferrer');
-                    }
-                  }}
-                  className="group cursor-pointer px-1.5 rounded-lg"
-                >
-                  <div className="aspect-square bg-white border border-[#E0E0E0] rounded-xl sm:rounded-2xl flex flex-col items-center justify-center mb-2 sm:mb-3 group-hover:shadow-md group-hover:border-blue-200 transition-all relative overflow-hidden">
-                    <div className="absolute top-1 sm:top-2 right-1 sm:right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button className="p-1 sm:p-1.5 bg-white/90 shadow-sm rounded-full text-[#5F6368] hover:text-blue-600">
-                        <EllipsisVertical className="w-3 h-3 sm:w-4 sm:h-4" />
-                      </button>
-                    </div>
-                    {item.nodeType === 'folder' ? (
-                      <Folder className="w-10 h-10 sm:w-16 sm:h-16 text-gray-200 fill-gray-100" />
-                    ) : (
-                      <File className="w-10 h-10 sm:w-16 sm:h-16 text-gray-200 fill-gray-100" />
-                    )}
-                    <div className="absolute inset-x-0 bottom-0 p-1.5 sm:p-3 bg-linear-to-t from-black/5 to-transparent flex items-center justify-center">
-                      <span className="text-[8px] sm:text-[10px] font-bold uppercase text-gray-400 bg-white px-1.5 py-0.5 rounded shadow-sm border border-gray-100">
-                        {item.nodeType === 'folder' ? 'Pasta' : 'Arquivo'}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1.5 sm:gap-2 px-1">
-                    {item.nodeType === 'folder' ? (
-                      <Folder className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 shrink-0" />
-                    ) : (
-                      <File className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 shrink-0" />
-                    )}
-                    <span className="text-xs sm:text-sm font-medium text-[#1F1F1F] truncate flex-1">
-                      {item.name}
-                    </span>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
+            <ContextMenu>
+              <ContextMenuTrigger>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-6 min-h-full">
+                  {content.nodes.map((item) => (
+                    <ContextMenu key={item.id}>
+                      <ContextMenuTrigger asChild>
+                        <motion.div
+                          whileHover={{ y: -2 }}
+                          onClick={async () => {
+                            if (type === 'trash' && item.nodeType == 'folder')
+                              return;
+                            if (
+                              type === 'my-docs' &&
+                              item.nodeType == 'folder'
+                            ) {
+                              router.push(`/my-docs/${item.id}`);
+                            }
+                            if (type === 'trash' && item.nodeType == 'file')
+                              return;
+                            if (type === 'my-docs' && item.nodeType == 'file') {
+                              const result = await getFileLink(item.id, path);
+                              window.open(
+                                result.url,
+                                '_blank',
+                                'noopener,noreferrer'
+                              );
+                            }
+                          }}
+                          className="group cursor-pointer px-1.5 rounded-lg"
+                        >
+                          <div className="aspect-square bg-white border border-[#E0E0E0] rounded-xl sm:rounded-2xl flex flex-col items-center justify-center mb-2 sm:mb-3 group-hover:shadow-md group-hover:border-blue-200 transition-all relative overflow-hidden">
+                            <div className="absolute top-1 sm:top-2 right-1 sm:right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button className="p-1 sm:p-1.5 bg-white/90 shadow-sm rounded-full text-[#5F6368] hover:text-blue-600">
+                                <EllipsisVertical className="w-3 h-3 sm:w-4 sm:h-4" />
+                              </button>
+                            </div>
+                            {item.nodeType === 'folder' ? (
+                              <Folder className="w-10 h-10 sm:w-16 sm:h-16 text-gray-200 fill-gray-100" />
+                            ) : (
+                              <File className="w-10 h-10 sm:w-16 sm:h-16 text-gray-200 fill-gray-100" />
+                            )}
+                            <div className="absolute inset-x-0 bottom-0 p-1.5 sm:p-3 bg-linear-to-t from-black/5 to-transparent flex items-center justify-center">
+                              <span className="text-[8px] sm:text-[10px] font-bold uppercase text-gray-400 bg-white px-1.5 py-0.5 rounded shadow-sm border border-gray-100">
+                                {item.nodeType === 'folder'
+                                  ? 'Pasta'
+                                  : 'Arquivo'}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1.5 sm:gap-2 px-1">
+                            {item.nodeType === 'folder' ? (
+                              <Folder className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 shrink-0" />
+                            ) : (
+                              <File className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 shrink-0" />
+                            )}
+                            <span className="text-xs sm:text-sm font-medium text-[#1F1F1F] truncate flex-1">
+                              {item.name}
+                            </span>
+                          </div>
+                        </motion.div>
+                      </ContextMenuTrigger>
+                      <FolderCtxMenu />
+                    </ContextMenu>
+                  ))}
+                </div>
+              </ContextMenuTrigger>
+              {/* Menu da área vazia */}
+              <ContextMenuContent>
+                <ContextMenuItem>Nova pasta</ContextMenuItem>
+                <ContextMenuItem>Novo arquivo</ContextMenuItem>
+                <ContextMenuSeparator />
+                <ContextMenuItem>Colar</ContextMenuItem>
+                <ContextMenuItem>Atualizar</ContextMenuItem>
+              </ContextMenuContent>
+            </ContextMenu>
           )}
           {/* Menu do Explorer (área vazia) */}
           <ContextMenuContent>

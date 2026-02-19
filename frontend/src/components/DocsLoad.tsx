@@ -1,6 +1,5 @@
 import DocsContent from '@/components/DocsContent';
 import { getRootFolders, getTrashFolders } from '@/lib/data';
-import { ApiResponse, DocsGetInput } from '@/types';
 
 export type ViewDocsType =
   | 'my-docs'
