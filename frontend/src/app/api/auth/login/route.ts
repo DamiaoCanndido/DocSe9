@@ -2,7 +2,6 @@ import { apiServer } from '@/lib/axios';
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import axios, { AxiosError } from 'axios';
-import { LoginRequest, LoginResponse } from '@/types';
 
 export async function POST(req: NextRequest, res: NextResponse) {
   try {

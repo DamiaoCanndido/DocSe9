@@ -1,6 +1,5 @@
 import DocsContent from '@/components/DocsContent';
 import { getChildrenFolders } from '@/lib/data';
-import { ApiResponse, SearchParamProps } from '@/types';
 
 export default async function MySubDocs({
   searchParams,

@@ -6,7 +6,6 @@ import { redirect } from 'next/navigation';
 import { AxiosError } from 'axios';
 import { parseStringify } from '@/lib/utils';
 import { revalidatePath } from 'next/cache';
-import { DocsGetInput } from '@/types';
 
 async function getToken() {
   const token = (await cookies()).get('docse9-auth-token');

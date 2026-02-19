@@ -1,7 +1,5 @@
+import AdminSuite from '@/components/AdminSuite';
+
 export default function AdminPanel() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      Administração
-    </div>
-  );
+  return <AdminSuite />;
 }
