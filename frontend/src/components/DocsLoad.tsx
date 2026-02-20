@@ -15,9 +15,9 @@ export default async function DocsLoad({
   queries: DocsGetInput;
   type: ViewDocsType;
 }) {
-  let data: ApiResponse = {
-    content: {
-      nodes: [],
+  let data: ApiResponse<NodeResProps> = {
+    data: {
+      content: [],
       page: 0,
       pageSize: 0,
       totalElements: 0,
@@ -44,6 +44,6 @@ export default async function DocsLoad({
 
   return (
     /* Desktop docs */
-    <DocsContent content={data.content} type={type} />
+    <DocsContent data={data.data} type={type} />
   );
 }

@@ -51,8 +51,21 @@ declare interface NodeResProps {
   lastSeen: string | null;
 }
 
+declare interface TownReqProps {
+  name: string;
+  uf: string;
+  imageUrl: string;
+}
+
+declare interface TownResProps {
+  townId: string;
+  name: string;
+  uf: string;
+  imageUrl: string;
+}
+
 declare interface PaginatedResponse<T> {
-  nodes: T[];
+  content: T[];
   page: number;
   pageSize: number;
   totalElements: number;
@@ -65,8 +78,8 @@ declare interface SearchResults {
   files: NodeResProps[];
 }
 
-declare interface ApiResponse {
-  content: PaginatedResponse<NodeResProps>;
+declare interface ApiResponse<T> {
+  data: PaginatedResponse<T>;
 }
 
 declare interface SearchParamProps {

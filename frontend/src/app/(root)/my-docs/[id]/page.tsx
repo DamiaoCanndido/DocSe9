@@ -11,12 +11,12 @@ export default async function MySubDocs({
   const size = ((await searchParams)?.size as string) || '';
   const sort = ((await searchParams)?.sort as string) || '';
 
-  const { content }: ApiResponse = await getChildrenFolders(id, {
+  const { data }: ApiResponse<NodeResProps> = await getChildrenFolders(id, {
     name,
     page,
     size,
     sort,
   });
 
-  return <DocsContent content={content} type="my-docs" />;
+  return <DocsContent data={data} type="my-docs" />;
 }

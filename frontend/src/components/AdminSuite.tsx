@@ -41,9 +41,14 @@ import {
 // ─── Zod Schemas ───────────────────────────────────────────────────────────────
 
 const townSchema = z.object({
-  name: z.string().min(2, 'Town name must be at least 2 characters'),
-  state: z.string().min(2, 'State / Region must be at least 2 characters'),
-  description: z.string().min(2),
+  name: z
+    .string()
+    .min(3, 'O nome do municipio deve ter pelo menos 2 caracteres.'),
+  uf: z
+    .string()
+    .min(2, 'A UF do municipio deve ter pelo menos 2 caracteres.')
+    .max(2, 'A UF do município não deve ultrapassar 2 caracteres.'),
+  imageUrl: z.url('Passe uma url de imagem'),
 });
 
 const addUserSchema = z
@@ -85,13 +90,6 @@ type TownFormData = z.infer<typeof townSchema>;
 type AddUserFormData = z.infer<typeof addUserSchema>;
 type EditUserFormData = z.infer<typeof editUserSchema>;
 
-interface Town {
-  id: number;
-  name: string;
-  state: string;
-  description: string;
-}
-
 interface AppUser {
   id: number;
   name: string;
@@ -103,7 +101,7 @@ interface AppUser {
 
 interface ModalState {
   type: ModalType;
-  data?: AppUser | Town;
+  data?: AppUser | TownResProps;
 }
 
 interface TabItem {
@@ -124,34 +122,6 @@ interface WeekEntry {
 }
 
 // ─── Initial Data ─────────────────────────────────────────────────────────────
-
-const initialTowns: Town[] = [
-  {
-    id: 1,
-    name: 'San Francisco',
-    state: 'California',
-    description: 'Main tech hub',
-  },
-  {
-    id: 2,
-    name: 'New York',
-    state: 'New York',
-    description: 'Financial district',
-  },
-  { id: 3, name: 'Austin', state: 'Texas', description: 'Growing ecosystem' },
-  {
-    id: 4,
-    name: 'Seattle',
-    state: 'Washington',
-    description: 'Cloud infrastructure focus',
-  },
-  {
-    id: 5,
-    name: 'Chicago',
-    state: 'Illinois',
-    description: 'Central operations',
-  },
-];
 
 const initialUsers: AppUser[] = [
   {
@@ -504,7 +474,7 @@ function AddTownModal({ onClose, onSave }: AddTownModalProps) {
     formState: { errors },
   } = useForm<TownFormData>({
     resolver: zodResolver(townSchema),
-    defaultValues: { name: '', state: '', description: '' },
+    defaultValues: { name: '', uf: '', imageUrl: '' },
   });
 
   return (
@@ -531,7 +501,7 @@ function AddTownModal({ onClose, onSave }: AddTownModalProps) {
           )}
         />
         <Controller
-          name="state"
+          name="uf"
           control={control}
           render={({ field }) => (
             <Input
@@ -539,20 +509,20 @@ function AddTownModal({ onClose, onSave }: AddTownModalProps) {
               placeholder="e.g. California"
               value={field.value}
               onChange={field.onChange}
-              error={errors.state?.message}
+              error={errors.uf?.message}
             />
           )}
         />
         <Controller
-          name="description"
+          name="imageUrl"
           control={control}
           render={({ field }) => (
-            <Textarea
+            <Input
               label="Description"
               placeholder="Brief description of the organization unit..."
               value={field.value ?? ''}
               onChange={field.onChange}
-              error={errors.description?.message}
+              error={errors.imageUrl?.message}
             />
           )}
         />
@@ -563,7 +533,7 @@ function AddTownModal({ onClose, onSave }: AddTownModalProps) {
 }
 
 interface EditTownModalProps {
-  town: Town;
+  town: TownResProps;
   onClose: () => void;
   onSave: (form: TownFormData) => void;
 }
@@ -579,8 +549,8 @@ function EditTownModal({ town, onClose, onSave }: EditTownModalProps) {
     resolver: zodResolver(townSchema),
     defaultValues: {
       name: town.name,
-      state: town.state,
-      description: town.description,
+      uf: town.uf,
+      imageUrl: town.imageUrl,
     },
   });
 
@@ -607,26 +577,26 @@ function EditTownModal({ town, onClose, onSave }: EditTownModalProps) {
           )}
         />
         <Controller
-          name="state"
+          name="uf"
           control={control}
           render={({ field }) => (
             <Input
               label="State / Region"
               value={field.value}
               onChange={field.onChange}
-              error={errors.state?.message}
+              error={errors.uf?.message}
             />
           )}
         />
         <Controller
-          name="description"
+          name="imageUrl"
           control={control}
           render={({ field }) => (
-            <Textarea
+            <Input
               label="Description"
               value={field.value ?? ''}
               onChange={field.onChange}
-              error={errors.description?.message}
+              error={errors.imageUrl?.message}
             />
           )}
         />
@@ -646,7 +616,7 @@ function EditTownModal({ town, onClose, onSave }: EditTownModalProps) {
 }
 
 interface AddUserModalProps {
-  towns: Town[];
+  towns: TownResProps[];
   onClose: () => void;
   onSave: (form: AddUserFormData) => void;
 }
@@ -796,7 +766,7 @@ function AddUserModal({ towns, onClose, onSave }: AddUserModalProps) {
 
 interface EditUserModalProps {
   user: AppUser;
-  towns: Town[];
+  towns: TownResProps[];
   onClose: () => void;
   onSave: (form: EditUserFormData) => void;
 }
@@ -909,7 +879,7 @@ function EditUserModal({ user, towns, onClose, onSave }: EditUserModalProps) {
 }
 
 interface DeleteTownModalProps {
-  town: Town;
+  town: TownResProps;
   onClose: () => void;
   onConfirm: () => void;
 }
@@ -934,13 +904,13 @@ function DeleteTownModal({ town, onClose, onConfirm }: DeleteTownModalProps) {
         <div className="w-full bg-gray-50 rounded-xl border border-gray-100 divide-y divide-gray-100">
           <div className="flex items-center justify-between px-4 py-2.5 text-sm">
             <span className="text-gray-500">State / Region</span>
-            <span className="font-medium text-gray-800">{town.state}</span>
+            <span className="font-medium text-gray-800">{town.uf}</span>
           </div>
-          {town.description && (
+          {town.imageUrl && (
             <div className="flex items-center justify-between px-4 py-2.5 text-sm">
               <span className="text-gray-500">Description</span>
               <span className="font-medium text-gray-800 italic">
-                "{town.description}"
+                "{town.imageUrl}"
               </span>
             </div>
           )}
@@ -1049,7 +1019,7 @@ function DeleteUserModal({ user, onClose, onConfirm }: DeleteUserModalProps) {
 
 interface DashboardPageProps {
   users: AppUser[];
-  towns: Town[];
+  towns: TownResProps[];
 }
 
 function DashboardPage({ users, towns }: DashboardPageProps) {
@@ -1221,7 +1191,7 @@ function DashboardPage({ users, towns }: DashboardPageProps) {
 
 interface UsersPageProps {
   users: AppUser[];
-  towns: Town[];
+  towns: TownResProps[];
   onAdd: () => void;
   onEdit: (user: AppUser) => void;
   onDelete: (user: AppUser) => void;
@@ -1274,7 +1244,7 @@ function UsersPage({ users, towns, onAdd, onEdit, onDelete }: UsersPageProps) {
             >
               <option>All Towns</option>
               {towns.map((t) => (
-                <option key={t.id}>{t.name}</option>
+                <option key={t.townId}>{t.name}</option>
               ))}
             </select>
             <ChevronDown
@@ -1385,19 +1355,19 @@ function UsersPage({ users, towns, onAdd, onEdit, onDelete }: UsersPageProps) {
 }
 
 interface TownsPageProps {
-  towns: Town[];
+  towns: TownResProps[];
   onAdd: () => void;
-  onEdit: (town: Town) => void;
-  onDelete: (town: Town) => void;
+  onEdit: (town: TownResProps) => void;
+  onDelete: (town: TownResProps) => void;
 }
 
 function TownsPage({ towns, onAdd, onEdit, onDelete }: TownsPageProps) {
   const [search, setSearch] = useState<string>('');
 
-  const filtered: Town[] = towns.filter(
+  const filtered: TownResProps[] = towns.filter(
     (t) =>
       t.name.toLowerCase().includes(search.toLowerCase()) ||
-      t.state.toLowerCase().includes(search.toLowerCase())
+      t.uf.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -1428,7 +1398,7 @@ function TownsPage({ towns, onAdd, onEdit, onDelete }: TownsPageProps) {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {filtered.map((town) => (
           <div
-            key={town.id}
+            key={town.townId}
             className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col gap-3 hover:border-blue-200 transition"
           >
             <div className="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center">
@@ -1438,11 +1408,11 @@ function TownsPage({ towns, onAdd, onEdit, onDelete }: TownsPageProps) {
               <h3 className="text-base font-bold text-gray-900">{town.name}</h3>
               <div className="flex items-center gap-1 text-xs text-gray-500 mt-0.5">
                 <MapPin size={11} />
-                {town.state}
+                {town.uf}
               </div>
-              {town.description && (
+              {town.imageUrl && (
                 <p className="text-xs text-gray-500 italic mt-1.5">
-                  "{town.description}"
+                  "{town.imageUrl}"
                 </p>
               )}
             </div>
@@ -1495,29 +1465,37 @@ function SettingsPage() {
 
 // ─── Main App ──────────────────────────────────────────────────────────────────
 
-export default function AdminSuite() {
+export default function AdminSuite({
+  user,
+  allTowns,
+}: {
+  user: UserResProps;
+  allTowns: ApiResponse<TownResProps>['data'];
+}) {
   const [tab, setTab] = useState<TabId>('dashboard');
   const [users, setUsers] = useState<AppUser[]>(initialUsers);
-  const [towns, setTowns] = useState<Town[]>(initialTowns);
+  const [towns, setTowns] = useState<TownResProps[]>(allTowns.content);
   const [modal, setModal] = useState<ModalState | null>(null);
 
-  const tabs: TabItem[] = [
+  const baseTabs: TabItem[] = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'users', label: 'Users', icon: Users },
     { id: 'towns', label: 'Organizations (Towns)', icon: Building2 },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
-  const handleAddTown = (form: TownFormData): void => {
-    setTowns((ts) => [...ts, { id: Date.now(), ...form }]);
+  const tabs = baseTabs.filter((tab) =>
+    user.role.name === 'manager' ? tab.id !== 'towns' : true
+  );
+
+  const handleAddTown = (form: TownFormData): void => {};
+
+  const handleEditTown = (townId: string, form: TownFormData): void => {
+    setTowns((ts) => ts.map((t) => (t.id === townId ? { ...t, ...form } : t)));
   };
 
-  const handleEditTown = (id: number, form: TownFormData): void => {
-    setTowns((ts) => ts.map((t) => (t.id === id ? { ...t, ...form } : t)));
-  };
-
-  const handleDeleteTown = (id: number): void => {
-    setTowns((ts) => ts.filter((t) => t.id !== id));
+  const handleDeleteTown = (townId: string): void => {
+    setTowns((ts) => ts.filter((t) => t.id !== townId));
   };
 
   const handleAddUser = (form: AddUserFormData): void => {
@@ -1556,12 +1534,12 @@ export default function AdminSuite() {
   };
 
   const editTownData =
-    modal?.data && 'state' in modal.data ? (modal.data as Town) : null;
+    modal?.data && 'uf' in modal.data ? (modal.data as TownResProps) : null;
   const editUserData =
     modal?.data && 'email' in modal.data ? (modal.data as AppUser) : null;
   const deleteTownData =
-    modal?.type === 'deleteTown' && modal.data && 'state' in modal.data
-      ? (modal.data as Town)
+    modal?.type === 'deleteTown' && modal.data && 'uf' in modal.data
+      ? (modal.data as TownResProps)
       : null;
   const deleteUserData =
     modal?.type === 'deleteUser' && modal.data && 'email' in modal.data
@@ -1571,7 +1549,7 @@ export default function AdminSuite() {
   return (
     <div className="h-screen flex flex-col bg-gray-50 font-sans overflow-hidden">
       {/* Header */}
-      <div className="bg-white border-b border-gray-100 shrink-0 z-40">
+      <div className="bg-white border-b border-gray-100 shrink-0 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
@@ -1669,7 +1647,7 @@ export default function AdminSuite() {
         <DeleteTownModal
           town={deleteTownData}
           onClose={() => setModal(null)}
-          onConfirm={() => handleDeleteTown(deleteTownData.id)}
+          onConfirm={() => handleDeleteTown(deleteTownData.townId)}
         />
       )}
       {modal?.type === 'deleteUser' && deleteUserData && (

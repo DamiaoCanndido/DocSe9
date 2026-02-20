@@ -109,3 +109,17 @@ export const getViewUrl = async (fileId: string, path: string) => {
     }
   }
 };
+
+export const getTowns = async () => {
+  try {
+    const token = await getToken();
+    const towns = await apiServer.get('/v2/town', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return parseStringify(towns.data);
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return redirect('/login');
+    }
+  }
+};

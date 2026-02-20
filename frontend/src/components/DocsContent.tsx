@@ -27,10 +27,10 @@ import { useApp } from '@/contexts/AppContext';
 export type DisplayMode = 'grid' | 'list';
 
 const DocsContent = ({
-  content,
+  data,
   type,
 }: {
-  content: ApiResponse['content'];
+  data: ApiResponse<NodeResProps>['data'];
   type: ViewDocsType;
 }) => {
   const path = usePathname();
@@ -118,7 +118,7 @@ const DocsContent = ({
                     </tr>
                   </thead>
                   <tbody>
-                    {content.nodes.map((item) => (
+                    {data.content.map((item) => (
                       <ContextMenu key={item.id}>
                         <ContextMenuTrigger asChild>
                           <tr
@@ -183,7 +183,7 @@ const DocsContent = ({
             <ContextMenu>
               <ContextMenuTrigger>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-6 min-h-full">
-                  {content.nodes.map((item) => (
+                  {data.content.map((item) => (
                     <ContextMenu key={item.id}>
                       <ContextMenuTrigger asChild>
                         <motion.div
