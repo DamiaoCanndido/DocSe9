@@ -1,6 +1,9 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import {
   LayoutDashboard,
   Users,
@@ -35,19 +38,54 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 
+// ─── Zod Schemas ───────────────────────────────────────────────────────────────
+
+const townSchema = z.object({
+  name: z.string().min(2, 'Town name must be at least 2 characters'),
+  state: z.string().min(2, 'State / Region must be at least 2 characters'),
+  description: z.string().min(2),
+});
+
+const addUserSchema = z
+  .object({
+    name: z.string().min(2, 'Full name must be at least 2 characters'),
+    email: z.email('Enter a valid email address'),
+    password: z.string().min(6, 'Password must be at least 6 characters'),
+    confirm: z.string().min(1, 'Please confirm your password'),
+    town: z.string().min(1, 'Please select a town'),
+    role: z.enum(['Administrator', 'Operator', 'Viewer']),
+    active: z.boolean(),
+  })
+  .refine((d) => d.password === d.confirm, {
+    message: 'Passwords do not match',
+    path: ['confirm'],
+  });
+
+const editUserSchema = z.object({
+  name: z.string().min(2, 'Full name must be at least 2 characters'),
+  email: z.email('Enter a valid email address'),
+  town: z.string().min(1, 'Please select a town'),
+  role: z.enum(['Administrator', 'Operator', 'Viewer']),
+  active: z.boolean(),
+});
+
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
 type Role = 'Administrator' | 'Operator' | 'Viewer';
-type TabId = 'dashboard' | 'users' | 'cities' | 'settings';
+type TabId = 'dashboard' | 'users' | 'towns' | 'settings';
 type ModalType =
-  | 'addCity'
-  | 'editCity'
-  | 'deleteCity'
+  | 'addTown'
+  | 'editTown'
+  | 'deleteTown'
   | 'addUser'
   | 'editUser'
   | 'deleteUser';
 
-interface City {
+type TownFormData = z.infer<typeof townSchema>;
+type AddUserFormData = z.infer<typeof addUserSchema>;
+type EditUserFormData = z.infer<typeof editUserSchema>;
+
+interface Town {
   id: number;
   name: string;
   state: string;
@@ -58,30 +96,14 @@ interface AppUser {
   id: number;
   name: string;
   email: string;
-  city: string;
-  role: Role;
-  active: boolean;
-}
-
-interface CityFormData {
-  name: string;
-  state: string;
-  description: string;
-}
-
-interface UserFormData {
-  name: string;
-  email: string;
-  password?: string;
-  confirm?: string;
-  city: string;
+  town: string;
   role: Role;
   active: boolean;
 }
 
 interface ModalState {
   type: ModalType;
-  data?: AppUser | City;
+  data?: AppUser | Town;
 }
 
 interface TabItem {
@@ -91,7 +113,7 @@ interface TabItem {
 }
 
 interface ChartBarEntry {
-  city: string;
+  town: string;
   users: number;
   color: string;
 }
@@ -103,7 +125,7 @@ interface WeekEntry {
 
 // ─── Initial Data ─────────────────────────────────────────────────────────────
 
-const initialCities: City[] = [
+const initialTowns: Town[] = [
   {
     id: 1,
     name: 'San Francisco',
@@ -136,7 +158,7 @@ const initialUsers: AppUser[] = [
     id: 1,
     name: 'Alex Thompson',
     email: 'alex.t@example.com',
-    city: 'San Francisco',
+    town: 'San Francisco',
     role: 'Administrator',
     active: true,
   },
@@ -144,7 +166,7 @@ const initialUsers: AppUser[] = [
     id: 2,
     name: 'Sarah Miller',
     email: 's.miller@example.com',
-    city: 'New York',
+    town: 'New York',
     role: 'Operator',
     active: true,
   },
@@ -152,7 +174,7 @@ const initialUsers: AppUser[] = [
     id: 3,
     name: 'James Wilson',
     email: 'james.w@example.com',
-    city: 'Austin',
+    town: 'Austin',
     role: 'Viewer',
     active: false,
   },
@@ -160,7 +182,7 @@ const initialUsers: AppUser[] = [
     id: 4,
     name: 'Emma Davis',
     email: 'emma.d@example.com',
-    city: 'San Francisco',
+    town: 'San Francisco',
     role: 'Operator',
     active: true,
   },
@@ -168,7 +190,7 @@ const initialUsers: AppUser[] = [
     id: 5,
     name: 'Michael Chen',
     email: 'm.chen@example.com',
-    city: 'Seattle',
+    town: 'Seattle',
     role: 'Viewer',
     active: true,
   },
@@ -265,6 +287,7 @@ interface InputProps {
   value: string;
   onChange: (value: string) => void;
   type?: 'text' | 'email' | 'password';
+  error?: string;
 }
 
 function Input({
@@ -275,6 +298,7 @@ function Input({
   value,
   onChange,
   type = 'text',
+  error,
 }: InputProps) {
   const [show, setShow] = useState<boolean>(false);
   const inputType = type === 'password' ? (show ? 'text' : 'password') : type;
@@ -300,9 +324,11 @@ function Input({
           onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
             onChange(e.target.value)
           }
-          className={`w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition ${
-            Icon ? 'pl-9' : ''
-          } ${type === 'password' ? 'pr-9' : ''}`}
+          className={`w-full border rounded-xl px-3 py-2.5 text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 transition ${
+            error
+              ? 'border-red-300 focus:ring-red-100 focus:border-red-400'
+              : 'border-gray-200 focus:ring-blue-200 focus:border-blue-400'
+          } ${Icon ? 'pl-9' : ''} ${type === 'password' ? 'pr-9' : ''}`}
         />
         {type === 'password' && (
           <button
@@ -315,6 +341,7 @@ function Input({
           </button>
         )}
       </div>
+      {error && <p className="text-xs text-red-500 mt-0.5">{error}</p>}
     </div>
   );
 }
@@ -324,9 +351,16 @@ interface TextareaProps {
   placeholder?: string;
   value: string;
   onChange: (value: string) => void;
+  error?: string;
 }
 
-function Textarea({ label, placeholder, value, onChange }: TextareaProps) {
+function Textarea({
+  label,
+  placeholder,
+  value,
+  onChange,
+  error,
+}: TextareaProps) {
   return (
     <div className="flex flex-col gap-1">
       {label && (
@@ -339,8 +373,13 @@ function Textarea({ label, placeholder, value, onChange }: TextareaProps) {
           onChange(e.target.value)
         }
         rows={4}
-        className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition resize-none"
+        className={`w-full border rounded-xl px-3 py-2.5 text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 transition resize-none ${
+          error
+            ? 'border-red-300 focus:ring-red-100 focus:border-red-400'
+            : 'border-gray-200 focus:ring-blue-200 focus:border-blue-400'
+        }`}
       />
+      {error && <p className="text-xs text-red-500 mt-0.5">{error}</p>}
     </div>
   );
 }
@@ -351,9 +390,17 @@ interface SelectProps {
   value: string;
   onChange: (value: string) => void;
   options: string[];
+  error?: string;
 }
 
-function Select({ label, required, value, onChange, options }: SelectProps) {
+function Select({
+  label,
+  required,
+  value,
+  onChange,
+  options,
+  error,
+}: SelectProps) {
   return (
     <div className="flex flex-col gap-1">
       {label && (
@@ -367,7 +414,11 @@ function Select({ label, required, value, onChange, options }: SelectProps) {
           onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
             onChange(e.target.value)
           }
-          className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition appearance-none pr-8"
+          className={`w-full border rounded-xl px-3 py-2.5 text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 transition appearance-none pr-8 ${
+            error
+              ? 'border-red-300 focus:ring-red-100 focus:border-red-400'
+              : 'border-gray-200 focus:ring-blue-200 focus:border-blue-400'
+          }`}
         >
           {options.map((o) => (
             <option key={o} value={o}>
@@ -380,6 +431,7 @@ function Select({ label, required, value, onChange, options }: SelectProps) {
           className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
         />
       </div>
+      {error && <p className="text-xs text-red-500 mt-0.5">{error}</p>}
     </div>
   );
 }
@@ -415,15 +467,10 @@ function Modal({ title, onClose, children }: ModalProps) {
 
 interface ModalActionsProps {
   onCancel: () => void;
-  onConfirm: () => void;
   confirmLabel: string;
 }
 
-function ModalActions({
-  onCancel,
-  onConfirm,
-  confirmLabel,
-}: ModalActionsProps) {
+function ModalActions({ onCancel, confirmLabel }: ModalActionsProps) {
   return (
     <div className="flex items-center justify-between pt-2 border-t border-gray-100 -mx-6 -mb-2 px-6 pb-0">
       <button
@@ -434,8 +481,7 @@ function ModalActions({
         Cancel
       </button>
       <button
-        type="button"
-        onClick={onConfirm}
+        type="submit"
         className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-6 py-2.5 rounded-xl transition"
       >
         {confirmLabel}
@@ -446,285 +492,440 @@ function ModalActions({
 
 // ─── Modals ────────────────────────────────────────────────────────────────────
 
-interface AddCityModalProps {
+interface AddTownModalProps {
   onClose: () => void;
-  onSave: (form: CityFormData) => void;
+  onSave: (form: TownFormData) => void;
 }
 
-function AddCityModal({ onClose, onSave }: AddCityModalProps) {
-  const [form, setForm] = useState<CityFormData>({
-    name: '',
-    state: '',
-    description: '',
+function AddTownModal({ onClose, onSave }: AddTownModalProps) {
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<TownFormData>({
+    resolver: zodResolver(townSchema),
+    defaultValues: { name: '', state: '', description: '' },
   });
 
   return (
-    <Modal title="Add New City" onClose={onClose}>
-      <Input
-        label="City Name"
-        required
-        placeholder="e.g. San Francisco"
-        value={form.name}
-        onChange={(v) => setForm((f) => ({ ...f, name: v }))}
-      />
-      <Input
-        label="State / Region"
-        placeholder="e.g. California"
-        value={form.state}
-        onChange={(v) => setForm((f) => ({ ...f, state: v }))}
-      />
-      <Textarea
-        label="Description"
-        placeholder="Brief description of the organization unit..."
-        value={form.description}
-        onChange={(v) => setForm((f) => ({ ...f, description: v }))}
-      />
-      <ModalActions
-        onCancel={onClose}
-        onConfirm={() => {
-          onSave(form);
+    <Modal title="Add New Town" onClose={onClose}>
+      <form
+        onSubmit={handleSubmit((data) => {
+          onSave(data);
           onClose();
-        }}
-        confirmLabel="Save City"
-      />
+        })}
+        className="flex flex-col gap-4"
+      >
+        <Controller
+          name="name"
+          control={control}
+          render={({ field }) => (
+            <Input
+              label="Town Name"
+              required
+              placeholder="e.g. San Francisco"
+              value={field.value}
+              onChange={field.onChange}
+              error={errors.name?.message}
+            />
+          )}
+        />
+        <Controller
+          name="state"
+          control={control}
+          render={({ field }) => (
+            <Input
+              label="State / Region"
+              placeholder="e.g. California"
+              value={field.value}
+              onChange={field.onChange}
+              error={errors.state?.message}
+            />
+          )}
+        />
+        <Controller
+          name="description"
+          control={control}
+          render={({ field }) => (
+            <Textarea
+              label="Description"
+              placeholder="Brief description of the organization unit..."
+              value={field.value ?? ''}
+              onChange={field.onChange}
+              error={errors.description?.message}
+            />
+          )}
+        />
+        <ModalActions onCancel={onClose} confirmLabel="Save Town" />
+      </form>
     </Modal>
   );
 }
 
-interface EditCityModalProps {
-  city: City;
+interface EditTownModalProps {
+  town: Town;
   onClose: () => void;
-  onSave: (form: CityFormData) => void;
+  onSave: (form: TownFormData) => void;
 }
 
-function EditCityModal({ city, onClose, onSave }: EditCityModalProps) {
-  const [form, setForm] = useState<CityFormData>({
-    name: city.name,
-    state: city.state,
-    description: city.description,
+function EditTownModal({ town, onClose, onSave }: EditTownModalProps) {
+  const count: number = userCounts[town.name] ?? 0;
+
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<TownFormData>({
+    resolver: zodResolver(townSchema),
+    defaultValues: {
+      name: town.name,
+      state: town.state,
+      description: town.description,
+    },
   });
-  const count: number = userCounts[city.name] ?? 0;
 
   return (
-    <Modal title="Edit City" onClose={onClose}>
-      <Input
-        label="City Name"
-        required
-        value={form.name}
-        onChange={(v) => setForm((f) => ({ ...f, name: v }))}
-      />
-      <Input
-        label="State / Region"
-        value={form.state}
-        onChange={(v) => setForm((f) => ({ ...f, state: v }))}
-      />
-      <Textarea
-        label="Description"
-        value={form.description}
-        onChange={(v) => setForm((f) => ({ ...f, description: v }))}
-      />
-      {count > 0 && (
-        <div className="flex items-start gap-2 bg-blue-50 rounded-xl p-3 text-xs text-blue-700">
-          <AlertCircle size={14} className="mt-0.5 shrink-0" />
-          <span>
-            Changing the city name will update the record for all {count}{' '}
-            associated users immediately.
-          </span>
-        </div>
-      )}
-      <ModalActions
-        onCancel={onClose}
-        onConfirm={() => {
-          onSave(form);
+    <Modal title="Edit Town" onClose={onClose}>
+      <form
+        onSubmit={handleSubmit((data) => {
+          onSave(data);
           onClose();
-        }}
-        confirmLabel="Update City"
-      />
+        })}
+        className="flex flex-col gap-4"
+      >
+        <Controller
+          name="name"
+          control={control}
+          render={({ field }) => (
+            <Input
+              label="Town Name"
+              required
+              value={field.value}
+              onChange={field.onChange}
+              error={errors.name?.message}
+            />
+          )}
+        />
+        <Controller
+          name="state"
+          control={control}
+          render={({ field }) => (
+            <Input
+              label="State / Region"
+              value={field.value}
+              onChange={field.onChange}
+              error={errors.state?.message}
+            />
+          )}
+        />
+        <Controller
+          name="description"
+          control={control}
+          render={({ field }) => (
+            <Textarea
+              label="Description"
+              value={field.value ?? ''}
+              onChange={field.onChange}
+              error={errors.description?.message}
+            />
+          )}
+        />
+        {count > 0 && (
+          <div className="flex items-start gap-2 bg-blue-50 rounded-xl p-3 text-xs text-blue-700">
+            <AlertCircle size={14} className="mt-0.5 shrink-0" />
+            <span>
+              Changing the town name will update the record for all {count}{' '}
+              associated users immediately.
+            </span>
+          </div>
+        )}
+        <ModalActions onCancel={onClose} confirmLabel="Update Town" />
+      </form>
     </Modal>
   );
 }
 
 interface AddUserModalProps {
-  cities: City[];
+  towns: Town[];
   onClose: () => void;
-  onSave: (form: UserFormData) => void;
+  onSave: (form: AddUserFormData) => void;
 }
 
-function AddUserModal({ cities, onClose, onSave }: AddUserModalProps) {
-  const [form, setForm] = useState<UserFormData>({
-    name: '',
-    email: '',
-    password: '',
-    confirm: '',
-    city: cities[0]?.name ?? '',
-    role: 'Viewer',
-    active: true,
+function AddUserModal({ towns, onClose, onSave }: AddUserModalProps) {
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<AddUserFormData>({
+    resolver: zodResolver(addUserSchema),
+    defaultValues: {
+      name: '',
+      email: '',
+      password: '',
+      confirm: '',
+      town: towns[0]?.name ?? '',
+      role: 'Viewer',
+      active: true,
+    },
   });
 
   return (
     <Modal title="Add New User" onClose={onClose}>
-      <Input
-        label="Full Name"
-        required
-        icon={User}
-        placeholder="John Doe"
-        value={form.name}
-        onChange={(v) => setForm((f) => ({ ...f, name: v }))}
-      />
-      <Input
-        label="Email"
-        required
-        icon={Mail}
-        type="email"
-        placeholder="john@example.com"
-        value={form.email}
-        onChange={(v) => setForm((f) => ({ ...f, email: v }))}
-      />
-      <div className="grid grid-cols-2 gap-3">
-        <Input
-          label="Password"
-          required
-          type="password"
-          placeholder="••••••••"
-          value={form.password ?? ''}
-          onChange={(v) => setForm((f) => ({ ...f, password: v }))}
-        />
-        <Input
-          label="Confirm"
-          required
-          type="password"
-          placeholder="••••••••"
-          value={form.confirm ?? ''}
-          onChange={(v) => setForm((f) => ({ ...f, confirm: v }))}
-        />
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        <Select
-          label="City"
-          required
-          value={form.city}
-          onChange={(v) => setForm((f) => ({ ...f, city: v }))}
-          options={cities.map((c) => c.name)}
-        />
-        <Select
-          label="Role"
-          required
-          value={form.role}
-          onChange={(v) => setForm((f) => ({ ...f, role: v as Role }))}
-          options={['Administrator', 'Operator', 'Viewer']}
-        />
-      </div>
-      <div className="flex items-center justify-between bg-gray-50 rounded-xl p-3 border border-gray-100">
-        <div>
-          <p className="text-sm font-medium text-gray-800">Active Status</p>
-          <p className="text-xs text-gray-500">Toggle user availability</p>
-        </div>
-        <Toggle
-          checked={form.active}
-          onChange={(v) => setForm((f) => ({ ...f, active: v }))}
-        />
-      </div>
-      <ModalActions
-        onCancel={onClose}
-        onConfirm={() => {
-          onSave(form);
+      <form
+        onSubmit={handleSubmit((data) => {
+          onSave(data);
           onClose();
-        }}
-        confirmLabel="Save User"
-      />
+        })}
+        className="flex flex-col gap-4"
+      >
+        <Controller
+          name="name"
+          control={control}
+          render={({ field }) => (
+            <Input
+              label="Full Name"
+              required
+              icon={User}
+              placeholder="John Doe"
+              value={field.value}
+              onChange={field.onChange}
+              error={errors.name?.message}
+            />
+          )}
+        />
+        <Controller
+          name="email"
+          control={control}
+          render={({ field }) => (
+            <Input
+              label="Email"
+              required
+              icon={Mail}
+              type="email"
+              placeholder="john@example.com"
+              value={field.value}
+              onChange={field.onChange}
+              error={errors.email?.message}
+            />
+          )}
+        />
+        <div className="grid grid-cols-2 gap-3">
+          <Controller
+            name="password"
+            control={control}
+            render={({ field }) => (
+              <Input
+                label="Password"
+                required
+                type="password"
+                placeholder="••••••••"
+                value={field.value}
+                onChange={field.onChange}
+                error={errors.password?.message}
+              />
+            )}
+          />
+          <Controller
+            name="confirm"
+            control={control}
+            render={({ field }) => (
+              <Input
+                label="Confirm"
+                required
+                type="password"
+                placeholder="••••••••"
+                value={field.value}
+                onChange={field.onChange}
+                error={errors.confirm?.message}
+              />
+            )}
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <Controller
+            name="town"
+            control={control}
+            render={({ field }) => (
+              <Select
+                label="Town"
+                required
+                value={field.value}
+                onChange={field.onChange}
+                options={towns.map((t) => t.name)}
+                error={errors.town?.message}
+              />
+            )}
+          />
+          <Controller
+            name="role"
+            control={control}
+            render={({ field }) => (
+              <Select
+                label="Role"
+                required
+                value={field.value}
+                onChange={field.onChange}
+                options={['Administrator', 'Operator', 'Viewer']}
+                error={errors.role?.message}
+              />
+            )}
+          />
+        </div>
+        <Controller
+          name="active"
+          control={control}
+          render={({ field }) => (
+            <div className="flex items-center justify-between bg-gray-50 rounded-xl p-3 border border-gray-100">
+              <div>
+                <p className="text-sm font-medium text-gray-800">
+                  Active Status
+                </p>
+                <p className="text-xs text-gray-500">
+                  Toggle user availability
+                </p>
+              </div>
+              <Toggle checked={field.value} onChange={field.onChange} />
+            </div>
+          )}
+        />
+        <ModalActions onCancel={onClose} confirmLabel="Save User" />
+      </form>
     </Modal>
   );
 }
 
 interface EditUserModalProps {
   user: AppUser;
-  cities: City[];
+  towns: Town[];
   onClose: () => void;
-  onSave: (form: UserFormData) => void;
+  onSave: (form: EditUserFormData) => void;
 }
 
-function EditUserModal({ user, cities, onClose, onSave }: EditUserModalProps) {
-  const [form, setForm] = useState<UserFormData>({
-    name: user.name,
-    email: user.email,
-    city: user.city,
-    role: user.role,
-    active: user.active,
+function EditUserModal({ user, towns, onClose, onSave }: EditUserModalProps) {
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<EditUserFormData>({
+    resolver: zodResolver(editUserSchema),
+    defaultValues: {
+      name: user.name,
+      email: user.email,
+      town: user.town,
+      role: user.role,
+      active: user.active,
+    },
   });
 
   return (
     <Modal title="Edit User" onClose={onClose}>
-      <Input
-        label="Full Name"
-        required
-        icon={User}
-        value={form.name}
-        onChange={(v) => setForm((f) => ({ ...f, name: v }))}
-      />
-      <Input
-        label="Email"
-        required
-        icon={Mail}
-        type="email"
-        value={form.email}
-        onChange={(v) => setForm((f) => ({ ...f, email: v }))}
-      />
-      <div className="grid grid-cols-2 gap-3">
-        <Select
-          label="City"
-          required
-          value={form.city}
-          onChange={(v) => setForm((f) => ({ ...f, city: v }))}
-          options={cities.map((c) => c.name)}
-        />
-        <Select
-          label="Role"
-          required
-          value={form.role}
-          onChange={(v) => setForm((f) => ({ ...f, role: v as Role }))}
-          options={['Administrator', 'Operator', 'Viewer']}
-        />
-      </div>
-      <div className="flex items-center justify-between bg-gray-50 rounded-xl p-3 border border-gray-100">
-        <div>
-          <p className="text-sm font-medium text-gray-800">Active Status</p>
-          <p className="text-xs text-gray-500">Toggle user availability</p>
-        </div>
-        <Toggle
-          checked={form.active}
-          onChange={(v) => setForm((f) => ({ ...f, active: v }))}
-        />
-      </div>
-      <ModalActions
-        onCancel={onClose}
-        onConfirm={() => {
-          onSave(form);
+      <form
+        onSubmit={handleSubmit((data) => {
+          onSave(data);
           onClose();
-        }}
-        confirmLabel="Update User"
-      />
+        })}
+        className="flex flex-col gap-4"
+      >
+        <Controller
+          name="name"
+          control={control}
+          render={({ field }) => (
+            <Input
+              label="Full Name"
+              required
+              icon={User}
+              value={field.value}
+              onChange={field.onChange}
+              error={errors.name?.message}
+            />
+          )}
+        />
+        <Controller
+          name="email"
+          control={control}
+          render={({ field }) => (
+            <Input
+              label="Email"
+              required
+              icon={Mail}
+              type="email"
+              value={field.value}
+              onChange={field.onChange}
+              error={errors.email?.message}
+            />
+          )}
+        />
+        <div className="grid grid-cols-2 gap-3">
+          <Controller
+            name="town"
+            control={control}
+            render={({ field }) => (
+              <Select
+                label="Town"
+                required
+                value={field.value}
+                onChange={field.onChange}
+                options={towns.map((t) => t.name)}
+                error={errors.town?.message}
+              />
+            )}
+          />
+          <Controller
+            name="role"
+            control={control}
+            render={({ field }) => (
+              <Select
+                label="Role"
+                required
+                value={field.value}
+                onChange={field.onChange}
+                options={['Administrator', 'Operator', 'Viewer']}
+                error={errors.role?.message}
+              />
+            )}
+          />
+        </div>
+        <Controller
+          name="active"
+          control={control}
+          render={({ field }) => (
+            <div className="flex items-center justify-between bg-gray-50 rounded-xl p-3 border border-gray-100">
+              <div>
+                <p className="text-sm font-medium text-gray-800">
+                  Active Status
+                </p>
+                <p className="text-xs text-gray-500">
+                  Toggle user availability
+                </p>
+              </div>
+              <Toggle checked={field.value} onChange={field.onChange} />
+            </div>
+          )}
+        />
+        <ModalActions onCancel={onClose} confirmLabel="Update User" />
+      </form>
     </Modal>
   );
 }
 
-interface DeleteCityModalProps {
-  city: City;
+interface DeleteTownModalProps {
+  town: Town;
   onClose: () => void;
   onConfirm: () => void;
 }
 
-function DeleteCityModal({ city, onClose, onConfirm }: DeleteCityModalProps) {
-  const count: number = userCounts[city.name] ?? 0;
+function DeleteTownModal({ town, onClose, onConfirm }: DeleteTownModalProps) {
+  const count: number = userCounts[town.name] ?? 0;
 
   return (
-    <Modal title="Delete City" onClose={onClose}>
+    <Modal title="Delete Town" onClose={onClose}>
       <div className="flex flex-col items-center gap-4 py-2 text-center">
         <div className="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center">
           <Trash2 size={26} className="text-red-500" />
         </div>
         <div>
           <p className="text-base font-semibold text-gray-900">
-            Delete "{city.name}"?
+            Delete "{town.name}"?
           </p>
           <p className="text-sm text-gray-500 mt-1">
             This action cannot be undone.
@@ -733,13 +934,13 @@ function DeleteCityModal({ city, onClose, onConfirm }: DeleteCityModalProps) {
         <div className="w-full bg-gray-50 rounded-xl border border-gray-100 divide-y divide-gray-100">
           <div className="flex items-center justify-between px-4 py-2.5 text-sm">
             <span className="text-gray-500">State / Region</span>
-            <span className="font-medium text-gray-800">{city.state}</span>
+            <span className="font-medium text-gray-800">{town.state}</span>
           </div>
-          {city.description && (
+          {town.description && (
             <div className="flex items-center justify-between px-4 py-2.5 text-sm">
               <span className="text-gray-500">Description</span>
               <span className="font-medium text-gray-800 italic">
-                "{city.description}"
+                "{town.description}"
               </span>
             </div>
           )}
@@ -752,8 +953,8 @@ function DeleteCityModal({ city, onClose, onConfirm }: DeleteCityModalProps) {
           <div className="flex items-start gap-2 bg-red-50 rounded-xl p-3 text-xs text-red-700 text-left w-full">
             <AlertCircle size={14} className="mt-0.5 shrink-0" />
             <span>
-              Deleting this city will affect {count} associated users. Their
-              city field will need to be updated manually.
+              Deleting this town will affect {count} associated users. Their
+              town field will need to be updated manually.
             </span>
           </div>
         )}
@@ -774,7 +975,7 @@ function DeleteCityModal({ city, onClose, onConfirm }: DeleteCityModalProps) {
           }}
           className="bg-red-600 hover:bg-red-700 text-white text-sm font-semibold px-6 py-2.5 rounded-xl transition"
         >
-          Delete City
+          Delete Town
         </button>
       </div>
     </Modal>
@@ -808,8 +1009,8 @@ function DeleteUserModal({ user, onClose, onConfirm }: DeleteUserModalProps) {
             <span className="font-medium text-gray-800">{user.email}</span>
           </div>
           <div className="flex items-center justify-between px-4 py-2.5 text-sm">
-            <span className="text-gray-500">City</span>
-            <span className="font-medium text-gray-800">{user.city}</span>
+            <span className="text-gray-500">Town</span>
+            <span className="font-medium text-gray-800">{user.town}</span>
           </div>
           <div className="flex items-center justify-between px-4 py-2.5 text-sm">
             <span className="text-gray-500">Role</span>
@@ -848,15 +1049,15 @@ function DeleteUserModal({ user, onClose, onConfirm }: DeleteUserModalProps) {
 
 interface DashboardPageProps {
   users: AppUser[];
-  cities: City[];
+  towns: Town[];
 }
 
-function DashboardPage({ users, cities }: DashboardPageProps) {
+function DashboardPage({ users, towns }: DashboardPageProps) {
   const activeUsers: number = users.filter((u) => u.active).length;
 
-  const cityStats: ChartBarEntry[] = cities.map((c, i) => ({
-    city: c.name,
-    users: userCounts[c.name] ?? 0,
+  const townStats: ChartBarEntry[] = towns.map((t, i) => ({
+    town: t.name,
+    users: userCounts[t.name] ?? 0,
     color: BAR_COLORS[i] ?? '#6B7280',
   }));
 
@@ -870,8 +1071,8 @@ function DashboardPage({ users, cities }: DashboardPageProps) {
   const statCards: StatCard[] = [
     { label: 'Total Users', value: users.length, icon: Users, color: 'blue' },
     {
-      label: 'Total Cities',
-      value: cities.length,
+      label: 'Total Towns',
+      value: towns.length,
       icon: Building2,
       color: 'purple',
     },
@@ -918,13 +1119,13 @@ function DashboardPage({ users, cities }: DashboardPageProps) {
         <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-gray-900">
-              Users by City (Top 5)
+              Users by Town (Top 5)
             </h3>
             <MapPin size={16} className="text-gray-400" />
           </div>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart
-              data={cityStats}
+              data={townStats}
               layout="vertical"
               margin={{ left: 16, right: 8 }}
             >
@@ -936,7 +1137,7 @@ function DashboardPage({ users, cities }: DashboardPageProps) {
               />
               <YAxis
                 type="category"
-                dataKey="city"
+                dataKey="town"
                 tick={{ fontSize: 11 }}
                 axisLine={false}
                 tickLine={false}
@@ -1020,15 +1221,15 @@ function DashboardPage({ users, cities }: DashboardPageProps) {
 
 interface UsersPageProps {
   users: AppUser[];
-  cities: City[];
+  towns: Town[];
   onAdd: () => void;
   onEdit: (user: AppUser) => void;
   onDelete: (user: AppUser) => void;
 }
 
-function UsersPage({ users, cities, onAdd, onEdit, onDelete }: UsersPageProps) {
+function UsersPage({ users, towns, onAdd, onEdit, onDelete }: UsersPageProps) {
   const [search, setSearch] = useState<string>('');
-  const [cityFilter, setCityFilter] = useState<string>('All Cities');
+  const [townFilter, setTownFilter] = useState<string>('All Towns');
   const [roleFilter, setRoleFilter] = useState<string>('All Roles');
 
   const filtered: AppUser[] = useMemo(
@@ -1037,11 +1238,11 @@ function UsersPage({ users, cities, onAdd, onEdit, onDelete }: UsersPageProps) {
         const matchSearch =
           u.name.toLowerCase().includes(search.toLowerCase()) ||
           u.email.toLowerCase().includes(search.toLowerCase());
-        const matchCity = cityFilter === 'All Cities' || u.city === cityFilter;
+        const matchTown = townFilter === 'All Towns' || u.town === townFilter;
         const matchRole = roleFilter === 'All Roles' || u.role === roleFilter;
-        return matchSearch && matchCity && matchRole;
+        return matchSearch && matchTown && matchRole;
       }),
-    [users, search, cityFilter, roleFilter]
+    [users, search, townFilter, roleFilter]
   );
 
   return (
@@ -1065,15 +1266,15 @@ function UsersPage({ users, cities, onAdd, onEdit, onDelete }: UsersPageProps) {
         <div className="flex gap-2 flex-wrap">
           <div className="relative">
             <select
-              value={cityFilter}
+              value={townFilter}
               onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                setCityFilter(e.target.value)
+                setTownFilter(e.target.value)
               }
               className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white appearance-none pr-7 focus:outline-none focus:ring-2 focus:ring-blue-200"
             >
-              <option>All Cities</option>
-              {cities.map((c) => (
-                <option key={c.id}>{c.name}</option>
+              <option>All Towns</option>
+              {towns.map((t) => (
+                <option key={t.id}>{t.name}</option>
               ))}
             </select>
             <ChevronDown
@@ -1114,7 +1315,7 @@ function UsersPage({ users, cities, onAdd, onEdit, onDelete }: UsersPageProps) {
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-100">
-                {['Name & Email', 'City', 'Role', 'Status', 'Actions'].map(
+                {['Name & Email', 'Town', 'Role', 'Status', 'Actions'].map(
                   (h) => (
                     <th
                       key={h}
@@ -1148,7 +1349,7 @@ function UsersPage({ users, cities, onAdd, onEdit, onDelete }: UsersPageProps) {
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1.5 text-sm text-gray-700">
                       <Building2 size={13} className="text-gray-400" />
-                      {user.city}
+                      {user.town}
                     </div>
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-700">
@@ -1183,20 +1384,20 @@ function UsersPage({ users, cities, onAdd, onEdit, onDelete }: UsersPageProps) {
   );
 }
 
-interface CitiesPageProps {
-  cities: City[];
+interface TownsPageProps {
+  towns: Town[];
   onAdd: () => void;
-  onEdit: (city: City) => void;
-  onDelete: (city: City) => void;
+  onEdit: (town: Town) => void;
+  onDelete: (town: Town) => void;
 }
 
-function CitiesPage({ cities, onAdd, onEdit, onDelete }: CitiesPageProps) {
+function TownsPage({ towns, onAdd, onEdit, onDelete }: TownsPageProps) {
   const [search, setSearch] = useState<string>('');
 
-  const filtered: City[] = cities.filter(
-    (c) =>
-      c.name.toLowerCase().includes(search.toLowerCase()) ||
-      c.state.toLowerCase().includes(search.toLowerCase())
+  const filtered: Town[] = towns.filter(
+    (t) =>
+      t.name.toLowerCase().includes(search.toLowerCase()) ||
+      t.state.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -1208,7 +1409,7 @@ function CitiesPage({ cities, onAdd, onEdit, onDelete }: CitiesPageProps) {
             className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
           />
           <input
-            placeholder="Search by city name or state"
+            placeholder="Search by town name or state"
             value={search}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
               setSearch(e.target.value)
@@ -1220,28 +1421,28 @@ function CitiesPage({ cities, onAdd, onEdit, onDelete }: CitiesPageProps) {
           onClick={onAdd}
           className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl flex items-center gap-1.5 transition whitespace-nowrap self-start"
         >
-          <Plus size={15} /> Add New City
+          <Plus size={15} /> Add New Town
         </button>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filtered.map((city) => (
+        {filtered.map((town) => (
           <div
-            key={city.id}
+            key={town.id}
             className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col gap-3 hover:border-blue-200 transition"
           >
             <div className="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center">
               <Building2 size={20} className="text-blue-500" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-gray-900">{city.name}</h3>
+              <h3 className="text-base font-bold text-gray-900">{town.name}</h3>
               <div className="flex items-center gap-1 text-xs text-gray-500 mt-0.5">
                 <MapPin size={11} />
-                {city.state}
+                {town.state}
               </div>
-              {city.description && (
+              {town.description && (
                 <p className="text-xs text-gray-500 italic mt-1.5">
-                  "{city.description}"
+                  "{town.description}"
                 </p>
               )}
             </div>
@@ -1249,7 +1450,7 @@ function CitiesPage({ cities, onAdd, onEdit, onDelete }: CitiesPageProps) {
               <div className="flex items-center gap-1.5 text-sm text-gray-600">
                 <Users size={13} className="text-gray-400" />
                 <span className="font-medium">
-                  {userCounts[city.name] ?? 0} Users
+                  {userCounts[town.name] ?? 0} Users
                 </span>
               </div>
               <div className="flex items-center gap-2">
@@ -1257,13 +1458,13 @@ function CitiesPage({ cities, onAdd, onEdit, onDelete }: CitiesPageProps) {
                   ACTIVE REGION
                 </span>
                 <button
-                  onClick={() => onEdit(city)}
+                  onClick={() => onEdit(town)}
                   className="p-1.5 text-gray-400 hover:text-blue-600 transition rounded-lg hover:bg-blue-50"
                 >
                   <Pencil size={14} />
                 </button>
                 <button
-                  onClick={() => onDelete(city)}
+                  onClick={() => onDelete(town)}
                   className="p-1.5 text-gray-400 hover:text-red-500 transition rounded-lg hover:bg-red-50"
                 >
                   <Trash2 size={14} />
@@ -1285,7 +1486,7 @@ function SettingsPage() {
       </div>
       <h3 className="text-lg font-bold text-gray-900">Admin Settings</h3>
       <p className="text-sm text-gray-500 max-w-xs">
-        Configure global system variables, city grouping rules, and audit log
+        Configure global system variables, town grouping rules, and audit log
         retention.
       </p>
     </div>
@@ -1297,43 +1498,43 @@ function SettingsPage() {
 export default function AdminSuite() {
   const [tab, setTab] = useState<TabId>('dashboard');
   const [users, setUsers] = useState<AppUser[]>(initialUsers);
-  const [cities, setCities] = useState<City[]>(initialCities);
+  const [towns, setTowns] = useState<Town[]>(initialTowns);
   const [modal, setModal] = useState<ModalState | null>(null);
 
   const tabs: TabItem[] = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'users', label: 'Users', icon: Users },
-    { id: 'cities', label: 'Organizations (Cities)', icon: Building2 },
+    { id: 'towns', label: 'Organizations (Towns)', icon: Building2 },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
-  const handleAddCity = (form: CityFormData): void => {
-    setCities((cs) => [...cs, { id: Date.now(), ...form }]);
+  const handleAddTown = (form: TownFormData): void => {
+    setTowns((ts) => [...ts, { id: Date.now(), ...form }]);
   };
 
-  const handleEditCity = (id: number, form: CityFormData): void => {
-    setCities((cs) => cs.map((c) => (c.id === id ? { ...c, ...form } : c)));
+  const handleEditTown = (id: number, form: TownFormData): void => {
+    setTowns((ts) => ts.map((t) => (t.id === id ? { ...t, ...form } : t)));
   };
 
-  const handleDeleteCity = (id: number): void => {
-    setCities((cs) => cs.filter((c) => c.id !== id));
+  const handleDeleteTown = (id: number): void => {
+    setTowns((ts) => ts.filter((t) => t.id !== id));
   };
 
-  const handleAddUser = (form: UserFormData): void => {
+  const handleAddUser = (form: AddUserFormData): void => {
     setUsers((us) => [
       ...us,
       {
         id: Date.now(),
         name: form.name,
         email: form.email,
-        city: form.city,
+        town: form.town,
         role: form.role,
         active: form.active,
       },
     ]);
   };
 
-  const handleEditUser = (id: number, form: UserFormData): void => {
+  const handleEditUser = (id: number, form: EditUserFormData): void => {
     setUsers((us) =>
       us.map((u) =>
         u.id === id
@@ -1341,7 +1542,7 @@ export default function AdminSuite() {
               ...u,
               name: form.name,
               email: form.email,
-              city: form.city,
+              town: form.town,
               role: form.role,
               active: form.active,
             }
@@ -1354,13 +1555,13 @@ export default function AdminSuite() {
     setUsers((us) => us.filter((u) => u.id !== id));
   };
 
-  const editCityData =
-    modal?.data && 'state' in modal.data ? (modal.data as City) : null;
+  const editTownData =
+    modal?.data && 'state' in modal.data ? (modal.data as Town) : null;
   const editUserData =
     modal?.data && 'email' in modal.data ? (modal.data as AppUser) : null;
-  const deleteCityData =
-    modal?.type === 'deleteCity' && modal.data && 'state' in modal.data
-      ? (modal.data as City)
+  const deleteTownData =
+    modal?.type === 'deleteTown' && modal.data && 'state' in modal.data
+      ? (modal.data as Town)
       : null;
   const deleteUserData =
     modal?.type === 'deleteUser' && modal.data && 'email' in modal.data
@@ -1377,7 +1578,7 @@ export default function AdminSuite() {
               Admin Suite
             </h1>
             <p className="text-xs text-gray-500 hidden sm:block">
-              Manage users, cities, and system organizations
+              Manage users, towns, and system organizations
             </p>
           </div>
           <button className="flex items-center gap-2 border border-gray-200 rounded-xl px-3 sm:px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
@@ -1411,24 +1612,22 @@ export default function AdminSuite() {
       {/* Content */}
       <main className="flex-1 overflow-y-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
-          {tab === 'dashboard' && (
-            <DashboardPage users={users} cities={cities} />
-          )}
+          {tab === 'dashboard' && <DashboardPage users={users} towns={towns} />}
           {tab === 'users' && (
             <UsersPage
               users={users}
-              cities={cities}
+              towns={towns}
               onAdd={() => setModal({ type: 'addUser' })}
               onEdit={(user) => setModal({ type: 'editUser', data: user })}
               onDelete={(user) => setModal({ type: 'deleteUser', data: user })}
             />
           )}
-          {tab === 'cities' && (
-            <CitiesPage
-              cities={cities}
-              onAdd={() => setModal({ type: 'addCity' })}
-              onEdit={(city) => setModal({ type: 'editCity', data: city })}
-              onDelete={(city) => setModal({ type: 'deleteCity', data: city })}
+          {tab === 'towns' && (
+            <TownsPage
+              towns={towns}
+              onAdd={() => setModal({ type: 'addTown' })}
+              onEdit={(town) => setModal({ type: 'editTown', data: town })}
+              onDelete={(town) => setModal({ type: 'deleteTown', data: town })}
             />
           )}
           {tab === 'settings' && <SettingsPage />}
@@ -1441,19 +1640,19 @@ export default function AdminSuite() {
       </button>
 
       {/* Modals */}
-      {modal?.type === 'addCity' && (
-        <AddCityModal onClose={() => setModal(null)} onSave={handleAddCity} />
+      {modal?.type === 'addTown' && (
+        <AddTownModal onClose={() => setModal(null)} onSave={handleAddTown} />
       )}
-      {modal?.type === 'editCity' && editCityData && (
-        <EditCityModal
-          city={editCityData}
+      {modal?.type === 'editTown' && editTownData && (
+        <EditTownModal
+          town={editTownData}
           onClose={() => setModal(null)}
-          onSave={(f) => handleEditCity(editCityData.id, f)}
+          onSave={(f) => handleEditTown(editTownData.id, f)}
         />
       )}
       {modal?.type === 'addUser' && (
         <AddUserModal
-          cities={cities}
+          towns={towns}
           onClose={() => setModal(null)}
           onSave={handleAddUser}
         />
@@ -1461,16 +1660,16 @@ export default function AdminSuite() {
       {modal?.type === 'editUser' && editUserData && (
         <EditUserModal
           user={editUserData}
-          cities={cities}
+          towns={towns}
           onClose={() => setModal(null)}
-          onSave={(f) => handleEditUser(editUserData.id, f)}
+          onSave={(f: EditUserFormData) => handleEditUser(editUserData.id, f)}
         />
       )}
-      {modal?.type === 'deleteCity' && deleteCityData && (
-        <DeleteCityModal
-          city={deleteCityData}
+      {modal?.type === 'deleteTown' && deleteTownData && (
+        <DeleteTownModal
+          town={deleteTownData}
           onClose={() => setModal(null)}
-          onConfirm={() => handleDeleteCity(deleteCityData.id)}
+          onConfirm={() => handleDeleteTown(deleteTownData.id)}
         />
       )}
       {modal?.type === 'deleteUser' && deleteUserData && (

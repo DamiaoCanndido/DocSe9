@@ -8,7 +8,13 @@ export function proxy(request: NextRequest) {
   const publicRoutes = ['/login', '/forgot-password'];
   const isPublicRoute = publicRoutes.includes(pathname);
 
-  const protectedRoutes = ['/dashboard', '/profile', '/settings', '/register'];
+  const protectedRoutes = [
+    '/dashboard',
+    '/profile',
+    '/settings',
+    '/register',
+    '/admin-panel',
+  ];
   const isProtectedRoute = protectedRoutes.some((route) =>
     pathname.startsWith(route)
   );
@@ -42,5 +48,6 @@ export const config = {
     '/settings/:path*',
     '/login',
     '/register',
+    '/admin-panel',
   ],
 };
