@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, Dispatch, SetStateAction } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Image from 'next/image';
@@ -42,6 +42,7 @@ import AdminSettings from '@/components/AdminSettings';
 import { usePathname } from 'next/navigation';
 import { deleteTown, newTown, updateTown } from '@/lib/data';
 import { toast } from 'sonner';
+import SearchTowns from './SearchTowns';
 
 // ─── Zod Schemas ───────────────────────────────────────────────────────────────
 
@@ -1360,31 +1361,10 @@ interface TownsPageProps {
 }
 
 function TownsPage({ towns, onAdd, onEdit, onDelete }: TownsPageProps) {
-  const [search, setSearch] = useState<string>('');
-
-  const filtered: TownResProps[] = towns.filter(
-    (t) =>
-      t.name.toLowerCase().includes(search.toLowerCase()) ||
-      t.uf.toLowerCase().includes(search.toLowerCase())
-  );
-
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
-          <Search
-            size={15}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-          />
-          <input
-            placeholder="Procure pelo município"
-            value={search}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setSearch(e.target.value)
-            }
-            className="w-full border border-gray-200 rounded-xl pl-9 pr-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-200"
-          />
-        </div>
+        <SearchTowns />
         <button
           onClick={onAdd}
           className="bg-blue-600 hover:bg-blue-700 text-white cursor-pointer text-sm font-semibold px-4 py-2.5 rounded-xl flex items-center gap-1.5 transition whitespace-nowrap self-start"
@@ -1394,7 +1374,7 @@ function TownsPage({ towns, onAdd, onEdit, onDelete }: TownsPageProps) {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filtered.map((town) => (
+        {towns.map((town) => (
           <div
             key={town.townId}
             className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col gap-3 hover:border-blue-200 transition"
@@ -1418,7 +1398,7 @@ function TownsPage({ towns, onAdd, onEdit, onDelete }: TownsPageProps) {
               <div className="flex items-center gap-1.5 text-sm text-gray-600">
                 <Users size={13} className="text-gray-400" />
                 <span className="font-medium">
-                  {userCounts[town.name] ?? 0} Users
+                  {userCounts[town.name] ?? 0} Usuários
                 </span>
               </div>
               <div className="flex items-center gap-2">
@@ -1561,10 +1541,10 @@ export default function AdminSuite({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
-              Admin Suite
+              Painel administrativo
             </h1>
             <p className="text-xs text-gray-500 hidden sm:block">
-              Manage users, towns, and system organizations
+              Gerenciar usuários, municípios e organizações de sistemas.
             </p>
           </div>
           <button className="flex items-center gap-2 border border-gray-200 rounded-xl px-3 sm:px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition">

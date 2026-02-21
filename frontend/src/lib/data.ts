@@ -27,6 +27,21 @@ export async function getMe() {
   }
 }
 
+export async function getUsers() {
+  try {
+    const token = await getToken();
+    const me = await apiServer.get('/v2/users', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    return parseStringify(me.data);
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return redirect('/login');
+    }
+  }
+}
+
 export const signOutUser = async () => {
   try {
     (await cookies()).delete('docse9-auth-token');
@@ -110,13 +125,22 @@ export const getViewUrl = async (fileId: string, path: string) => {
   }
 };
 
-export const getTowns = async (queries: DocsQueries) => {
+export const getTowns = async ({
+  queries,
+  path,
+}: {
+  queries: DocsQueries;
+  path?: string;
+}) => {
   try {
     const token = await getToken();
     const towns = await apiServer.get('/v2/town', {
       headers: { Authorization: `Bearer ${token}` },
       params: { ...queries },
     });
+    if (path) {
+      revalidatePath(path);
+    }
     return parseStringify(towns.data);
   } catch (error) {
     if (error instanceof AxiosError) {

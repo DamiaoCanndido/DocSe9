@@ -13,6 +13,7 @@ import com.nergal.docseq.dto.towns.TownUpdateDTO;
 import com.nergal.docseq.entities.TownV2;
 import com.nergal.docseq.exception.NotFoundException;
 import com.nergal.docseq.helpers.mappers.PageMapper;
+import com.nergal.docseq.helpers.specifications.TownSpecifications;
 import com.nergal.docseq.repositories.TownV2Repository;
 
 @Service
@@ -25,9 +26,9 @@ public class TownV2Service {
     }
 
     @Transactional(readOnly = true)
-    public TownContentResponse getAllTowns(Pageable pageable) {
+    public TownContentResponse getAllTowns(String name, Pageable pageable) {
 
-        var townPage = townRepo.findAll(pageable);
+        var townPage = townRepo.findAll(TownSpecifications.withFilters(name), pageable);
 
         var townItems = townPage
                 .map(town -> new TownItemDTO(

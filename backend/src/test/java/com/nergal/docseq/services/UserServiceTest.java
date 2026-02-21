@@ -460,10 +460,10 @@ public class UserServiceTest {
 
                         // Assertions
                         assertNotNull(response);
-                        assertNotNull(response.users());
-                        assertEquals(2, response.users().content().size());
-                        assertEquals(userItemDTO1.userId(), response.users().content().get(0).userId());
-                        assertEquals(userItemDTO2.userId(), response.users().content().get(1).userId());
+                        assertNotNull(response.data());
+                        assertEquals(2, response.data().content().size());
+                        assertEquals(userItemDTO1.userId(), response.data().content().get(0).userId());
+                        assertEquals(userItemDTO2.userId(), response.data().content().get(1).userId());
 
                         verify(userRepository).findAll(any(Pageable.class));
                         mockedStatic.verify(() -> PageMapper.toPageResponse((Page<?>) any(Page.class)));

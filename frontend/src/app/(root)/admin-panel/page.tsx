@@ -24,7 +24,7 @@ export default async function AdminPanel({
   };
 
   if (currentUser.role.name === 'admin') {
-    towns = await getTowns({ name, page, size, sort });
+    towns = await getTowns({ queries: { name, page, size, sort } });
   }
 
   return <AdminSuite user={currentUser} allTowns={towns.data} />;
