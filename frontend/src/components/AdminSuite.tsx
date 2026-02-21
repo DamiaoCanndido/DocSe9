@@ -39,6 +39,9 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import AdminSettings from '@/components/AdminSettings';
+import { usePathname } from 'next/navigation';
+import { deleteTown, newTown, updateTown } from '@/lib/data';
+import { toast } from 'sonner';
 
 // ─── Zod Schemas ───────────────────────────────────────────────────────────────
 
@@ -1451,7 +1454,9 @@ export default function AdminSuite({
 }) {
   const [tab, setTab] = useState<TabId>('dashboard');
   const [users, setUsers] = useState<AppUser[]>(initialUsers);
-  const [towns, setTowns] = useState<TownResProps[]>(allTowns.content);
+
+  const path = usePathname();
+
   const [modal, setModal] = useState<ModalState | null>(null);
 
   const baseTabs: TabItem[] = [
@@ -1465,14 +1470,40 @@ export default function AdminSuite({
     user.role.name === 'manager' ? tab.id !== 'towns' : true
   );
 
-  const handleAddTown = (form: TownFormData): void => {};
-
-  const handleEditTown = (townId: string, form: TownFormData): void => {
-    setTowns((ts) => ts.map((t) => (t.id === townId ? { ...t, ...form } : t)));
+  const handleAddTown = async (form: TownFormData): Promise<void> => {
+    try {
+      await newTown({ form, path });
+    } catch (error) {
+      toast.error('Erro', {
+        description: 'Erro ao criar município.',
+        duration: 2000,
+      });
+    }
   };
 
-  const handleDeleteTown = (townId: string): void => {
-    setTowns((ts) => ts.filter((t) => t.id !== townId));
+  const handleEditTown = async (
+    townId: string,
+    form: TownFormData
+  ): Promise<void> => {
+    try {
+      await updateTown({ townId, form, path });
+    } catch (error) {
+      toast.error('Erro', {
+        description: 'Erro ao editar município.',
+        duration: 2000,
+      });
+    }
+  };
+
+  const handleDeleteTown = async (townId: string): Promise<void> => {
+    try {
+      await deleteTown({ townId, path });
+    } catch (error) {
+      toast.error('Erro', {
+        description: 'Erro ao deletar município.',
+        duration: 2000,
+      });
+    }
   };
 
   const handleAddUser = (form: AddUserFormData): void => {
@@ -1567,11 +1598,13 @@ export default function AdminSuite({
       {/* Content */}
       <main className="flex-1 overflow-y-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
-          {tab === 'dashboard' && <DashboardPage users={users} towns={towns} />}
+          {tab === 'dashboard' && (
+            <DashboardPage users={users} towns={allTowns.content} />
+          )}
           {tab === 'users' && (
             <UsersPage
               users={users}
-              towns={towns}
+              towns={allTowns.content}
               onAdd={() => setModal({ type: 'addUser' })}
               onEdit={(user) => setModal({ type: 'editUser', data: user })}
               onDelete={(user) => setModal({ type: 'deleteUser', data: user })}
@@ -1579,7 +1612,7 @@ export default function AdminSuite({
           )}
           {tab === 'towns' && (
             <TownsPage
-              towns={towns}
+              towns={allTowns.content}
               onAdd={() => setModal({ type: 'addTown' })}
               onEdit={(town) => setModal({ type: 'editTown', data: town })}
               onDelete={(town) => setModal({ type: 'deleteTown', data: town })}
@@ -1602,12 +1635,12 @@ export default function AdminSuite({
         <EditTownModal
           town={editTownData}
           onClose={() => setModal(null)}
-          onSave={(f) => handleEditTown(editTownData.id, f)}
+          onSave={(f) => handleEditTown(editTownData.townId, f)}
         />
       )}
       {modal?.type === 'addUser' && (
         <AddUserModal
-          towns={towns}
+          towns={allTowns.content}
           onClose={() => setModal(null)}
           onSave={handleAddUser}
         />
@@ -1615,7 +1648,7 @@ export default function AdminSuite({
       {modal?.type === 'editUser' && editUserData && (
         <EditUserModal
           user={editUserData}
-          towns={towns}
+          towns={allTowns.content}
           onClose={() => setModal(null)}
           onSave={(f: EditUserFormData) => handleEditUser(editUserData.id, f)}
         />

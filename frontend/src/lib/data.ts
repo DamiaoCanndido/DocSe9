@@ -124,3 +124,73 @@ export const getTowns = async (queries: DocsQueries) => {
     }
   }
 };
+
+export const newTown = async ({
+  form,
+  path,
+}: {
+  form: TownReqProps;
+  path: string;
+}) => {
+  try {
+    const token = await getToken();
+    await apiServer.post(
+      '/v2/town',
+      { name: form.name, uf: form.uf, imageUrl: form.imageUrl },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    revalidatePath(path);
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return redirect('/login');
+    }
+  }
+};
+
+export const updateTown = async ({
+  townId,
+  form,
+  path,
+}: {
+  townId: string;
+  form: TownReqProps;
+  path: string;
+}) => {
+  try {
+    const token = await getToken();
+    await apiServer.patch(
+      `/v2/town/${townId}`,
+      { name: form.name, uf: form.uf, imageUrl: form.imageUrl },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    revalidatePath(path);
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return redirect('/login');
+    }
+  }
+};
+
+export const deleteTown = async ({
+  townId,
+  path,
+}: {
+  townId: string;
+  path: string;
+}) => {
+  try {
+    const token = await getToken();
+    await apiServer.delete(`/v2/town/${townId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    revalidatePath(path);
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return redirect('/login');
+    }
+  }
+};

@@ -12,7 +12,7 @@ export default async function DocsLoad({
   queries,
   type,
 }: {
-  queries: DocsGetInput;
+  queries: DocsQueries;
   type: ViewDocsType;
 }) {
   let data: ApiResponse<NodeResProps> = {
