@@ -1,8 +1,16 @@
 import AdminSuite from '@/components/AdminSuite';
 import { getMe, getTowns } from '@/lib/data';
 
-export default async function AdminPanel() {
+export default async function AdminPanel({
+  searchParams,
+  params,
+}: SearchParamProps) {
   const currentUser: UserResProps = await getMe();
+
+  const name = ((await searchParams)?.name as string) || '';
+  const page = ((await searchParams)?.page as string) || '';
+  const size = ((await searchParams)?.size as string) || '';
+  const sort = ((await searchParams)?.sort as string) || '';
 
   var towns: ApiResponse<TownResProps> = {
     data: {
@@ -16,7 +24,7 @@ export default async function AdminPanel() {
   };
 
   if (currentUser.role.name === 'admin') {
-    towns = await getTowns();
+    towns = await getTowns({ name, page, size, sort });
   }
 
   return <AdminSuite user={currentUser} allTowns={towns.data} />;

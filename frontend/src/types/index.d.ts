@@ -87,7 +87,7 @@ declare interface SearchParamProps {
   searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
-declare interface DocsGetInput {
+declare interface DocsQueries {
   name?: string;
   page?: string;
   size?: string;

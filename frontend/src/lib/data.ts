@@ -35,7 +35,7 @@ export const signOutUser = async () => {
   }
 };
 
-export const getRootFolders = async (queries: DocsGetInput) => {
+export const getRootFolders = async (queries: DocsQueries) => {
   try {
     const token = await getToken();
     const docs = await apiServer.get('/v2/folders/root', {
@@ -50,7 +50,7 @@ export const getRootFolders = async (queries: DocsGetInput) => {
   }
 };
 
-export const getSearchResults = async (queries: DocsGetInput) => {
+export const getSearchResults = async (queries: DocsQueries) => {
   try {
     const token = await getToken();
     const docs = await apiServer.get('/v2/folders/search', {
@@ -65,7 +65,7 @@ export const getSearchResults = async (queries: DocsGetInput) => {
   }
 };
 
-export const getChildrenFolders = async (id: string, queries: DocsGetInput) => {
+export const getChildrenFolders = async (id: string, queries: DocsQueries) => {
   try {
     const token = await getToken();
     const docs = await apiServer.get(`/v2/folders/${id}/children`, {
@@ -80,7 +80,7 @@ export const getChildrenFolders = async (id: string, queries: DocsGetInput) => {
   }
 };
 
-export const getTrashFolders = async (queries: DocsGetInput) => {
+export const getTrashFolders = async (queries: DocsQueries) => {
   try {
     const token = await getToken();
     const docs = await apiServer.get('/v2/folders/trash', {
@@ -110,11 +110,12 @@ export const getViewUrl = async (fileId: string, path: string) => {
   }
 };
 
-export const getTowns = async () => {
+export const getTowns = async (queries: DocsQueries) => {
   try {
     const token = await getToken();
     const towns = await apiServer.get('/v2/town', {
       headers: { Authorization: `Bearer ${token}` },
+      params: { ...queries },
     });
     return parseStringify(towns.data);
   } catch (error) {
