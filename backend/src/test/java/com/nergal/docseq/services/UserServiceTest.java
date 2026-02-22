@@ -432,7 +432,7 @@ public class UserServiceTest {
                                 user1.getEmail(),
                                 new RoleItemDTO(basicRole.getRoleId(), basicRole.getName()),
                                 new TownItemDTO(mockTown.getTownId(), mockTown.getName(), mockTown.getUf(),
-                                                mockTown.getImageUrl()),
+                                                mockTown.getImageUrl(), mockTown.getUsers().size()),
                                 user1.getCreatedAt());
                 UserItemDTO userItemDTO2 = new UserItemDTO(
                                 user2.getUserId(),
@@ -440,7 +440,7 @@ public class UserServiceTest {
                                 user2.getEmail(),
                                 new RoleItemDTO(adminRole.getRoleId(), adminRole.getName()),
                                 new TownItemDTO(mockTown.getTownId(), mockTown.getName(), mockTown.getUf(),
-                                                mockTown.getImageUrl()),
+                                                mockTown.getImageUrl(), mockTown.getUsers().size()),
                                 user2.getCreatedAt());
                 List<UserItemDTO> userItemDTOList = Arrays.asList(userItemDTO1, userItemDTO2);
                 PageResponse<UserItemDTO> pageResponse = new PageResponse<>(userItemDTOList, 0, 10, userList.size(), 1,

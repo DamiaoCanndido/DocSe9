@@ -158,7 +158,8 @@ public class UserV2Service {
                                 user.getTown().getTownId(),
                                 user.getTown().getName(),
                                 user.getTown().getUf(),
-                                user.getTown().getImageUrl()) : null,
+                                user.getTown().getImageUrl(),
+                                user.getTown().getUsers().size()) : null,
                         user.getCreatedAt()));
 
         return new UserContentResponse(
@@ -181,7 +182,8 @@ public class UserV2Service {
                                 user.getTown().getTownId(),
                                 user.getTown().getName(),
                                 user.getTown().getUf(),
-                                user.getTown().getImageUrl())
+                                user.getTown().getImageUrl(),
+                                user.getTown().getUsers().size())
                         : null,
                 user.getCreatedAt());
     }

@@ -64,4 +64,12 @@ public class TownV2 {
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
     }
+
+    public List<UserV2> getUsers() {
+        return users;
+    }
+
+    public void setUsers(List<UserV2> users) {
+        this.users = users;
+    }
 }

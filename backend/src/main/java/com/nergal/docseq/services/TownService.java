@@ -34,7 +34,8 @@ public class TownService {
                         town.getTownId(),
                         town.getName(),
                         town.getUf(),
-                        town.getImageUrl()));
+                        town.getImageUrl(),
+                        town.getUsers().size()));
 
         return new TownContentResponse(
                 PageMapper.toPageResponse(townItems));
