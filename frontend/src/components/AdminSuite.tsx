@@ -60,30 +60,69 @@ export const townSchema = z.object({
 
 const addUserSchema = z
   .object({
-    name: z.string().min(2, 'Full name must be at least 2 characters'),
+    username: z.string().min(3, 'Full name must be at least 3 characters'),
     email: z.email('Enter a valid email address'),
+    active: z.boolean(),
     password: z.string().min(6, 'Password must be at least 6 characters'),
     confirm: z.string().min(1, 'Please confirm your password'),
-    town: z.string().min(1, 'Please select a town'),
-    role: z.enum(['Administrator', 'Operator', 'Viewer']),
-    active: z.boolean(),
+    townId: z.uuid({ message: 'Id da cidade inválido' }).optional(),
+    role: z.enum(['basic', 'manager', 'admin']),
   })
   .refine((d) => d.password === d.confirm, {
     message: 'Passwords do not match',
     path: ['confirm'],
   });
 
-const editUserSchema = z.object({
-  name: z.string().min(2, 'Full name must be at least 2 characters'),
-  email: z.email('Enter a valid email address'),
-  town: z.string().min(1, 'Please select a town'),
-  role: z.enum(['Administrator', 'Operator', 'Viewer']),
-  active: z.boolean(),
-});
+const editUserSchema = z
+  .object({
+    username: z.string().min(3, 'Full name must be at least 3 characters'),
+    email: z.email('Enter a valid email address'),
+    active: z.boolean(),
+    password: z.string().optional().or(z.literal('')),
+    confirm: z.string().optional().or(z.literal('')),
+    townId: z.uuid({ message: 'Id da cidade inválido' }).optional(),
+    role: z.enum(['basic', 'manager', 'admin']),
+  })
+  .superRefine((data, ctx) => {
+    const { password, confirm } = data;
+    const hasPassword = password && password.length > 0;
+    const hasConfirm = confirm && confirm.length > 0;
+
+    if (hasPassword || hasConfirm) {
+      if (!hasPassword) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['password'],
+          message: 'Password is required',
+        });
+      } else if (password.length < 6) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['password'],
+          message: 'Password must be at least 6 characters',
+        });
+      }
+
+      if (!hasConfirm) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['confirm'],
+          message: 'Please confirm your password',
+        });
+      }
+
+      if (hasPassword && hasConfirm && password !== confirm) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['confirm'],
+          message: 'Passwords do not match',
+        });
+      }
+    }
+  });
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
-type Role = 'Administrator' | 'Operator' | 'Viewer';
 type TabId = 'dashboard' | 'users' | 'towns' | 'settings';
 type ModalType =
   | 'addTown'
@@ -97,18 +136,9 @@ type AddUserFormData = z.infer<typeof addUserSchema>;
 type EditUserFormData = z.infer<typeof editUserSchema>;
 export type TownFormData = z.infer<typeof townSchema>;
 
-interface AppUser {
-  id: number;
-  name: string;
-  email: string;
-  town: string;
-  role: Role;
-  active: boolean;
-}
-
 interface ModalState {
   type: ModalType;
-  data?: AppUser | TownResProps;
+  data?: UserResProps | TownResProps;
 }
 
 interface TabItem {
@@ -129,49 +159,6 @@ interface WeekEntry {
 }
 
 // ─── Initial Data ─────────────────────────────────────────────────────────────
-
-const initialUsers: AppUser[] = [
-  {
-    id: 1,
-    name: 'Alex Thompson',
-    email: 'alex.t@example.com',
-    town: 'San Francisco',
-    role: 'Administrator',
-    active: true,
-  },
-  {
-    id: 2,
-    name: 'Sarah Miller',
-    email: 's.miller@example.com',
-    town: 'New York',
-    role: 'Operator',
-    active: true,
-  },
-  {
-    id: 3,
-    name: 'James Wilson',
-    email: 'james.w@example.com',
-    town: 'Austin',
-    role: 'Viewer',
-    active: false,
-  },
-  {
-    id: 4,
-    name: 'Emma Davis',
-    email: 'emma.d@example.com',
-    town: 'San Francisco',
-    role: 'Operator',
-    active: true,
-  },
-  {
-    id: 5,
-    name: 'Michael Chen',
-    email: 'm.chen@example.com',
-    town: 'Seattle',
-    role: 'Viewer',
-    active: true,
-  },
-];
 
 const userCounts: Record<string, number> = {
   'San Francisco': 119,
@@ -324,13 +311,13 @@ function AddUserModal({ towns, onClose, onSave }: AddUserModalProps) {
   } = useForm<AddUserFormData>({
     resolver: zodResolver(addUserSchema),
     defaultValues: {
-      name: '',
+      username: '',
       email: '',
+      active: true,
       password: '',
       confirm: '',
-      town: towns[0]?.name ?? '',
-      role: 'Viewer',
-      active: true,
+      townId: undefined,
+      role: 'basic',
     },
   });
 
@@ -344,7 +331,7 @@ function AddUserModal({ towns, onClose, onSave }: AddUserModalProps) {
         className="flex flex-col gap-4"
       >
         <Controller
-          name="name"
+          name="username"
           control={control}
           render={({ field }) => (
             <AdminInput
@@ -354,7 +341,7 @@ function AddUserModal({ towns, onClose, onSave }: AddUserModalProps) {
               placeholder="John Doe"
               value={field.value}
               onChange={field.onChange}
-              error={errors.name?.message}
+              error={errors.username?.message}
             />
           )}
         />
@@ -374,50 +361,19 @@ function AddUserModal({ towns, onClose, onSave }: AddUserModalProps) {
             />
           )}
         />
+
         <div className="grid grid-cols-2 gap-3">
           <Controller
-            name="password"
-            control={control}
-            render={({ field }) => (
-              <AdminInput
-                label="Password"
-                required
-                type="password"
-                placeholder="••••••••"
-                value={field.value}
-                onChange={field.onChange}
-                error={errors.password?.message}
-              />
-            )}
-          />
-          <Controller
-            name="confirm"
-            control={control}
-            render={({ field }) => (
-              <AdminInput
-                label="Confirm"
-                required
-                type="password"
-                placeholder="••••••••"
-                value={field.value}
-                onChange={field.onChange}
-                error={errors.confirm?.message}
-              />
-            )}
-          />
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          <Controller
-            name="town"
+            name="townId"
             control={control}
             render={({ field }) => (
               <Select
                 label="Town"
                 required
-                value={field.value}
+                value={field.value || ''}
                 onChange={field.onChange}
                 options={towns.map((t) => t.name)}
-                error={errors.town?.message}
+                error={errors.townId?.message}
               />
             )}
           />
@@ -430,8 +386,40 @@ function AddUserModal({ towns, onClose, onSave }: AddUserModalProps) {
                 required
                 value={field.value}
                 onChange={field.onChange}
-                options={['Administrator', 'Operator', 'Viewer']}
+                options={['basic', 'manager', 'admin']}
                 error={errors.role?.message}
+              />
+            )}
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <Controller
+            name="password"
+            control={control}
+            render={({ field }) => (
+              <AdminInput
+                required
+                label="Password"
+                type="password"
+                placeholder="••••••••"
+                value={field.value || ''}
+                onChange={field.onChange}
+                error={errors.password?.message}
+              />
+            )}
+          />
+          <Controller
+            name="confirm"
+            control={control}
+            render={({ field }) => (
+              <AdminInput
+                required
+                label="Confirm"
+                type="password"
+                placeholder="••••••••"
+                value={field.value || ''}
+                onChange={field.onChange}
+                error={errors.confirm?.message}
               />
             )}
           />
@@ -460,7 +448,7 @@ function AddUserModal({ towns, onClose, onSave }: AddUserModalProps) {
 }
 
 interface EditUserModalProps {
-  user: AppUser;
+  user: UserResProps;
   towns: TownResProps[];
   onClose: () => void;
   onSave: (form: EditUserFormData) => void;
@@ -474,11 +462,13 @@ function EditUserModal({ user, towns, onClose, onSave }: EditUserModalProps) {
   } = useForm<EditUserFormData>({
     resolver: zodResolver(editUserSchema),
     defaultValues: {
-      name: user.name,
+      username: user.username,
       email: user.email,
-      town: user.town,
-      role: user.role,
-      active: user.active,
+      active: true,
+      townId: user.town?.townId,
+      role: user.role.name as 'basic' | 'manager' | 'admin',
+      password: '',
+      confirm: '',
     },
   });
 
@@ -492,7 +482,7 @@ function EditUserModal({ user, towns, onClose, onSave }: EditUserModalProps) {
         className="flex flex-col gap-4"
       >
         <Controller
-          name="name"
+          name="username"
           control={control}
           render={({ field }) => (
             <AdminInput
@@ -501,7 +491,7 @@ function EditUserModal({ user, towns, onClose, onSave }: EditUserModalProps) {
               icon={User}
               value={field.value}
               onChange={field.onChange}
-              error={errors.name?.message}
+              error={errors.username?.message}
             />
           )}
         />
@@ -522,16 +512,16 @@ function EditUserModal({ user, towns, onClose, onSave }: EditUserModalProps) {
         />
         <div className="grid grid-cols-2 gap-3">
           <Controller
-            name="town"
+            name="townId"
             control={control}
             render={({ field }) => (
               <Select
                 label="Town"
                 required
-                value={field.value}
+                value={field.value || ''}
                 onChange={field.onChange}
                 options={towns.map((t) => t.name)}
-                error={errors.town?.message}
+                error={errors.townId?.message}
               />
             )}
           />
@@ -544,12 +534,45 @@ function EditUserModal({ user, towns, onClose, onSave }: EditUserModalProps) {
                 required
                 value={field.value}
                 onChange={field.onChange}
-                options={['Administrator', 'Operator', 'Viewer']}
+                options={['basic', 'manager', 'admin']}
                 error={errors.role?.message}
               />
             )}
           />
         </div>
+        <div className="grid grid-cols-2 gap-3">
+          <Controller
+            name="password"
+            control={control}
+            render={({ field }) => (
+              <AdminInput
+                label="Password"
+                required
+                type="password"
+                placeholder="••••••••"
+                value={field.value || ''}
+                onChange={field.onChange}
+                error={errors.password?.message}
+              />
+            )}
+          />
+          <Controller
+            name="confirm"
+            control={control}
+            render={({ field }) => (
+              <AdminInput
+                label="Confirm"
+                required
+                type="password"
+                placeholder="••••••••"
+                value={field.value || ''}
+                onChange={field.onChange}
+                error={errors.confirm?.message}
+              />
+            )}
+          />
+        </div>
+
         <Controller
           name="active"
           control={control}
@@ -574,7 +597,7 @@ function EditUserModal({ user, towns, onClose, onSave }: EditUserModalProps) {
 }
 
 interface DeleteUserModalProps {
-  user: AppUser;
+  user: UserResProps;
   onClose: () => void;
   onConfirm: () => void;
 }
@@ -588,7 +611,7 @@ function DeleteUserModal({ user, onClose, onConfirm }: DeleteUserModalProps) {
         </div>
         <div>
           <p className="text-base font-semibold text-gray-900">
-            Delete "{user.name}"?
+            Delete "{user.username}"?
           </p>
           <p className="text-sm text-gray-500 mt-1">
             This action cannot be undone.
@@ -601,15 +624,17 @@ function DeleteUserModal({ user, onClose, onConfirm }: DeleteUserModalProps) {
           </div>
           <div className="flex items-center justify-between px-4 py-2.5 text-sm">
             <span className="text-gray-500">Town</span>
-            <span className="font-medium text-gray-800">{user.town}</span>
+            <span className="font-medium text-gray-800">
+              {user.town !== null && user.town.name}
+            </span>
           </div>
           <div className="flex items-center justify-between px-4 py-2.5 text-sm">
             <span className="text-gray-500">Role</span>
-            <span className="font-medium text-gray-800">{user.role}</span>
+            <span className="font-medium text-gray-800">{user.role.name}</span>
           </div>
           <div className="flex items-center justify-between px-4 py-2.5 text-sm">
             <span className="text-gray-500">Status</span>
-            <Badge active={user.active} />
+            <Badge active={true} />
           </div>
         </div>
       </div>
@@ -639,12 +664,12 @@ function DeleteUserModal({ user, onClose, onConfirm }: DeleteUserModalProps) {
 // ─── Pages ─────────────────────────────────────────────────────────────────────
 
 interface DashboardPageProps {
-  users: AppUser[];
+  users: UserResProps[];
   towns: TownResProps[];
 }
 
 function DashboardPage({ users, towns }: DashboardPageProps) {
-  const activeUsers: number = users.filter((u) => u.active).length;
+  const activeUsers: number = 3;
 
   const townStats: ChartBarEntry[] = towns.map((t, i) => ({
     town: t.name,
@@ -811,26 +836,26 @@ function DashboardPage({ users, towns }: DashboardPageProps) {
 }
 
 interface UsersPageProps {
-  users: AppUser[];
+  users: UserResProps[];
   towns: TownResProps[];
   onAdd: () => void;
-  onEdit: (user: AppUser) => void;
-  onDelete: (user: AppUser) => void;
+  onEdit: (user: UserResProps) => void;
+  onDelete: (user: UserResProps) => void;
 }
 
 function UsersPage({ users, towns, onAdd, onEdit, onDelete }: UsersPageProps) {
   const [search, setSearch] = useState<string>('');
-  const [townFilter, setTownFilter] = useState<string>('All Towns');
-  const [roleFilter, setRoleFilter] = useState<string>('All Roles');
+  const [townFilter, setTownFilter] = useState<string>('Todos');
+  const [roleFilter, setRoleFilter] = useState<string>('Todas');
 
-  const filtered: AppUser[] = useMemo(
+  const filtered: UserResProps[] = useMemo(
     () =>
       users.filter((u) => {
         const matchSearch =
-          u.name.toLowerCase().includes(search.toLowerCase()) ||
+          u.username.toLowerCase().includes(search.toLowerCase()) ||
           u.email.toLowerCase().includes(search.toLowerCase());
-        const matchTown = townFilter === 'All Towns' || u.town === townFilter;
-        const matchRole = roleFilter === 'All Roles' || u.role === roleFilter;
+        const matchTown = townFilter === 'Todos' || u.town?.name === townFilter;
+        const matchRole = roleFilter === 'Todas' || u.role.name === roleFilter;
         return matchSearch && matchTown && matchRole;
       }),
     [users, search, townFilter, roleFilter]
@@ -863,7 +888,7 @@ function UsersPage({ users, towns, onAdd, onEdit, onDelete }: UsersPageProps) {
               }
               className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white appearance-none pr-7 focus:outline-none focus:ring-2 focus:ring-blue-200"
             >
-              <option>All Towns</option>
+              <option>Todos</option>
               {towns.map((t) => (
                 <option key={t.townId}>{t.name}</option>
               ))}
@@ -881,10 +906,10 @@ function UsersPage({ users, towns, onAdd, onEdit, onDelete }: UsersPageProps) {
               }
               className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white appearance-none pr-7 focus:outline-none focus:ring-2 focus:ring-blue-200"
             >
-              <option>All Roles</option>
-              <option>Administrator</option>
-              <option>Operator</option>
-              <option>Viewer</option>
+              <option>Todas</option>
+              <option>basic</option>
+              <option>manager</option>
+              <option>admin</option>
             </select>
             <ChevronDown
               size={13}
@@ -921,17 +946,17 @@ function UsersPage({ users, towns, onAdd, onEdit, onDelete }: UsersPageProps) {
             <tbody>
               {filtered.map((user, i) => (
                 <tr
-                  key={user.id}
+                  key={user.userId}
                   className={`border-b border-gray-50 hover:bg-gray-50 transition ${
                     i === filtered.length - 1 ? 'border-0' : ''
                   }`}
                 >
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
-                      <Avatar name={user.name} size="sm" />
+                      <Avatar name={user.username} size="sm" />
                       <div>
                         <p className="text-sm font-semibold text-gray-900">
-                          {user.name}
+                          {user.username}
                         </p>
                         <p className="text-xs text-gray-500">{user.email}</p>
                       </div>
@@ -940,14 +965,14 @@ function UsersPage({ users, towns, onAdd, onEdit, onDelete }: UsersPageProps) {
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1.5 text-sm text-gray-700">
                       <Building2 size={13} className="text-gray-400" />
-                      {user.town}
+                      {user.town !== null ? user.town.name : ''}
                     </div>
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-700">
-                    {user.role}
+                    {user.role.name}
                   </td>
                   <td className="px-4 py-3">
-                    <Badge active={user.active} />
+                    <Badge active={true} />
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
@@ -980,12 +1005,13 @@ function UsersPage({ users, towns, onAdd, onEdit, onDelete }: UsersPageProps) {
 export default function AdminSuite({
   user,
   allTowns,
+  allUsers,
 }: {
   user: UserResProps;
   allTowns: ApiResponse<TownResProps>['data'];
+  allUsers: ApiResponse<UserResProps>['data'];
 }) {
   const [tab, setTab] = useState<TabId>('dashboard');
-  const [users, setUsers] = useState<AppUser[]>(initialUsers);
 
   const path = usePathname();
 
@@ -1038,52 +1064,23 @@ export default function AdminSuite({
     }
   };
 
-  const handleAddUser = (form: AddUserFormData): void => {
-    setUsers((us) => [
-      ...us,
-      {
-        id: Date.now(),
-        name: form.name,
-        email: form.email,
-        town: form.town,
-        role: form.role,
-        active: form.active,
-      },
-    ]);
-  };
+  const handleAddUser = (form: AddUserFormData): void => {};
 
-  const handleEditUser = (id: number, form: EditUserFormData): void => {
-    setUsers((us) =>
-      us.map((u) =>
-        u.id === id
-          ? {
-              ...u,
-              name: form.name,
-              email: form.email,
-              town: form.town,
-              role: form.role,
-              active: form.active,
-            }
-          : u
-      )
-    );
-  };
+  const handleEditUser = (id: string, form: EditUserFormData): void => {};
 
-  const handleDeleteUser = (id: number): void => {
-    setUsers((us) => us.filter((u) => u.id !== id));
-  };
+  const handleDeleteUser = (id: string): void => {};
 
   const editTownData =
     modal?.data && 'uf' in modal.data ? (modal.data as TownResProps) : null;
   const editUserData =
-    modal?.data && 'email' in modal.data ? (modal.data as AppUser) : null;
+    modal?.data && 'email' in modal.data ? (modal.data as UserResProps) : null;
   const deleteTownData =
     modal?.type === 'deleteTown' && modal.data && 'uf' in modal.data
       ? (modal.data as TownResProps)
       : null;
   const deleteUserData =
     modal?.type === 'deleteUser' && modal.data && 'email' in modal.data
-      ? (modal.data as AppUser)
+      ? (modal.data as UserResProps)
       : null;
 
   return (
@@ -1131,11 +1128,11 @@ export default function AdminSuite({
       <main className="flex-1 overflow-y-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
           {tab === 'dashboard' && (
-            <DashboardPage users={users} towns={allTowns.content} />
+            <DashboardPage users={allUsers.content} towns={allTowns.content} />
           )}
           {tab === 'users' && (
             <UsersPage
-              users={users}
+              users={allUsers.content}
               towns={allTowns.content}
               onAdd={() => setModal({ type: 'addUser' })}
               onEdit={(user) => setModal({ type: 'editUser', data: user })}
@@ -1182,7 +1179,9 @@ export default function AdminSuite({
           user={editUserData}
           towns={allTowns.content}
           onClose={() => setModal(null)}
-          onSave={(f: EditUserFormData) => handleEditUser(editUserData.id, f)}
+          onSave={(f: EditUserFormData) =>
+            handleEditUser(editUserData.userId, f)
+          }
         />
       )}
       {modal?.type === 'deleteTown' && deleteTownData && (
@@ -1196,7 +1195,7 @@ export default function AdminSuite({
         <DeleteUserModal
           user={deleteUserData}
           onClose={() => setModal(null)}
-          onConfirm={() => handleDeleteUser(deleteUserData.id)}
+          onConfirm={() => handleDeleteUser(deleteUserData.userId)}
         />
       )}
     </div>

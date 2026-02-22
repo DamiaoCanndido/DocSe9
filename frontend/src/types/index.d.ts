@@ -20,6 +20,14 @@ declare interface LoginRequest {
   password: string;
 }
 
+declare interface UserReqProps {
+  username: string;
+  email: string;
+  role: 'basic' | 'manager' | 'admin';
+  password: string;
+  confirm: string;
+}
+
 declare interface UserResProps {
   userId: string;
   username: string;
@@ -90,6 +98,15 @@ declare interface SearchParamProps {
 
 declare interface DocsQueries {
   name?: string;
+  page?: string;
+  size?: string;
+  sort?: string;
+}
+
+declare interface UsersQueries {
+  name?: string;
+  role?: string;
+  town?: string;
   page?: string;
   size?: string;
   sort?: string;

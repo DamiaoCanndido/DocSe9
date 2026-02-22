@@ -27,11 +27,12 @@ export async function getMe() {
   }
 }
 
-export async function getUsers() {
+export async function getUsers(queries: UsersQueries) {
   try {
     const token = await getToken();
     const me = await apiServer.get('/v2/users', {
       headers: { Authorization: `Bearer ${token}` },
+      params: { ...queries },
     });
 
     return parseStringify(me.data);
