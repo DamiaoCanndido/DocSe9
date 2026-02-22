@@ -62,6 +62,7 @@ declare interface TownResProps {
   name: string;
   uf: string;
   imageUrl: string;
+  totalUsers: number;
 }
 
 declare interface PaginatedResponse<T> {

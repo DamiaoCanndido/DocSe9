@@ -53,7 +53,7 @@ export default function AdminTowns({
             <div className="flex items-center justify-between pt-2 border-t border-gray-100 mt-auto">
               <div className="flex items-center gap-1.5 text-sm text-gray-600">
                 <Users size={13} className="text-gray-400" />
-                <span className="font-medium">0 Usuários</span>
+                <span className="font-medium">{town.totalUsers} Usuários</span>
               </div>
               <div className="flex items-center gap-2">
                 <button
