@@ -1,16 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import {
-  Search,
-  HelpCircle,
-  Settings,
-  LayoutGrid,
-  Bell,
-  Menu,
-  ChevronDown,
-  Filter,
-} from 'lucide-react';
+import { Settings, Bell, Menu, ChevronDown } from 'lucide-react';
 import Image from 'next/image';
 import { useApp } from '@/contexts/AppContext';
 import { signOutUser } from '@/lib/data';
@@ -35,7 +26,11 @@ export const Navbar: React.FC<{ currentUser: UserResProps }> = ({
         </button>
       </div>
 
-      <SearchFoldersAndFiles />
+      {currentUser.role.name !== 'admin' ? (
+        <SearchFoldersAndFiles />
+      ) : (
+        <div></div>
+      )}
 
       {/* Right Actions */}
       <div className="flex items-center gap-1 sm:gap-2 ml-2 sm:ml-4 shrink-0">

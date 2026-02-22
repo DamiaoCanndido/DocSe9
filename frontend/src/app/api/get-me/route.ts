@@ -1,9 +1,9 @@
 import { apiServer } from '@/lib/axios';
 import { AxiosError } from 'axios';
 import { cookies } from 'next/headers';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
-export async function GET(req: NextRequest, res: NextResponse) {
+export async function GET() {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get('docse9-auth-token')?.value;

@@ -19,7 +19,6 @@ import FolderCtxMenu from '@/components/FolderCtxMenu';
 import { ViewDocsType } from '@/components/DocsLoad';
 import { getViewUrl } from '@/lib/data';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useApp } from '@/contexts/AppContext';
@@ -35,7 +34,7 @@ const DocsContent = ({
 }) => {
   const path = usePathname();
 
-  const [sortBy, setSortBy] = useState<'name' | 'modified' | 'size'>('name');
+  // const [sortBy, setSortBy] = useState<'name' | 'modified' | 'size'>('name');
   const { displayMode, setDisplayMode } = useApp();
 
   const router = useRouter();

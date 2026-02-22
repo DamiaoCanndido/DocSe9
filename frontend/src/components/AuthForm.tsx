@@ -115,8 +115,6 @@ const AuthForm = ({ type }: { type: FormType }) => {
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [townsIsVisible, SetTownsVisible] = useState(false);
-  const [towns, setTowns] = useState<TownResProps[]>([]);
 
   const formSchema = authFormSchema(type);
 

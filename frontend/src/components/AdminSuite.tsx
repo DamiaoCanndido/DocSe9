@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, useMemo, Dispatch, SetStateAction } from 'react';
+import { useState, useMemo } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import Image from 'next/image';
 import { z } from 'zod';
 import {
   LayoutDashboard,
@@ -17,14 +16,10 @@ import {
   Trash2,
   MapPin,
   TrendingUp,
-  X,
   User,
   Mail,
-  Eye,
-  EyeOff,
   ChevronDown,
   HelpCircle,
-  AlertCircle,
   CheckCircle2,
 } from 'lucide-react';
 import {
@@ -42,11 +37,17 @@ import AdminSettings from '@/components/AdminSettings';
 import { usePathname } from 'next/navigation';
 import { deleteTown, newTown, updateTown } from '@/lib/data';
 import { toast } from 'sonner';
-import SearchTowns from './SearchTowns';
+import AdminTowns from '@/components/AdminTowns';
+import AddTownModal from '@/components/AddTownModal';
+import AdminModal from '@/components/AdminModal';
+import AdminInput from '@/components/AdminInput';
+import ModalActions from '@/components/ModalActions';
+import EditTownModal from '@/components/EditTownModal';
+import DeleteTownModal from '@/components/DeleteTownModal';
 
 // ─── Zod Schemas ───────────────────────────────────────────────────────────────
 
-const townSchema = z.object({
+export const townSchema = z.object({
   name: z
     .string()
     .min(3, 'O nome do municipio deve ter pelo menos 2 caracteres.'),
@@ -92,9 +93,9 @@ type ModalType =
   | 'editUser'
   | 'deleteUser';
 
-type TownFormData = z.infer<typeof townSchema>;
 type AddUserFormData = z.infer<typeof addUserSchema>;
 type EditUserFormData = z.infer<typeof editUserSchema>;
+export type TownFormData = z.infer<typeof townSchema>;
 
 interface AppUser {
   id: number;
@@ -255,111 +256,6 @@ function Toggle({ checked, onChange }: ToggleProps) {
   );
 }
 
-interface InputProps {
-  label?: string;
-  required?: boolean;
-  icon?: React.ComponentType<{ size?: number; className?: string }>;
-  placeholder?: string;
-  value: string;
-  onChange: (value: string) => void;
-  type?: 'text' | 'email' | 'password';
-  error?: string;
-}
-
-function Input({
-  label,
-  required,
-  icon: Icon,
-  placeholder,
-  value,
-  onChange,
-  type = 'text',
-  error,
-}: InputProps) {
-  const [show, setShow] = useState<boolean>(false);
-  const inputType = type === 'password' ? (show ? 'text' : 'password') : type;
-
-  return (
-    <div className="flex flex-col gap-1">
-      {label && (
-        <label className="text-sm font-medium text-gray-700">
-          {label} {required && <span className="text-gray-500">*</span>}
-        </label>
-      )}
-      <div className="relative">
-        {Icon && (
-          <Icon
-            size={15}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-          />
-        )}
-        <input
-          type={inputType}
-          placeholder={placeholder}
-          value={value}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            onChange(e.target.value)
-          }
-          className={`w-full border rounded-xl px-3 py-2.5 text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 transition ${
-            error
-              ? 'border-red-300 focus:ring-red-100 focus:border-red-400'
-              : 'border-gray-200 focus:ring-blue-200 focus:border-blue-400'
-          } ${Icon ? 'pl-9' : ''} ${type === 'password' ? 'pr-9' : ''}`}
-        />
-        {type === 'password' && (
-          <button
-            type="button"
-            onClick={() => setShow((s) => !s)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
-            tabIndex={-1}
-          >
-            {show ? <EyeOff size={15} /> : <Eye size={15} />}
-          </button>
-        )}
-      </div>
-      {error && <p className="text-xs text-red-500 mt-0.5">{error}</p>}
-    </div>
-  );
-}
-
-interface TextareaProps {
-  label?: string;
-  placeholder?: string;
-  value: string;
-  onChange: (value: string) => void;
-  error?: string;
-}
-
-function Textarea({
-  label,
-  placeholder,
-  value,
-  onChange,
-  error,
-}: TextareaProps) {
-  return (
-    <div className="flex flex-col gap-1">
-      {label && (
-        <label className="text-sm font-medium text-gray-700">{label}</label>
-      )}
-      <textarea
-        placeholder={placeholder}
-        value={value}
-        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-          onChange(e.target.value)
-        }
-        rows={4}
-        className={`w-full border rounded-xl px-3 py-2.5 text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 transition resize-none ${
-          error
-            ? 'border-red-300 focus:ring-red-100 focus:border-red-400'
-            : 'border-gray-200 focus:ring-blue-200 focus:border-blue-400'
-        }`}
-      />
-      {error && <p className="text-xs text-red-500 mt-0.5">{error}</p>}
-    </div>
-  );
-}
-
 interface SelectProps {
   label?: string;
   required?: boolean;
@@ -412,214 +308,7 @@ function Select({
   );
 }
 
-interface ModalProps {
-  title: string;
-  onClose: () => void;
-  children: React.ReactNode;
-}
-
-function Modal({ title, onClose, children }: ModalProps) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div
-        className="absolute inset-0 bg-black/30 backdrop-blur-sm"
-        onClick={onClose}
-      />
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md">
-        <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-100">
-          <h2 className="text-lg font-bold text-gray-900">{title}</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition"
-          >
-            <X size={20} />
-          </button>
-        </div>
-        <div className="p-6 flex flex-col gap-4">{children}</div>
-      </div>
-    </div>
-  );
-}
-
-interface ModalActionsProps {
-  onCancel: () => void;
-  confirmLabel: string;
-}
-
-function ModalActions({ onCancel, confirmLabel }: ModalActionsProps) {
-  return (
-    <div className="flex items-center justify-between pt-2 border-t border-gray-100 -mx-6 -mb-2 px-6 pb-0">
-      <button
-        type="button"
-        onClick={onCancel}
-        className="text-sm font-medium text-gray-600 hover:text-gray-900 transition py-2"
-      >
-        Cancelar
-      </button>
-      <button
-        type="submit"
-        className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-6 py-2.5 rounded-xl transition"
-      >
-        {confirmLabel}
-      </button>
-    </div>
-  );
-}
-
 // ─── Modals ────────────────────────────────────────────────────────────────────
-
-interface AddTownModalProps {
-  onClose: () => void;
-  onSave: (form: TownFormData) => void;
-}
-
-function AddTownModal({ onClose, onSave }: AddTownModalProps) {
-  const {
-    control,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<TownFormData>({
-    resolver: zodResolver(townSchema),
-    defaultValues: { name: '', uf: '', imageUrl: '' },
-  });
-
-  return (
-    <Modal title="Adicionar município" onClose={onClose}>
-      <form
-        onSubmit={handleSubmit((data) => {
-          onSave(data);
-          onClose();
-        })}
-        className="flex flex-col gap-4"
-      >
-        <Controller
-          name="name"
-          control={control}
-          render={({ field }) => (
-            <Input
-              label="Nome"
-              required
-              placeholder="São Francisco"
-              value={field.value}
-              onChange={field.onChange}
-              error={errors.name?.message}
-            />
-          )}
-        />
-        <Controller
-          name="uf"
-          control={control}
-          render={({ field }) => (
-            <Input
-              label="Estado (UF)"
-              placeholder="PB"
-              value={field.value}
-              onChange={field.onChange}
-              error={errors.uf?.message}
-            />
-          )}
-        />
-        <Controller
-          name="imageUrl"
-          control={control}
-          render={({ field }) => (
-            <Input
-              label="Url de imagem"
-              placeholder="https://www.logos.com/municipio.jpg"
-              value={field.value ?? ''}
-              onChange={field.onChange}
-              error={errors.imageUrl?.message}
-            />
-          )}
-        />
-        <ModalActions onCancel={onClose} confirmLabel="Salvar" />
-      </form>
-    </Modal>
-  );
-}
-
-interface EditTownModalProps {
-  town: TownResProps;
-  onClose: () => void;
-  onSave: (form: TownFormData) => void;
-}
-
-function EditTownModal({ town, onClose, onSave }: EditTownModalProps) {
-  const count: number = userCounts[town.name] ?? 0;
-
-  const {
-    control,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<TownFormData>({
-    resolver: zodResolver(townSchema),
-    defaultValues: {
-      name: town.name,
-      uf: town.uf,
-      imageUrl: town.imageUrl,
-    },
-  });
-
-  return (
-    <Modal title="Editar município" onClose={onClose}>
-      <form
-        onSubmit={handleSubmit((data) => {
-          onSave(data);
-          onClose();
-        })}
-        className="flex flex-col gap-4"
-      >
-        <Controller
-          name="name"
-          control={control}
-          render={({ field }) => (
-            <Input
-              label="Nome"
-              required
-              value={field.value}
-              onChange={field.onChange}
-              error={errors.name?.message}
-            />
-          )}
-        />
-        <Controller
-          name="uf"
-          control={control}
-          render={({ field }) => (
-            <Input
-              label="Estado (UF)"
-              value={field.value}
-              onChange={field.onChange}
-              error={errors.uf?.message}
-            />
-          )}
-        />
-        <Controller
-          name="imageUrl"
-          control={control}
-          render={({ field }) => (
-            <Input
-              label="Url do logo"
-              value={field.value ?? ''}
-              onChange={field.onChange}
-              error={errors.imageUrl?.message}
-            />
-          )}
-        />
-        {count > 0 && (
-          <div className="flex items-start gap-2 bg-blue-50 rounded-xl p-3 text-xs text-blue-700">
-            <AlertCircle size={14} className="mt-0.5 shrink-0" />
-            <span>
-              Alterar o nome do município atualizará o registro para todos os{' '}
-              {count} usuários associados imediatamente.
-            </span>
-          </div>
-        )}
-        <ModalActions onCancel={onClose} confirmLabel="Editar município" />
-      </form>
-    </Modal>
-  );
-}
 
 interface AddUserModalProps {
   towns: TownResProps[];
@@ -646,7 +335,7 @@ function AddUserModal({ towns, onClose, onSave }: AddUserModalProps) {
   });
 
   return (
-    <Modal title="Add New User" onClose={onClose}>
+    <AdminModal title="Add New User" onClose={onClose}>
       <form
         onSubmit={handleSubmit((data) => {
           onSave(data);
@@ -658,7 +347,7 @@ function AddUserModal({ towns, onClose, onSave }: AddUserModalProps) {
           name="name"
           control={control}
           render={({ field }) => (
-            <Input
+            <AdminInput
               label="Full Name"
               required
               icon={User}
@@ -673,7 +362,7 @@ function AddUserModal({ towns, onClose, onSave }: AddUserModalProps) {
           name="email"
           control={control}
           render={({ field }) => (
-            <Input
+            <AdminInput
               label="Email"
               required
               icon={Mail}
@@ -690,7 +379,7 @@ function AddUserModal({ towns, onClose, onSave }: AddUserModalProps) {
             name="password"
             control={control}
             render={({ field }) => (
-              <Input
+              <AdminInput
                 label="Password"
                 required
                 type="password"
@@ -705,7 +394,7 @@ function AddUserModal({ towns, onClose, onSave }: AddUserModalProps) {
             name="confirm"
             control={control}
             render={({ field }) => (
-              <Input
+              <AdminInput
                 label="Confirm"
                 required
                 type="password"
@@ -766,7 +455,7 @@ function AddUserModal({ towns, onClose, onSave }: AddUserModalProps) {
         />
         <ModalActions onCancel={onClose} confirmLabel="Save User" />
       </form>
-    </Modal>
+    </AdminModal>
   );
 }
 
@@ -794,7 +483,7 @@ function EditUserModal({ user, towns, onClose, onSave }: EditUserModalProps) {
   });
 
   return (
-    <Modal title="Edit User" onClose={onClose}>
+    <AdminModal title="Edit User" onClose={onClose}>
       <form
         onSubmit={handleSubmit((data) => {
           onSave(data);
@@ -806,7 +495,7 @@ function EditUserModal({ user, towns, onClose, onSave }: EditUserModalProps) {
           name="name"
           control={control}
           render={({ field }) => (
-            <Input
+            <AdminInput
               label="Full Name"
               required
               icon={User}
@@ -820,7 +509,7 @@ function EditUserModal({ user, towns, onClose, onSave }: EditUserModalProps) {
           name="email"
           control={control}
           render={({ field }) => (
-            <Input
+            <AdminInput
               label="Email"
               required
               icon={Mail}
@@ -880,74 +569,7 @@ function EditUserModal({ user, towns, onClose, onSave }: EditUserModalProps) {
         />
         <ModalActions onCancel={onClose} confirmLabel="Update User" />
       </form>
-    </Modal>
-  );
-}
-
-interface DeleteTownModalProps {
-  town: TownResProps;
-  onClose: () => void;
-  onConfirm: () => void;
-}
-
-function DeleteTownModal({ town, onClose, onConfirm }: DeleteTownModalProps) {
-  const count: number = userCounts[town.name] ?? 0;
-
-  return (
-    <Modal title="Excluir município" onClose={onClose}>
-      <div className="flex flex-col items-center gap-4 py-2 text-center">
-        <div className="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center">
-          <Trash2 size={26} className="text-red-500" />
-        </div>
-        <div>
-          <p className="text-base font-semibold text-gray-900">
-            Excluir "{town.name}"?
-          </p>
-          <p className="text-sm text-gray-500 mt-1">
-            Essa ação não pode ser desfeita.
-          </p>
-        </div>
-        <div className="w-full bg-gray-50 rounded-xl border border-gray-100 divide-y divide-gray-100">
-          <div className="flex items-center justify-between px-4 py-2.5 text-sm">
-            <span className="text-gray-500">Estado (UF)</span>
-            <span className="font-medium text-gray-800">{town.uf}</span>
-          </div>
-
-          <div className="flex items-center justify-between px-4 py-2.5 text-sm">
-            <span className="text-gray-500">Usuários associados</span>
-            <span className="font-medium text-gray-800">{count}</span>
-          </div>
-        </div>
-        {count > 0 && (
-          <div className="flex items-start gap-2 bg-red-50 rounded-xl p-3 text-xs text-red-700 text-left w-full">
-            <AlertCircle size={14} className="mt-0.5 shrink-0" />
-            <span>
-              A exclusão desta cidade afetará {count} usuários associados. O
-              campo "município" deles precisará ser atualizado manualmente.
-            </span>
-          </div>
-        )}
-      </div>
-      <div className="flex items-center justify-between pt-2 border-t border-gray-100 -mx-6 -mb-2 px-6 pb-0">
-        <button
-          type="button"
-          onClick={onClose}
-          className="text-sm font-medium text-gray-600 hover:text-gray-900 transition py-2"
-        >
-          Cancelar
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            onConfirm();
-            onClose();
-          }}
-          className="bg-red-600 hover:bg-red-700 text-white text-sm font-semibold px-6 py-2.5 rounded-xl transition"
-        >
-          Excluir
-        </button>
-      </div>
-    </Modal>
+    </AdminModal>
   );
 }
 
@@ -959,7 +581,7 @@ interface DeleteUserModalProps {
 
 function DeleteUserModal({ user, onClose, onConfirm }: DeleteUserModalProps) {
   return (
-    <Modal title="Delete User" onClose={onClose}>
+    <AdminModal title="Delete User" onClose={onClose}>
       <div className="flex flex-col items-center gap-4 py-2 text-center">
         <div className="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center">
           <Trash2 size={26} className="text-red-500" />
@@ -1010,7 +632,7 @@ function DeleteUserModal({ user, onClose, onConfirm }: DeleteUserModalProps) {
           Delete User
         </button>
       </div>
-    </Modal>
+    </AdminModal>
   );
 }
 
@@ -1353,76 +975,6 @@ function UsersPage({ users, towns, onAdd, onEdit, onDelete }: UsersPageProps) {
   );
 }
 
-interface TownsPageProps {
-  towns: TownResProps[];
-  onAdd: () => void;
-  onEdit: (town: TownResProps) => void;
-  onDelete: (town: TownResProps) => void;
-}
-
-function TownsPage({ towns, onAdd, onEdit, onDelete }: TownsPageProps) {
-  return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-col sm:flex-row gap-3">
-        <SearchTowns />
-        <button
-          onClick={onAdd}
-          className="bg-blue-600 hover:bg-blue-700 text-white cursor-pointer text-sm font-semibold px-4 py-2.5 rounded-xl flex items-center gap-1.5 transition whitespace-nowrap self-start"
-        >
-          <Plus size={15} /> Novo município
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {towns.map((town) => (
-          <div
-            key={town.townId}
-            className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col gap-3 hover:border-blue-200 transition"
-          >
-            <Image
-              className="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center"
-              src={town.imageUrl}
-              alt={'town_logo'}
-              width={11}
-              height={11}
-            />
-
-            <div>
-              <h3 className="text-base font-bold text-gray-900">{town.name}</h3>
-              <div className="flex items-center gap-1 text-xs text-gray-500 mt-0.5">
-                <MapPin size={11} />
-                {town.uf}
-              </div>
-            </div>
-            <div className="flex items-center justify-between pt-2 border-t border-gray-100 mt-auto">
-              <div className="flex items-center gap-1.5 text-sm text-gray-600">
-                <Users size={13} className="text-gray-400" />
-                <span className="font-medium">
-                  {userCounts[town.name] ?? 0} Usuários
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => onEdit(town)}
-                  className="p-1.5 text-gray-400 hover:text-blue-600 transition rounded-lg hover:bg-blue-50"
-                >
-                  <Pencil size={14} />
-                </button>
-                <button
-                  onClick={() => onDelete(town)}
-                  className="p-1.5 text-gray-400 hover:text-red-500 transition rounded-lg hover:bg-red-50"
-                >
-                  <Trash2 size={14} />
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 // ─── Main App ──────────────────────────────────────────────────────────────────
 
 export default function AdminSuite({
@@ -1591,7 +1143,7 @@ export default function AdminSuite({
             />
           )}
           {tab === 'towns' && (
-            <TownsPage
+            <AdminTowns
               towns={allTowns.content}
               onAdd={() => setModal({ type: 'addTown' })}
               onEdit={(town) => setModal({ type: 'editTown', data: town })}

@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import axios, { AxiosError } from 'axios';
 
-export async function POST(req: NextRequest, res: NextResponse) {
+export async function POST(req: NextRequest) {
   try {
     const { email, password }: LoginRequest = await req.json();
     const response = await apiServer.post('/v2/login', {

@@ -3,7 +3,7 @@
 import { getTowns } from '@/lib/data';
 import { Search } from 'lucide-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { Dispatch, SetStateAction, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useDebounce } from 'use-debounce';
 
 const SearchTowns = () => {

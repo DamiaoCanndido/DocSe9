@@ -10,7 +10,6 @@ import {
   Trash2,
   Plus,
   Cloud,
-  Menu,
   X,
   ShieldCheck,
 } from 'lucide-react';

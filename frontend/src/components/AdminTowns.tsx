@@ -1,0 +1,78 @@
+'use client';
+
+import SearchTowns from '@/components/SearchTowns';
+import { MapPin, Pencil, Plus, Trash2, Users } from 'lucide-react';
+import Image from 'next/image';
+
+interface TownsPageProps {
+  towns: TownResProps[];
+  onAdd: () => void;
+  onEdit: (town: TownResProps) => void;
+  onDelete: (town: TownResProps) => void;
+}
+
+export default function AdminTowns({
+  towns,
+  onAdd,
+  onEdit,
+  onDelete,
+}: TownsPageProps) {
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-col sm:flex-row gap-3">
+        <SearchTowns />
+        <button
+          onClick={onAdd}
+          className="bg-blue-600 hover:bg-blue-700 text-white cursor-pointer text-sm font-semibold px-4 py-2.5 rounded-xl flex items-center gap-1.5 transition whitespace-nowrap self-start"
+        >
+          <Plus size={15} /> Novo município
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {towns.map((town) => (
+          <div
+            key={town.townId}
+            className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col gap-3 hover:border-blue-200 transition"
+          >
+            <Image
+              className="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center"
+              src={town.imageUrl}
+              alt={'town_logo'}
+              width={11}
+              height={11}
+            />
+
+            <div>
+              <h3 className="text-base font-bold text-gray-900">{town.name}</h3>
+              <div className="flex items-center gap-1 text-xs text-gray-500 mt-0.5">
+                <MapPin size={11} />
+                {town.uf}
+              </div>
+            </div>
+            <div className="flex items-center justify-between pt-2 border-t border-gray-100 mt-auto">
+              <div className="flex items-center gap-1.5 text-sm text-gray-600">
+                <Users size={13} className="text-gray-400" />
+                <span className="font-medium">0 Usuários</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => onEdit(town)}
+                  className="p-1.5 text-gray-400 hover:text-blue-600 transition rounded-lg hover:bg-blue-50"
+                >
+                  <Pencil size={14} />
+                </button>
+                <button
+                  onClick={() => onDelete(town)}
+                  className="p-1.5 text-gray-400 hover:text-red-500 transition rounded-lg hover:bg-red-50"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}

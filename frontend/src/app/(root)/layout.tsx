@@ -1,7 +1,6 @@
 import { getMe } from '@/lib/data';
 import { Sidebar } from '@/components/Sidebar';
 import React from 'react';
-import { Toaster } from 'sonner';
 import { Navbar } from '@/components/Navbar';
 
 const Layout = async ({ children }: { children: React.ReactNode }) => {
