@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -44,6 +44,7 @@ import AdminInput from '@/components/AdminInput';
 import ModalActions from '@/components/ModalActions';
 import EditTownModal from '@/components/EditTownModal';
 import DeleteTownModal from '@/components/DeleteTownModal';
+import SearchUsers from './SearchUsers';
 
 // ─── Zod Schemas ───────────────────────────────────────────────────────────────
 
@@ -299,11 +300,12 @@ function Select({
 
 interface AddUserModalProps {
   towns: TownResProps[];
+  me: UserResProps;
   onClose: () => void;
   onSave: (form: AddUserFormData) => void;
 }
 
-function AddUserModal({ towns, onClose, onSave }: AddUserModalProps) {
+function AddUserModal({ towns, me, onClose, onSave }: AddUserModalProps) {
   const {
     control,
     handleSubmit,
@@ -316,7 +318,7 @@ function AddUserModal({ towns, onClose, onSave }: AddUserModalProps) {
       active: true,
       password: '',
       confirm: '',
-      townId: undefined,
+      townId: me.role.name === 'admin' ? undefined : me.town?.townId,
       role: 'basic',
     },
   });
@@ -364,20 +366,6 @@ function AddUserModal({ towns, onClose, onSave }: AddUserModalProps) {
 
         <div className="grid grid-cols-2 gap-3">
           <Controller
-            name="townId"
-            control={control}
-            render={({ field }) => (
-              <Select
-                label="Town"
-                required
-                value={field.value || ''}
-                onChange={field.onChange}
-                options={towns.map((t) => t.name)}
-                error={errors.townId?.message}
-              />
-            )}
-          />
-          <Controller
             name="role"
             control={control}
             render={({ field }) => (
@@ -386,8 +374,29 @@ function AddUserModal({ towns, onClose, onSave }: AddUserModalProps) {
                 required
                 value={field.value}
                 onChange={field.onChange}
-                options={['basic', 'manager', 'admin']}
+                options={['basic', 'manager', 'admin'].filter((r) => {
+                  if (me.role.name === 'admin') return true;
+                  return r !== 'admin';
+                })}
                 error={errors.role?.message}
+              />
+            )}
+          />
+          <Controller
+            name="townId"
+            control={control}
+            render={({ field }) => (
+              <Select
+                label="Town"
+                required
+                value={field.value || ''}
+                onChange={field.onChange}
+                options={
+                  me.role.name === 'admin'
+                    ? towns.map((t) => t.name)
+                    : [me.town?.name || '']
+                }
+                error={errors.townId?.message}
               />
             )}
           />
@@ -449,12 +458,19 @@ function AddUserModal({ towns, onClose, onSave }: AddUserModalProps) {
 
 interface EditUserModalProps {
   user: UserResProps;
+  me: UserResProps;
   towns: TownResProps[];
   onClose: () => void;
   onSave: (form: EditUserFormData) => void;
 }
 
-function EditUserModal({ user, towns, onClose, onSave }: EditUserModalProps) {
+function EditUserModal({
+  user,
+  me,
+  towns,
+  onClose,
+  onSave,
+}: EditUserModalProps) {
   const {
     control,
     handleSubmit,
@@ -511,20 +527,26 @@ function EditUserModal({ user, towns, onClose, onSave }: EditUserModalProps) {
           )}
         />
         <div className="grid grid-cols-2 gap-3">
-          <Controller
-            name="townId"
-            control={control}
-            render={({ field }) => (
-              <Select
-                label="Town"
-                required
-                value={field.value || ''}
-                onChange={field.onChange}
-                options={towns.map((t) => t.name)}
-                error={errors.townId?.message}
-              />
-            )}
-          />
+          {me.role.name !== 'admin' && (
+            <Controller
+              name="townId"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  label="Town"
+                  required
+                  value={field.value || ''}
+                  onChange={field.onChange}
+                  options={
+                    me.role.name === 'admin'
+                      ? towns.map((t) => t.name)
+                      : [me.town?.name || '']
+                  }
+                  error={errors.townId?.message}
+                />
+              )}
+            />
+          )}
           <Controller
             name="role"
             control={control}
@@ -534,7 +556,10 @@ function EditUserModal({ user, towns, onClose, onSave }: EditUserModalProps) {
                 required
                 value={field.value}
                 onChange={field.onChange}
-                options={['basic', 'manager', 'admin']}
+                options={['basic', 'manager', 'admin'].filter((r) => {
+                  if (me.role.name === 'admin') return true;
+                  return r !== 'admin';
+                })}
                 error={errors.role?.message}
               />
             )}
@@ -837,93 +862,25 @@ function DashboardPage({ users, towns }: DashboardPageProps) {
 
 interface UsersPageProps {
   users: UserResProps[];
+  me: UserResProps;
   towns: TownResProps[];
   onAdd: () => void;
   onEdit: (user: UserResProps) => void;
   onDelete: (user: UserResProps) => void;
 }
 
-function UsersPage({ users, towns, onAdd, onEdit, onDelete }: UsersPageProps) {
-  const [search, setSearch] = useState<string>('');
-  const [townFilter, setTownFilter] = useState<string>('Todos');
-  const [roleFilter, setRoleFilter] = useState<string>('Todas');
-
-  const filtered: UserResProps[] = useMemo(
-    () =>
-      users.filter((u) => {
-        const matchSearch =
-          u.username.toLowerCase().includes(search.toLowerCase()) ||
-          u.email.toLowerCase().includes(search.toLowerCase());
-        const matchTown = townFilter === 'Todos' || u.town?.name === townFilter;
-        const matchRole = roleFilter === 'Todas' || u.role.name === roleFilter;
-        return matchSearch && matchTown && matchRole;
-      }),
-    [users, search, townFilter, roleFilter]
-  );
-
+function UsersPage({
+  users,
+  me,
+  towns,
+  onAdd,
+  onEdit,
+  onDelete,
+}: UsersPageProps) {
   return (
     <div className="flex flex-col gap-4">
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
-          <Search
-            size={15}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-          />
-          <input
-            placeholder="Search by name or email"
-            value={search}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setSearch(e.target.value)
-            }
-            className="w-full border border-gray-200 rounded-xl pl-9 pr-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-200"
-          />
-        </div>
-        <div className="flex gap-2 flex-wrap">
-          <div className="relative">
-            <select
-              value={townFilter}
-              onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                setTownFilter(e.target.value)
-              }
-              className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white appearance-none pr-7 focus:outline-none focus:ring-2 focus:ring-blue-200"
-            >
-              <option>Todos</option>
-              {towns.map((t) => (
-                <option key={t.townId}>{t.name}</option>
-              ))}
-            </select>
-            <ChevronDown
-              size={13}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-            />
-          </div>
-          <div className="relative">
-            <select
-              value={roleFilter}
-              onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                setRoleFilter(e.target.value)
-              }
-              className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white appearance-none pr-7 focus:outline-none focus:ring-2 focus:ring-blue-200"
-            >
-              <option>Todas</option>
-              <option>basic</option>
-              <option>manager</option>
-              <option>admin</option>
-            </select>
-            <ChevronDown
-              size={13}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-            />
-          </div>
-          <button
-            onClick={onAdd}
-            className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl flex items-center gap-1.5 transition whitespace-nowrap"
-          >
-            <Plus size={15} /> Add New User
-          </button>
-        </div>
-      </div>
+      <SearchUsers me={me} towns={towns} onAdd={onAdd} />
 
       {/* Table */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
@@ -944,11 +901,11 @@ function UsersPage({ users, towns, onAdd, onEdit, onDelete }: UsersPageProps) {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((user, i) => (
+              {users.map((user, i) => (
                 <tr
                   key={user.userId}
                   className={`border-b border-gray-50 hover:bg-gray-50 transition ${
-                    i === filtered.length - 1 ? 'border-0' : ''
+                    i === users.length - 1 ? 'border-0' : ''
                   }`}
                 >
                   <td className="px-4 py-3">
@@ -1133,6 +1090,7 @@ export default function AdminSuite({
           {tab === 'users' && (
             <UsersPage
               users={allUsers.content}
+              me={user}
               towns={allTowns.content}
               onAdd={() => setModal({ type: 'addUser' })}
               onEdit={(user) => setModal({ type: 'editUser', data: user })}
@@ -1170,6 +1128,7 @@ export default function AdminSuite({
       {modal?.type === 'addUser' && (
         <AddUserModal
           towns={allTowns.content}
+          me={user}
           onClose={() => setModal(null)}
           onSave={handleAddUser}
         />
@@ -1177,6 +1136,7 @@ export default function AdminSuite({
       {modal?.type === 'editUser' && editUserData && (
         <EditUserModal
           user={editUserData}
+          me={user}
           towns={allTowns.content}
           onClose={() => setModal(null)}
           onSave={(f: EditUserFormData) =>

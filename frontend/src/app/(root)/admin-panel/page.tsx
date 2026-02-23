@@ -4,6 +4,13 @@ import { getMe, getTowns, getUsers } from '@/lib/data';
 export default async function AdminPanel({ searchParams }: SearchParamProps) {
   const currentUser: UserResProps = await getMe();
 
+  /*
+  
+  name is used for both user and town search, 
+  so it can be present even if we're on a town-only search. 
+  In that case, it should be treated as empty to avoid filtering out all towns.  
+  
+  */
   const name = ((await searchParams)?.name as string) || '';
   const role = ((await searchParams)?.role as string) || '';
   const town = ((await searchParams)?.town as string) || '';
@@ -36,7 +43,18 @@ export default async function AdminPanel({ searchParams }: SearchParamProps) {
 
   if (currentUser.role.name === 'admin') {
     towns = await getTowns({ queries: { name, page, size, sort } });
-    users = await getUsers({ name, role, town, page, size, sort });
+    users = await getUsers({
+      queries: {
+        name,
+        role,
+        town: town || undefined,
+        page,
+        size,
+        sort,
+      },
+    });
+  } else {
+    users = await getUsers({ queries: { name, role, town, page, size, sort } });
   }
 
   return (

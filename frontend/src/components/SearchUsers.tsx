@@ -1,0 +1,123 @@
+'use client';
+
+import { getUsers } from '@/lib/data';
+import { ChevronDown, Plus, Search } from 'lucide-react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useDebounce } from 'use-debounce';
+
+const SearchUsers = (props: {
+  me: UserResProps;
+  towns: TownResProps[];
+  onAdd: () => void;
+}) => {
+  const [name, setName] = useState<string>('');
+  const [townFilter, setTownFilter] = useState<string>('');
+  const [roleFilter, setRoleFilter] = useState<string>('');
+  const [debouncedName] = useDebounce(name, 500);
+
+  const searchParams = useSearchParams();
+  const path = usePathname();
+  const router = useRouter();
+
+  // Sync state with URL params on mount
+  useEffect(() => {
+    setName(searchParams.get('name') || '');
+    setTownFilter(searchParams.get('town') || '');
+    setRoleFilter(searchParams.get('role') || '');
+  }, []);
+
+  // Trigger search whenever debounced name, town or role changes
+  useEffect(() => {
+    const filteredItems = async () => {
+      await getUsers({
+        queries: { name: debouncedName, town: townFilter, role: roleFilter },
+        path,
+      });
+
+      const params = new URLSearchParams();
+      if (debouncedName) params.set('name', debouncedName);
+      if (townFilter) params.set('town', townFilter);
+      if (roleFilter) params.set('role', roleFilter);
+
+      router.push(`/admin-panel?${params.toString()}`);
+    };
+
+    filteredItems();
+  }, [debouncedName, townFilter, roleFilter]);
+
+  return (
+    <div className="flex flex-col sm:flex-row gap-3">
+      <div className="relative flex-1">
+        <Search
+          size={15}
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+        />
+        <input
+          placeholder="Search by name or email"
+          value={name}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            setName(e.target.value)
+          }
+          className="w-full border border-gray-200 rounded-xl pl-9 pr-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-200"
+        />
+      </div>
+      <div className="flex gap-2 flex-wrap">
+        {props.me.role.name === 'admin' ? (
+          <div className="relative">
+            <select
+              value={townFilter}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                setTownFilter(e.target.value)
+              }
+              className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white appearance-none pr-7 focus:outline-none focus:ring-2 focus:ring-blue-200"
+            >
+              <option value="">Todos</option>
+              {props.towns.map((t) => (
+                <option key={t.townId} value={t.name}>
+                  {t.name}
+                </option>
+              ))}
+            </select>
+            <ChevronDown
+              size={13}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+            />
+          </div>
+        ) : (
+          <div className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-gray-100 text-gray-500">
+            {props.me.town?.name}
+          </div>
+        )}
+        <div className="relative">
+          <select
+            value={roleFilter}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+              setRoleFilter(e.target.value)
+            }
+            className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white appearance-none pr-7 focus:outline-none focus:ring-2 focus:ring-blue-200"
+          >
+            <option value="">Todas</option>
+            <option value="basic">basic</option>
+            <option value="manager">manager</option>
+            {props.me.role.name === 'admin' && (
+              <option value="admin">admin</option>
+            )}
+          </select>
+          <ChevronDown
+            size={13}
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+          />
+        </div>
+        <button
+          onClick={props.onAdd}
+          className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl flex items-center gap-1.5 transition whitespace-nowrap"
+        >
+          <Plus size={15} /> Add New User
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default SearchUsers;
