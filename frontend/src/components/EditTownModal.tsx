@@ -1,12 +1,12 @@
 'use client';
 
-import { TownFormData, townSchema } from '@/components/AdminSuite';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 import AdminModal from '@/components/AdminModal';
 import AdminInput from '@/components/AdminInput';
 import { AlertCircle } from 'lucide-react';
 import ModalActions from '@/components/ModalActions';
+import { TownFormData, townSchema } from '@/components/AddTownModal';
 
 interface EditTownModalProps {
   town: TownResProps;

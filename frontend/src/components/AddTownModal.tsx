@@ -2,10 +2,23 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
+import { z } from 'zod';
 import AdminModal from '@/components/AdminModal';
 import ModalActions from '@/components/ModalActions';
-import { TownFormData, townSchema } from '@/components/AdminSuite';
 import AdminInput from '@/components/AdminInput';
+
+export const townSchema = z.object({
+  name: z
+    .string()
+    .min(3, 'O nome do municipio deve ter pelo menos 2 caracteres.'),
+  uf: z
+    .string()
+    .min(2, 'A UF do municipio deve ter pelo menos 2 caracteres.')
+    .max(2, 'A UF do município não deve ultrapassar 2 caracteres.'),
+  imageUrl: z.url('Passe uma url de imagem'),
+});
+
+export type TownFormData = z.infer<typeof townSchema>;
 
 interface AddTownModalProps {
   onClose: () => void;
