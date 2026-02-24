@@ -10,8 +10,6 @@ import {
   Building2,
   Settings,
   Download,
-  Search,
-  Plus,
   Pencil,
   Trash2,
   MapPin,
@@ -308,6 +306,7 @@ interface AddUserModalProps {
 function AddUserModal({ towns, me, onClose, onSave }: AddUserModalProps) {
   const {
     control,
+    watch,
     handleSubmit,
     formState: { errors },
   } = useForm<AddUserFormData>({
@@ -322,6 +321,8 @@ function AddUserModal({ towns, me, onClose, onSave }: AddUserModalProps) {
       role: 'basic',
     },
   });
+
+  const addRole = watch('role');
 
   return (
     <AdminModal title="Add New User" onClose={onClose}>
@@ -382,24 +383,26 @@ function AddUserModal({ towns, me, onClose, onSave }: AddUserModalProps) {
               />
             )}
           />
-          <Controller
-            name="townId"
-            control={control}
-            render={({ field }) => (
-              <Select
-                label="Town"
-                required
-                value={field.value || ''}
-                onChange={field.onChange}
-                options={
-                  me.role.name === 'admin'
-                    ? towns.map((t) => t.name)
-                    : [me.town?.name || '']
-                }
-                error={errors.townId?.message}
-              />
-            )}
-          />
+          {addRole !== 'admin' && (
+            <Controller
+              name="townId"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  label="Town"
+                  required
+                  value={field.value || ''}
+                  onChange={field.onChange}
+                  options={
+                    me.role.name === 'admin'
+                      ? towns.map((t) => t.name)
+                      : [me.town?.name || '']
+                  }
+                  error={errors.townId?.message}
+                />
+              )}
+            />
+          )}
         </div>
         <div className="grid grid-cols-2 gap-3">
           <Controller
@@ -474,6 +477,7 @@ function EditUserModal({
   const {
     control,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<EditUserFormData>({
     resolver: zodResolver(editUserSchema),
@@ -487,6 +491,8 @@ function EditUserModal({
       confirm: '',
     },
   });
+
+  const editRole = watch('role');
 
   return (
     <AdminModal title="Edit User" onClose={onClose}>
@@ -527,7 +533,24 @@ function EditUserModal({
           )}
         />
         <div className="grid grid-cols-2 gap-3">
-          {me.role.name !== 'admin' && (
+          <Controller
+            name="role"
+            control={control}
+            render={({ field }) => (
+              <Select
+                label="Role"
+                required
+                value={field.value}
+                onChange={field.onChange}
+                options={['basic', 'manager', 'admin'].filter((r) => {
+                  if (me.role.name === 'admin') return true;
+                  return r !== 'admin';
+                })}
+                error={errors.role?.message}
+              />
+            )}
+          />
+          {editRole !== 'admin' && (
             <Controller
               name="townId"
               control={control}
@@ -547,23 +570,6 @@ function EditUserModal({
               )}
             />
           )}
-          <Controller
-            name="role"
-            control={control}
-            render={({ field }) => (
-              <Select
-                label="Role"
-                required
-                value={field.value}
-                onChange={field.onChange}
-                options={['basic', 'manager', 'admin'].filter((r) => {
-                  if (me.role.name === 'admin') return true;
-                  return r !== 'admin';
-                })}
-                error={errors.role?.message}
-              />
-            )}
-          />
         </div>
         <div className="grid grid-cols-2 gap-3">
           <Controller
