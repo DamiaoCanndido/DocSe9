@@ -9,6 +9,7 @@ import { Mail, User } from 'lucide-react';
 import { z } from 'zod';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect } from 'react';
 
 const addUserSchema = z
   .object({
@@ -43,6 +44,7 @@ export default function AddUserModal({
   const {
     control,
     watch,
+    setValue,
     handleSubmit,
     formState: { errors },
   } = useForm<AddUserFormData>({
@@ -53,12 +55,24 @@ export default function AddUserModal({
       active: true,
       password: '',
       confirm: '',
-      townId: towns[0].townId,
       role: 'basic',
+      townId: me.role.name === 'admin' ? towns[0].townId : me.town?.townId,
     },
   });
 
   const addRole = watch('role');
+  const addTownId = watch('townId');
+
+  useEffect(() => {
+    if (addRole === 'admin') {
+      setValue('townId', undefined);
+    } else if (!addTownId) {
+      setValue(
+        'townId',
+        me.role.name === 'admin' ? towns[0].townId : me.town?.townId
+      );
+    }
+  }, [addRole]);
 
   return (
     <AdminModal title="Add New User" onClose={onClose}>
