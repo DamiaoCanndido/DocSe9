@@ -10,19 +10,20 @@ import { z } from 'zod';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect } from 'react';
+import { translateRole } from '@/lib/utils';
 
 const addUserSchema = z
   .object({
-    username: z.string().min(3, 'Full name must be at least 3 characters'),
-    email: z.email('Enter a valid email address'),
+    username: z.string().min(3, 'O nome deve ter pelo menos 3 caracteres.'),
+    email: z.email('Insira um endereço de e-mail válido.'),
     active: z.boolean(),
-    password: z.string().min(6, 'Password must be at least 6 characters'),
-    confirm: z.string().min(1, 'Please confirm your password'),
+    password: z.string().min(6, 'A senha deve ter pelo menos 6 caracteres.'),
+    confirm: z.string().min(1, 'Por favor confirme sua senha.'),
     townId: z.uuid({ message: 'Id da cidade inválido' }).optional(),
     role: z.enum(['basic', 'manager', 'admin']),
   })
   .refine((d) => d.password === d.confirm, {
-    message: 'Passwords do not match',
+    message: 'As senhas não coincidem.',
     path: ['confirm'],
   });
 
@@ -75,7 +76,7 @@ export default function AddUserModal({
   }, [addRole]);
 
   return (
-    <AdminModal title="Add New User" onClose={onClose}>
+    <AdminModal title="Adicionar Usuário" onClose={onClose}>
       <form
         onSubmit={handleSubmit((data) => {
           onSave(data);
@@ -88,10 +89,10 @@ export default function AddUserModal({
           control={control}
           render={({ field }) => (
             <AdminInput
-              label="Full Name"
+              label="Nome"
               required
               icon={User}
-              placeholder="John Doe"
+              placeholder="Joao.da.silva"
               value={field.value}
               onChange={field.onChange}
               error={errors.username?.message}
@@ -107,7 +108,7 @@ export default function AddUserModal({
               required
               icon={Mail}
               type="email"
-              placeholder="john@example.com"
+              placeholder="administracao@municipio.uf.gov.br"
               value={field.value}
               onChange={field.onChange}
               error={errors.email?.message}
@@ -121,7 +122,7 @@ export default function AddUserModal({
             control={control}
             render={({ field }) => (
               <UserSelect
-                label="Role"
+                label="Função"
                 required
                 value={field.value}
                 onChange={field.onChange}
@@ -130,7 +131,7 @@ export default function AddUserModal({
                     if (me.role.name === 'admin') return true;
                     return r !== 'admin';
                   })
-                  .map((r) => ({ label: r, value: r }))}
+                  .map((r) => ({ label: translateRole(r), value: r }))}
                 error={errors.role?.message}
               />
             )}
@@ -141,7 +142,7 @@ export default function AddUserModal({
               control={control}
               render={({ field }) => (
                 <UserSelect
-                  label="Town"
+                  label="Município"
                   required
                   value={field.value || ''}
                   onChange={field.onChange}
@@ -168,7 +169,7 @@ export default function AddUserModal({
             render={({ field }) => (
               <AdminInput
                 required
-                label="Password"
+                label="Senha"
                 type="password"
                 placeholder="••••••••"
                 value={field.value || ''}
@@ -183,7 +184,7 @@ export default function AddUserModal({
             render={({ field }) => (
               <AdminInput
                 required
-                label="Confirm"
+                label="Confirmar Senha"
                 type="password"
                 placeholder="••••••••"
                 value={field.value || ''}
@@ -199,18 +200,16 @@ export default function AddUserModal({
           render={({ field }) => (
             <div className="flex items-center justify-between bg-gray-50 rounded-xl p-3 border border-gray-100">
               <div>
-                <p className="text-sm font-medium text-gray-800">
-                  Active Status
-                </p>
+                <p className="text-sm font-medium text-gray-800">Ativo</p>
                 <p className="text-xs text-gray-500">
-                  Toggle user availability
+                  Alternar disponibilidade do usuário
                 </p>
               </div>
               <UserToggle checked={field.value} onChange={field.onChange} />
             </div>
           )}
         />
-        <ModalActions onCancel={onClose} confirmLabel="Save User" />
+        <ModalActions onCancel={onClose} confirmLabel="Salvar Usuário" />
       </form>
     </AdminModal>
   );

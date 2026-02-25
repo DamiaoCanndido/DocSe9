@@ -4,6 +4,7 @@ import SearchUsers from '@/components/SearchUsers';
 import UserAvatar from '@/components/UserAvatar';
 import { Building2, Pencil, Trash2 } from 'lucide-react';
 import UserBadge from '@/components/UserBadge';
+import { translateRole } from '@/lib/utils';
 
 interface UsersPageProps {
   users: UserResProps[];
@@ -33,7 +34,7 @@ export default function AdminUsers({
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-100">
-                {['Name & Email', 'Town', 'Role', 'Status', 'Actions'].map(
+                {['Nome & Email', 'Município', 'Função', 'Status', 'Acões'].map(
                   (h) => (
                     <th
                       key={h}
@@ -71,7 +72,7 @@ export default function AdminUsers({
                     </div>
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-700">
-                    {user.role.name}
+                    {translateRole(user.role.name)}
                   </td>
                   <td className="px-4 py-3">
                     <UserBadge active={true} />

@@ -54,7 +54,7 @@ const SearchUsers = (props: {
           className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
         />
         <input
-          placeholder="Search by name or email"
+          placeholder="Procure pelo nome..."
           value={name}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
             setName(e.target.value)
@@ -98,10 +98,10 @@ const SearchUsers = (props: {
             className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white appearance-none pr-7 focus:outline-none focus:ring-2 focus:ring-blue-200"
           >
             <option value="">Todas</option>
-            <option value="basic">basic</option>
-            <option value="manager">manager</option>
+            <option value="basic">Básico</option>
+            <option value="manager">Gerenciador</option>
             {props.me.role.name === 'admin' && (
-              <option value="admin">admin</option>
+              <option value="admin">Administrador</option>
             )}
           </select>
           <ChevronDown
@@ -113,7 +113,7 @@ const SearchUsers = (props: {
           onClick={props.onAdd}
           className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl flex items-center gap-1.5 transition whitespace-nowrap"
         >
-          <Plus size={15} /> Add New User
+          <Plus size={15} /> Adicionar
         </button>
       </div>
     </div>

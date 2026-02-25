@@ -9,11 +9,12 @@ import AdminInput from '@/components/AdminInput';
 import UserSelect from '@/components/UserSelect';
 import UserToggle from '@/components/UserToggle';
 import ModalActions from '@/components/ModalActions';
+import { translateRole } from '@/lib/utils';
 
 const editUserSchema = z
   .object({
-    username: z.string().min(3, 'Full name must be at least 3 characters'),
-    email: z.email('Enter a valid email address'),
+    username: z.string().min(3, 'O nome deve ter pelo menos 3 caracteres.'),
+    email: z.email('Insira um endereço de e-mail válido.'),
     active: z.boolean(),
     password: z.string().optional().or(z.literal('')),
     confirm: z.string().optional().or(z.literal('')),
@@ -30,13 +31,13 @@ const editUserSchema = z
         ctx.addIssue({
           code: 'custom',
           path: ['password'],
-          message: 'Password is required',
+          message: 'A senha é obrigatória',
         });
       } else if (password.length < 6) {
         ctx.addIssue({
           code: 'custom',
           path: ['password'],
-          message: 'Password must be at least 6 characters',
+          message: 'A senha deve ter pelo menos 6 caracteres',
         });
       }
 
@@ -44,7 +45,7 @@ const editUserSchema = z
         ctx.addIssue({
           code: 'custom',
           path: ['confirm'],
-          message: 'Please confirm your password',
+          message: 'Por favor confirme sua senha',
         });
       }
 
@@ -52,7 +53,7 @@ const editUserSchema = z
         ctx.addIssue({
           code: 'custom',
           path: ['confirm'],
-          message: 'Passwords do not match',
+          message: 'As senhas não coincidem',
         });
       }
     }
@@ -109,7 +110,7 @@ export default function EditUserModal({
           control={control}
           render={({ field }) => (
             <AdminInput
-              label="Full Name"
+              label="Nome"
               required
               icon={User}
               value={field.value}
@@ -139,7 +140,7 @@ export default function EditUserModal({
             control={control}
             render={({ field }) => (
               <UserSelect
-                label="Role"
+                label="Função"
                 required
                 value={field.value}
                 onChange={field.onChange}
@@ -148,7 +149,7 @@ export default function EditUserModal({
                     if (me.role.name === 'admin') return true;
                     return r !== 'admin';
                   })
-                  .map((r) => ({ label: r, value: r }))}
+                  .map((r) => ({ label: translateRole(r), value: r }))}
                 error={errors.role?.message}
               />
             )}
@@ -159,7 +160,7 @@ export default function EditUserModal({
               control={control}
               render={({ field }) => (
                 <UserSelect
-                  label="Town"
+                  label="Município"
                   required
                   value={field.value || ''}
                   onChange={field.onChange}
@@ -185,8 +186,7 @@ export default function EditUserModal({
             control={control}
             render={({ field }) => (
               <AdminInput
-                label="Password"
-                required
+                label="Senha"
                 type="password"
                 placeholder="••••••••"
                 value={field.value || ''}
@@ -200,8 +200,7 @@ export default function EditUserModal({
             control={control}
             render={({ field }) => (
               <AdminInput
-                label="Confirm"
-                required
+                label="Confirmar Senha"
                 type="password"
                 placeholder="••••••••"
                 value={field.value || ''}
@@ -218,18 +217,16 @@ export default function EditUserModal({
           render={({ field }) => (
             <div className="flex items-center justify-between bg-gray-50 rounded-xl p-3 border border-gray-100">
               <div>
-                <p className="text-sm font-medium text-gray-800">
-                  Active Status
-                </p>
+                <p className="text-sm font-medium text-gray-800">Ativo</p>
                 <p className="text-xs text-gray-500">
-                  Toggle user availability
+                  Alternar disponibilidade do usuário
                 </p>
               </div>
               <UserToggle checked={field.value} onChange={field.onChange} />
             </div>
           )}
         />
-        <ModalActions onCancel={onClose} confirmLabel="Update User" />
+        <ModalActions onCancel={onClose} confirmLabel="Atualizar Usuário" />
       </form>
     </AdminModal>
   );

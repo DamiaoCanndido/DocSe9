@@ -42,3 +42,13 @@ export const formatDateTime = (isoString: string | null | undefined) => {
 
   return `${time}, ${day} ${month}`;
 };
+
+export function translateRole(role: string): string {
+  const translations: Record<string, string> = {
+    basic: 'Básico',
+    manager: 'Gerenciador',
+    admin: 'Administrador',
+  };
+
+  return translations[role] ?? role;
+}

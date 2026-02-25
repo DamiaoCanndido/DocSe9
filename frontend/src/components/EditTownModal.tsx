@@ -62,6 +62,7 @@ export default function EditTownModal({
           render={({ field }) => (
             <AdminInput
               label="Estado (UF)"
+              required
               value={field.value}
               onChange={field.onChange}
               error={errors.uf?.message}
@@ -74,6 +75,7 @@ export default function EditTownModal({
           render={({ field }) => (
             <AdminInput
               label="Url do logo"
+              required
               value={field.value ?? ''}
               onChange={field.onChange}
               error={errors.imageUrl?.message}

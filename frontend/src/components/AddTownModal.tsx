@@ -10,7 +10,7 @@ import AdminInput from '@/components/AdminInput';
 export const townSchema = z.object({
   name: z
     .string()
-    .min(3, 'O nome do municipio deve ter pelo menos 2 caracteres.'),
+    .min(3, 'O nome do municipio deve ter pelo menos 3 caracteres.'),
   uf: z
     .string()
     .min(2, 'A UF do municipio deve ter pelo menos 2 caracteres.')
@@ -64,6 +64,7 @@ export default function AddTownModal({ onClose, onSave }: AddTownModalProps) {
           render={({ field }) => (
             <AdminInput
               label="Estado (UF)"
+              required
               placeholder="PB"
               value={field.value}
               onChange={field.onChange}
@@ -77,6 +78,7 @@ export default function AddTownModal({ onClose, onSave }: AddTownModalProps) {
           render={({ field }) => (
             <AdminInput
               label="Url de imagem"
+              required
               placeholder="https://www.logos.com/municipio.jpg"
               value={field.value ?? ''}
               onChange={field.onChange}
