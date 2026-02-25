@@ -88,8 +88,8 @@ export default function EditUserModal({
       active: true,
       townId: user.town?.townId,
       role: user.role.name as 'basic' | 'manager' | 'admin',
-      password: '',
-      confirm: '',
+      password: undefined,
+      confirm: undefined,
     },
   });
 
@@ -143,10 +143,12 @@ export default function EditUserModal({
                 required
                 value={field.value}
                 onChange={field.onChange}
-                options={['basic', 'manager', 'admin'].filter((r) => {
-                  if (me.role.name === 'admin') return true;
-                  return r !== 'admin';
-                })}
+                options={['basic', 'manager', 'admin']
+                  .filter((r) => {
+                    if (me.role.name === 'admin') return true;
+                    return r !== 'admin';
+                  })
+                  .map((r) => ({ label: r, value: r }))}
                 error={errors.role?.message}
               />
             )}
@@ -163,8 +165,13 @@ export default function EditUserModal({
                   onChange={field.onChange}
                   options={
                     me.role.name === 'admin'
-                      ? towns.map((t) => t.name)
-                      : [me.town?.name || '']
+                      ? towns.map((t) => ({ label: t.name, value: t.townId }))
+                      : [
+                          {
+                            label: me.town?.name || '',
+                            value: me.town?.townId || '',
+                          },
+                        ]
                   }
                   error={errors.townId?.message}
                 />

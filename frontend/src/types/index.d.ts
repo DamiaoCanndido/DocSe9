@@ -24,8 +24,9 @@ declare interface UserReqProps {
   username: string;
   email: string;
   role: 'basic' | 'manager' | 'admin';
+  townId: string | null;
   password: string;
-  confirm: string;
+  confirmPassword: string;
 }
 
 declare interface UserResProps {

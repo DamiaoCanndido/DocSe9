@@ -7,7 +7,7 @@ interface SelectProps {
   required?: boolean;
   value: string;
   onChange: (value: string) => void;
-  options: string[];
+  options: { label: string; value: string }[];
   error?: string;
 }
 
@@ -39,8 +39,8 @@ export default function UserSelect({
           }`}
         >
           {options.map((o) => (
-            <option key={o} value={o}>
-              {o}
+            <option key={o.value} value={o.value}>
+              {o.label}
             </option>
           ))}
         </select>

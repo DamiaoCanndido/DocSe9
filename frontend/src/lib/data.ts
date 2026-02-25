@@ -27,6 +27,42 @@ export async function getMe() {
   }
 }
 
+export async function registerUser({
+  form,
+  path,
+}: {
+  form: UserReqProps;
+  path?: string;
+}) {
+  try {
+    const token = await getToken();
+    const me = await apiServer.post(
+      '/v2/register',
+      {
+        username: form.username,
+        email: form.email,
+        townId: form.townId || null,
+        role: form.role,
+        password: form.password,
+        confirmPassword: form.confirmPassword,
+      },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    if (path) {
+      revalidatePath(path);
+    }
+    return parseStringify(me.data);
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      if (error instanceof AxiosError) {
+        return redirect('/login');
+      }
+    }
+  }
+}
+
 export async function getUsers({
   queries,
   path,
@@ -52,6 +88,59 @@ export async function getUsers({
     }
   }
 }
+
+export const updateUser = async ({
+  userId,
+  form,
+  path,
+}: {
+  userId: string;
+  form: UserReqProps;
+  path: string;
+}) => {
+  try {
+    const token = await getToken();
+    await apiServer.patch(
+      `/v2/user/${userId}`,
+      {
+        username: form.username,
+        email: form.email,
+        townId: form.townId || null,
+        role: form.role,
+        password: form.password,
+        confirmPassword: form.confirmPassword,
+      },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    revalidatePath(path);
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return redirect('/login');
+    }
+  }
+};
+
+export const deleteUser = async ({
+  userId,
+  path,
+}: {
+  userId: string;
+  path: string;
+}) => {
+  try {
+    const token = await getToken();
+    await apiServer.delete(`/v2/user/${userId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    revalidatePath(path);
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return redirect('/login');
+    }
+  }
+};
 
 export const signOutUser = async () => {
   try {

@@ -25,7 +25,14 @@ import {
 } from 'recharts';
 import AdminSettings from '@/components/AdminSettings';
 import { usePathname } from 'next/navigation';
-import { deleteTown, newTown, updateTown } from '@/lib/data';
+import {
+  deleteTown,
+  deleteUser,
+  newTown,
+  registerUser,
+  updateTown,
+  updateUser,
+} from '@/lib/data';
 import { toast } from 'sonner';
 import AdminTowns from '@/components/AdminTowns';
 import AddTownModal, { TownFormData } from '@/components/AddTownModal';
@@ -335,11 +342,62 @@ export default function AdminSuite({
     }
   };
 
-  const handleAddUser = (form: AddUserFormData): void => {};
+  const handleAddUser = async (form: AddUserFormData): Promise<void> => {
+    try {
+      await registerUser({
+        form: {
+          username: form.username,
+          email: form.email,
+          townId: form.townId || null,
+          role: form.role,
+          password: form.password,
+          confirmPassword: form.confirm,
+        },
+        path,
+      });
+    } catch (error) {
+      toast.error('Erro', {
+        description: 'Erro ao criar usuário.',
+        duration: 2000,
+      });
+    }
+  };
 
-  const handleEditUser = (id: string, form: EditUserFormData): void => {};
+  const handleEditUser = async (
+    id: string,
+    form: EditUserFormData
+  ): Promise<void> => {
+    try {
+      await updateUser({
+        userId: id,
+        form: {
+          username: form.username,
+          email: form.email,
+          townId: form.townId || null,
+          role: form.role,
+          password: form.password!,
+          confirmPassword: form.confirm!,
+        },
+        path,
+      });
+    } catch (error) {
+      toast.error('Erro', {
+        description: 'Erro ao editar usuário.',
+        duration: 2000,
+      });
+    }
+  };
 
-  const handleDeleteUser = (id: string): void => {};
+  const handleDeleteUser = async (id: string): Promise<void> => {
+    try {
+      await deleteUser({ userId: id, path });
+    } catch (error) {
+      toast.error('Erro', {
+        description: 'Erro ao deletar usuário.',
+        duration: 2000,
+      });
+    }
+  };
 
   const editTownData =
     modal?.data && 'uf' in modal.data ? (modal.data as TownResProps) : null;
@@ -369,7 +427,7 @@ export default function AdminSuite({
           </div>
           <button className="flex items-center gap-2 border border-gray-200 rounded-xl px-3 sm:px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
             <Download size={15} />
-            <span className="hidden sm:inline">Export Audit</span>
+            <span className="hidden sm:inline">Baixar logs</span>
           </button>
         </div>
 

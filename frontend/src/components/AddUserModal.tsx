@@ -53,7 +53,7 @@ export default function AddUserModal({
       active: true,
       password: '',
       confirm: '',
-      townId: me.role.name === 'admin' ? undefined : me.town?.townId,
+      townId: towns[0].townId,
       role: 'basic',
     },
   });
@@ -111,10 +111,12 @@ export default function AddUserModal({
                 required
                 value={field.value}
                 onChange={field.onChange}
-                options={['basic', 'manager', 'admin'].filter((r) => {
-                  if (me.role.name === 'admin') return true;
-                  return r !== 'admin';
-                })}
+                options={['basic', 'manager', 'admin']
+                  .filter((r) => {
+                    if (me.role.name === 'admin') return true;
+                    return r !== 'admin';
+                  })
+                  .map((r) => ({ label: r, value: r }))}
                 error={errors.role?.message}
               />
             )}
@@ -131,8 +133,13 @@ export default function AddUserModal({
                   onChange={field.onChange}
                   options={
                     me.role.name === 'admin'
-                      ? towns.map((t) => t.name)
-                      : [me.town?.name || '']
+                      ? towns.map((t) => ({ label: t.name, value: t.townId }))
+                      : [
+                          {
+                            label: me.town?.name || '',
+                            value: me.town?.townId || '',
+                          },
+                        ]
                   }
                   error={errors.townId?.message}
                 />
