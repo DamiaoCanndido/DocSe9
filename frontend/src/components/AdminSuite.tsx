@@ -42,22 +42,11 @@ import AdminUsers from '@/components/AdminUsers';
 import AddUserModal, { AddUserFormData } from '@/components/AddUserModal';
 import EditUserModal, { EditUserFormData } from '@/components/EditUserModal';
 import DeleteUserModal from '@/components/DeleteUserModal';
+import { ModalState } from '@/components/AdminModal';
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
 type TabId = 'dashboard' | 'users' | 'towns' | 'settings';
-type ModalType =
-  | 'addTown'
-  | 'editTown'
-  | 'deleteTown'
-  | 'addUser'
-  | 'editUser'
-  | 'deleteUser';
-
-interface ModalState {
-  type: ModalType;
-  data?: UserResProps | TownResProps;
-}
 
 interface TabItem {
   id: TabId;

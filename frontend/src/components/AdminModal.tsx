@@ -2,6 +2,20 @@
 
 import { X } from 'lucide-react';
 
+export type ModalType =
+  | 'addTown'
+  | 'editTown'
+  | 'deleteTown'
+  | 'addUser'
+  | 'editUser'
+  | 'deleteUser'
+  | 'editNode';
+
+export interface ModalState {
+  type: ModalType;
+  data?: UserResProps | TownResProps | NodeResProps;
+}
+
 interface ModalProps {
   title: string;
   onClose: () => void;

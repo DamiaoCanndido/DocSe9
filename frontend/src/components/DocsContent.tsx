@@ -171,7 +171,7 @@ const DocsContent = ({
                             </td>
                           </tr>
                         </ContextMenuTrigger>
-                        <FolderCtxMenu />
+                        <FolderCtxMenu docType={item} viewType={type} />
                       </ContextMenu>
                     ))}
                   </tbody>
@@ -240,7 +240,7 @@ const DocsContent = ({
                           </div>
                         </motion.div>
                       </ContextMenuTrigger>
-                      <FolderCtxMenu />
+                      <FolderCtxMenu docType={item} viewType={type} />
                     </ContextMenu>
                   ))}
                 </div>
