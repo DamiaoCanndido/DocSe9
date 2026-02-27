@@ -22,6 +22,9 @@ import { usePathname } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useApp } from '@/contexts/AppContext';
+import { useState } from 'react';
+import { ModalState } from '@/components/AdminModal';
+import EditFolderModal from './EditFolderModal';
 
 export type DisplayMode = 'grid' | 'list';
 
@@ -36,6 +39,12 @@ const DocsContent = ({
 
   // const [sortBy, setSortBy] = useState<'name' | 'modified' | 'size'>('name');
   const { displayMode, setDisplayMode } = useApp();
+  const [modal, setModal] = useState<ModalState | null>(null);
+
+  const editNodeData =
+    modal?.data && 'favorite' in modal.data
+      ? (modal.data as NodeResProps)
+      : null;
 
   const router = useRouter();
 
@@ -171,7 +180,22 @@ const DocsContent = ({
                             </td>
                           </tr>
                         </ContextMenuTrigger>
-                        <FolderCtxMenu docType={item} viewType={type} />
+                        <FolderCtxMenu
+                          docType={item}
+                          viewType={type}
+                          onEdit={(node) =>
+                            setModal({ type: 'editNode', data: node })
+                          }
+                        />
+                        {modal?.type === 'editNode' && (
+                          <EditFolderModal
+                            onSave={(form) => {
+                              setModal(null);
+                            }}
+                            node={item}
+                            onClose={() => setModal(null)}
+                          />
+                        )}
                       </ContextMenu>
                     ))}
                   </tbody>
@@ -240,7 +264,22 @@ const DocsContent = ({
                           </div>
                         </motion.div>
                       </ContextMenuTrigger>
-                      <FolderCtxMenu docType={item} viewType={type} />
+                      <FolderCtxMenu
+                        docType={item}
+                        viewType={type}
+                        onEdit={(node) =>
+                          setModal({ type: 'editNode', data: node })
+                        }
+                      />
+                      {modal?.type === 'editNode' && (
+                        <EditFolderModal
+                          onSave={(form) => {
+                            setModal(null);
+                          }}
+                          node={item}
+                          onClose={() => setModal(null)}
+                        />
+                      )}
                     </ContextMenu>
                   ))}
                 </div>
