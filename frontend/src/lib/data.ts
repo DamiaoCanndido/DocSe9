@@ -318,3 +318,29 @@ export const deleteTown = async ({
     }
   }
 };
+
+export const updateFolder = async ({
+  folderId,
+  form,
+  path,
+}: {
+  folderId: string;
+  form: FolderEditProps;
+  path: string;
+}) => {
+  try {
+    const token = await getToken();
+    await apiServer.patch(
+      `/v2/folders/${folderId}`,
+      { name: form.name },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    revalidatePath(path);
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return redirect('/login');
+    }
+  }
+};

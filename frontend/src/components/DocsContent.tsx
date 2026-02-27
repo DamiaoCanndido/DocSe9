@@ -17,14 +17,15 @@ import {
 } from 'lucide-react';
 import FolderCtxMenu from '@/components/FolderCtxMenu';
 import { ViewDocsType } from '@/components/DocsLoad';
-import { getViewUrl } from '@/lib/data';
+import { getViewUrl, updateFolder } from '@/lib/data';
 import { usePathname } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useApp } from '@/contexts/AppContext';
 import { useState } from 'react';
 import { ModalState } from '@/components/AdminModal';
-import EditFolderModal from './EditFolderModal';
+import FolderModal from './FolderModal';
+import { toast } from 'sonner';
 
 export type DisplayMode = 'grid' | 'list';
 
@@ -67,6 +68,24 @@ const DocsContent = ({
         return 'Recentes';
       default:
         return 'Meus documentos';
+    }
+  };
+
+  const handleEditFolder = async (
+    id: string,
+    form: FolderEditProps
+  ): Promise<void> => {
+    try {
+      await updateFolder({
+        folderId: id,
+        form,
+        path,
+      });
+    } catch (error) {
+      toast.error('Erro', {
+        description: 'Erro ao editar pasta.',
+        duration: 2000,
+      });
     }
   };
 
@@ -187,15 +206,7 @@ const DocsContent = ({
                             setModal({ type: 'editNode', data: node })
                           }
                         />
-                        {modal?.type === 'editNode' && (
-                          <EditFolderModal
-                            onSave={(form) => {
-                              setModal(null);
-                            }}
-                            node={item}
-                            onClose={() => setModal(null)}
-                          />
-                        )}
+
                       </ContextMenu>
                     ))}
                   </tbody>
@@ -271,15 +282,6 @@ const DocsContent = ({
                           setModal({ type: 'editNode', data: node })
                         }
                       />
-                      {modal?.type === 'editNode' && (
-                        <EditFolderModal
-                          onSave={(form) => {
-                            setModal(null);
-                          }}
-                          node={item}
-                          onClose={() => setModal(null)}
-                        />
-                      )}
                     </ContextMenu>
                   ))}
                 </div>
@@ -304,6 +306,18 @@ const DocsContent = ({
           </ContextMenuContent>
         </div>
       </ContextMenu>
+      {modal?.type === 'editNode' && editNodeData && (
+        <FolderModal
+          onSave={(form) => {
+            if (editNodeData.nodeType === 'folder') {
+              handleEditFolder(editNodeData.id, form);
+            }
+            setModal(null);
+          }}
+          node={editNodeData}
+          onClose={() => setModal(null)}
+        />
+      )}
     </div>
   );
 };

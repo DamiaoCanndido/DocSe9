@@ -17,7 +17,7 @@ interface EditFolderModalProps {
   onSave: (form: NodeEditFormData) => void;
 }
 
-export default function EditFolderModal({
+export default function FolderModal({
   node,
   onSave,
   onClose,

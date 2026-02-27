@@ -74,6 +74,10 @@ declare interface TownResProps {
   totalUsers: number;
 }
 
+declare interface FolderEditProps {
+  name: string;
+}
+
 declare interface PaginatedResponse<T> {
   content: T[];
   page: number;
