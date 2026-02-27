@@ -18,5 +18,5 @@ export default async function MySubDocs({
     sort,
   });
 
-  return <DocsContent data={data} type="my-docs" />;
+  return <DocsContent data={data} type="my-docs" parentId={id} />;
 }

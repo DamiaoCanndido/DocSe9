@@ -9,7 +9,8 @@ export type ModalType =
   | 'addUser'
   | 'editUser'
   | 'deleteUser'
-  | 'editNode';
+  | 'editNode'
+  | 'createNode';
 
 export interface ModalState {
   type: ModalType;

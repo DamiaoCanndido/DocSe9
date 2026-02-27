@@ -6,11 +6,19 @@ import {
   ContextMenuSeparator,
 } from '@/components/ui/context-menu';
 
-const EmptyAreaContextMenu = () => {
+interface EmptyAreaContextMenuProps {
+  onCreateFolder?: () => void;
+  onCreateFile?: () => void;
+}
+
+const EmptyAreaContextMenu = ({
+  onCreateFolder,
+  onCreateFile,
+}: EmptyAreaContextMenuProps) => {
   return (
     <ContextMenuContent>
-      <ContextMenuItem>Nova pasta</ContextMenuItem>
-      <ContextMenuItem>Novo arquivo</ContextMenuItem>
+      <ContextMenuItem onClick={onCreateFolder}>Nova pasta</ContextMenuItem>
+      <ContextMenuItem onClick={onCreateFile}>Novo arquivo</ContextMenuItem>
       <ContextMenuSeparator />
       <ContextMenuItem>Colar</ContextMenuItem>
       <ContextMenuItem>Atualizar</ContextMenuItem>

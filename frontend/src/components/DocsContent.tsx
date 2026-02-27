@@ -1,9 +1,6 @@
 'use client';
 
-import {
-  ContextMenu,
-  ContextMenuTrigger,
-} from '@/components/ui/context-menu';
+import { ContextMenu, ContextMenuTrigger } from '@/components/ui/context-menu';
 import {
   ChevronRight,
   EllipsisVertical,
@@ -15,7 +12,7 @@ import {
 import FolderCtxMenu from '@/components/FolderCtxMenu';
 import EmptyAreaContextMenu from '@/components/EmptyAreaContextMenu';
 import { ViewDocsType } from '@/components/DocsLoad';
-import { getViewUrl, updateFolder } from '@/lib/data';
+import { createFolder, getViewUrl, updateFolder } from '@/lib/data';
 import { usePathname } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -30,9 +27,11 @@ export type DisplayMode = 'grid' | 'list';
 const DocsContent = ({
   data,
   type,
+  parentId,
 }: {
   data: ApiResponse<NodeResProps>['data'];
   type: ViewDocsType;
+  parentId?: string;
 }) => {
   const path = usePathname();
 
@@ -83,7 +82,7 @@ const DocsContent = ({
 
   const handleEditFolder = async (
     id: string,
-    form: FolderEditProps
+    form: FolderReqProps
   ): Promise<void> => {
     try {
       await updateFolder({
@@ -91,9 +90,30 @@ const DocsContent = ({
         form,
         path,
       });
-    } catch (error) {
+    } catch (_error) {
       toast.error('Erro', {
         description: 'Erro ao editar pasta.',
+        duration: 2000,
+      });
+    }
+  };
+
+  const handleCreateFolder = async (form: FolderReqProps): Promise<void> => {
+    try {
+      await createFolder({
+        form: {
+          ...form,
+          parentId: parentId || null,
+        },
+        path,
+      });
+      toast.success('Sucesso', {
+        description: 'Pasta criada com sucesso.',
+        duration: 2000,
+      });
+    } catch (_error) {
+      toast.error('Erro', {
+        description: 'Erro ao criar pasta.',
         duration: 2000,
       });
     }
@@ -194,7 +214,6 @@ const DocsContent = ({
                             setModal({ type: 'editNode', data: node })
                           }
                         />
-
                       </ContextMenu>
                     ))}
                   </tbody>
@@ -256,22 +275,38 @@ const DocsContent = ({
                 </div>
               </ContextMenuTrigger>
               {/* Menu da área vazia */}
-              <EmptyAreaContextMenu />
+              <EmptyAreaContextMenu
+                onCreateFolder={() => setModal({ type: 'createNode' })}
+              />
             </ContextMenu>
           )}
           {/* Menu do Explorer (área vazia) */}
-          <EmptyAreaContextMenu />
+          <EmptyAreaContextMenu
+            onCreateFolder={() => setModal({ type: 'createNode' })}
+          />
         </div>
       </ContextMenu>
       {modal?.type === 'editNode' && editNodeData && (
         <FolderModal
           onSave={(form) => {
             if (editNodeData.nodeType === 'folder') {
-              handleEditFolder(editNodeData.id, form);
+              handleEditFolder(editNodeData.id, {
+                name: form.name,
+                parentId: null,
+              });
             }
             setModal(null);
           }}
           node={editNodeData}
+          onClose={() => setModal(null)}
+        />
+      )}
+      {modal?.type === 'createNode' && (
+        <FolderModal
+          onSave={(form) => {
+            handleCreateFolder({ name: form.name, parentId: null });
+            setModal(null);
+          }}
           onClose={() => setModal(null)}
         />
       )}

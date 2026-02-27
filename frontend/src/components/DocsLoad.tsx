@@ -44,6 +44,10 @@ export default async function DocsLoad({
 
   return (
     /* Desktop docs */
-    <DocsContent data={data.data} type={type} />
+    <DocsContent
+      data={data.data}
+      type={type}
+      parentId={queries.id as string | undefined}
+    />
   );
 }

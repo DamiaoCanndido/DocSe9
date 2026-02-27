@@ -319,13 +319,37 @@ export const deleteTown = async ({
   }
 };
 
+export const createFolder = async ({
+  form,
+  path,
+}: {
+  form: FolderReqProps;
+  path: string;
+}) => {
+  try {
+    const token = await getToken();
+    await apiServer.post(
+      '/v2/folders',
+      { name: form.name, parentId: form.parentId || null },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    revalidatePath(path);
+  } catch (_error) {
+    if (_error instanceof AxiosError) {
+      return redirect('/login');
+    }
+  }
+};
+
 export const updateFolder = async ({
   folderId,
   form,
   path,
 }: {
   folderId: string;
-  form: FolderEditProps;
+  form: FolderReqProps;
   path: string;
 }) => {
   try {

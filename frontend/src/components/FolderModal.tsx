@@ -11,8 +11,8 @@ export const nodeEditSchema = z.object({
 
 type NodeEditFormData = z.infer<typeof nodeEditSchema>;
 
-interface EditFolderModalProps {
-  node: NodeResProps;
+interface FolderModalProps {
+  node?: NodeResProps;
   onClose: () => void;
   onSave: (form: NodeEditFormData) => void;
 }
@@ -21,7 +21,7 @@ export default function FolderModal({
   node,
   onSave,
   onClose,
-}: EditFolderModalProps) {
+}: FolderModalProps) {
   const {
     control,
     handleSubmit,
@@ -29,12 +29,15 @@ export default function FolderModal({
   } = useForm<NodeEditFormData>({
     resolver: zodResolver(nodeEditSchema),
     defaultValues: {
-      name: node.name,
+      name: node?.name || '',
     },
   });
 
   return (
-    <AdminModal title={`Editar: ${node.name}`} onClose={onClose}>
+    <AdminModal
+      title={node?.name ? 'Renomear pasta' : 'Criar pasta'}
+      onClose={onClose}
+    >
       <form
         onSubmit={handleSubmit((data) => {
           onSave(data);
@@ -56,7 +59,10 @@ export default function FolderModal({
           )}
         />
 
-        <ModalActions onCancel={onClose} confirmLabel="Editar pasta" />
+        <ModalActions
+          onCancel={onClose}
+          confirmLabel={node?.name ? 'Renomear pasta' : 'Criar pasta'}
+        />
       </form>
     </AdminModal>
   );

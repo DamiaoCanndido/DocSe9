@@ -74,8 +74,9 @@ declare interface TownResProps {
   totalUsers: number;
 }
 
-declare interface FolderEditProps {
+declare interface FolderReqProps {
   name: string;
+  parentId: string | null;
 }
 
 declare interface PaginatedResponse<T> {
@@ -102,6 +103,7 @@ declare interface SearchParamProps {
 }
 
 declare interface DocsQueries {
+  id?: string;
   name?: string;
   page?: string;
   size?: string;
