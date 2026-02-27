@@ -2,9 +2,6 @@
 
 import {
   ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuSeparator,
   ContextMenuTrigger,
 } from '@/components/ui/context-menu';
 import {
@@ -16,6 +13,7 @@ import {
   List,
 } from 'lucide-react';
 import FolderCtxMenu from '@/components/FolderCtxMenu';
+import EmptyAreaContextMenu from '@/components/EmptyAreaContextMenu';
 import { ViewDocsType } from '@/components/DocsLoad';
 import { getViewUrl, updateFolder } from '@/lib/data';
 import { usePathname } from 'next/navigation';
@@ -52,6 +50,18 @@ const DocsContent = ({
   const getFileLink = async (fileId: string, path: string) => {
     const url = await getViewUrl(fileId, path);
     return url;
+  };
+
+  const handleNodeClick = async (item: NodeResProps) => {
+    if (type === 'trash' && item.nodeType == 'folder') return;
+    if (type === 'my-docs' && item.nodeType == 'folder') {
+      router.push(`/my-docs/${item.id}`);
+    }
+    if (type === 'trash' && item.nodeType == 'file') return;
+    if (type === 'my-docs' && item.nodeType == 'file') {
+      const result = await getFileLink(item.id, path);
+      window.open(result.url, '_blank', 'noopener,noreferrer');
+    }
   };
 
   const getTitle = () => {
@@ -150,29 +160,7 @@ const DocsContent = ({
                         <ContextMenuTrigger asChild>
                           <tr
                             className="hover:bg-accent cursor-pointer"
-                            onClick={async () => {
-                              if (type === 'trash' && item.nodeType == 'folder')
-                                return;
-                              if (
-                                type === 'my-docs' &&
-                                item.nodeType == 'folder'
-                              ) {
-                                router.push(`/my-docs/${item.id}`);
-                              }
-                              if (type === 'trash' && item.nodeType == 'file')
-                                return;
-                              if (
-                                type === 'my-docs' &&
-                                item.nodeType == 'file'
-                              ) {
-                                const result = await getFileLink(item.id, path);
-                                window.open(
-                                  result.url,
-                                  '_blank',
-                                  'noopener,noreferrer'
-                                );
-                              }
-                            }}
+                            onClick={() => handleNodeClick(item)}
                           >
                             <td className="py-2 px-2">
                               <div className="flex items-center gap-2">
@@ -222,26 +210,7 @@ const DocsContent = ({
                       <ContextMenuTrigger asChild>
                         <motion.div
                           whileHover={{ y: -2 }}
-                          onClick={async () => {
-                            if (type === 'trash' && item.nodeType == 'folder')
-                              return;
-                            if (
-                              type === 'my-docs' &&
-                              item.nodeType == 'folder'
-                            ) {
-                              router.push(`/my-docs/${item.id}`);
-                            }
-                            if (type === 'trash' && item.nodeType == 'file')
-                              return;
-                            if (type === 'my-docs' && item.nodeType == 'file') {
-                              const result = await getFileLink(item.id, path);
-                              window.open(
-                                result.url,
-                                '_blank',
-                                'noopener,noreferrer'
-                              );
-                            }
-                          }}
+                          onClick={() => handleNodeClick(item)}
                           className="group cursor-pointer px-1.5 rounded-lg"
                         >
                           <div className="aspect-square bg-white border border-[#E0E0E0] rounded-xl sm:rounded-2xl flex flex-col items-center justify-center mb-2 sm:mb-3 group-hover:shadow-md group-hover:border-blue-200 transition-all relative overflow-hidden">
@@ -287,23 +256,11 @@ const DocsContent = ({
                 </div>
               </ContextMenuTrigger>
               {/* Menu da área vazia */}
-              <ContextMenuContent>
-                <ContextMenuItem>Nova pasta</ContextMenuItem>
-                <ContextMenuItem>Novo arquivo</ContextMenuItem>
-                <ContextMenuSeparator />
-                <ContextMenuItem>Colar</ContextMenuItem>
-                <ContextMenuItem>Atualizar</ContextMenuItem>
-              </ContextMenuContent>
+              <EmptyAreaContextMenu />
             </ContextMenu>
           )}
           {/* Menu do Explorer (área vazia) */}
-          <ContextMenuContent>
-            <ContextMenuItem>Nova pasta</ContextMenuItem>
-            <ContextMenuItem>Novo arquivo</ContextMenuItem>
-            <ContextMenuSeparator />
-            <ContextMenuItem>Colar</ContextMenuItem>
-            <ContextMenuItem>Atualizar</ContextMenuItem>
-          </ContextMenuContent>
+          <EmptyAreaContextMenu />
         </div>
       </ContextMenu>
       {modal?.type === 'editNode' && editNodeData && (
