@@ -222,135 +222,128 @@ const DocsContent = ({
         </div>
       </div>
       <ContextMenu>
-        <div className="flex-1">
-          {displayMode === 'list' ? (
-            <ContextMenuTrigger className="flex flex-col h-full w-full border rounded-lg p-4">
-              <div className="w-full">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b text-muted-foreground text-left">
-                      <th className="pb-2 font-medium">Nome</th>
-                      <th className="hidden lg:table-cell pb-2 font-medium">
-                        Criado
-                      </th>
-                      <th className="hidden lg:table-cell pb-2 font-medium">
-                        Tamanho
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {data.content.map((item) => (
-                      <ContextMenu key={item.id}>
-                        <ContextMenuTrigger asChild>
-                          <tr
-                            className="hover:bg-accent cursor-pointer"
-                            onClick={() => handleNodeClick(item)}
-                          >
-                            <td className="py-2 px-2">
-                              <div className="flex items-center gap-2">
-                                {item.nodeType === 'folder' ? (
-                                  <>
-                                    <Folder className="h-4 w-4 shrink-0" />
-                                    <span>{item.name}</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <File className="h-4 w-4 shrink-0" />
-                                    <span>{item.name}</span>
-                                  </>
+        <div className="flex-1 min-h-0">
+          <ContextMenuTrigger className="h-full w-full">
+            {displayMode === 'list' ? (
+              <div className="flex flex-col h-full w-full border rounded-lg p-4 overflow-auto">
+                <div className="w-full">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b text-muted-foreground text-left">
+                        <th className="pb-2 font-medium">Nome</th>
+                        <th className="hidden lg:table-cell pb-2 font-medium">
+                          Criado
+                        </th>
+                        <th className="hidden lg:table-cell pb-2 font-medium">
+                          Tamanho
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {data.content.map((item) => (
+                        <ContextMenu key={item.id}>
+                          <ContextMenuTrigger asChild>
+                            <tr
+                              className="hover:bg-accent cursor-pointer"
+                              onClick={() => handleNodeClick(item)}
+                            >
+                              <td className="py-2 px-2">
+                                <div className="flex items-center gap-2">
+                                  {item.nodeType === 'folder' ? (
+                                    <>
+                                      <Folder className="h-4 w-4 shrink-0" />
+                                      <span>{item.name}</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <File className="h-4 w-4 shrink-0" />
+                                      <span>{item.name}</span>
+                                    </>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="hidden lg:table-cell py-2 px-2 text-muted-foreground">
+                                {new Date(item.createdAt).toLocaleDateString(
+                                  'pt-BR'
                                 )}
-                              </div>
-                            </td>
-                            <td className="hidden lg:table-cell py-2 px-2 text-muted-foreground">
-                              {new Date(item.createdAt).toLocaleDateString(
-                                'pt-BR'
-                              )}
-                            </td>
-                            <td className="hidden lg:table-cell py-2 px-2 text-muted-foreground">
-                              {item.nodeType === 'folder' ? '-' : item.size}
-                            </td>
-                          </tr>
-                        </ContextMenuTrigger>
-                        <FolderCtxMenu
-                          docType={item}
-                          viewType={type}
-                          onEdit={(node) =>
-                            setModal({ type: 'editNode', data: node })
-                          }
-                          onDelete={(node) =>
-                            setModal({ type: 'deleteNode', data: node })
-                          }
-                        />
-                      </ContextMenu>
-                    ))}
-                  </tbody>
-                </table>
+                              </td>
+                              <td className="hidden lg:table-cell py-2 px-2 text-muted-foreground">
+                                {item.nodeType === 'folder' ? '-' : item.size}
+                              </td>
+                            </tr>
+                          </ContextMenuTrigger>
+                          <FolderCtxMenu
+                            docType={item}
+                            viewType={type}
+                            onEdit={(node) =>
+                              setModal({ type: 'editNode', data: node })
+                            }
+                            onDelete={(node) =>
+                              setModal({ type: 'deleteNode', data: node })
+                            }
+                          />
+                        </ContextMenu>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            </ContextMenuTrigger>
-          ) : (
-            <ContextMenu>
-              <ContextMenuTrigger>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-6 min-h-full">
-                  {data.content.map((item) => (
-                    <ContextMenu key={item.id}>
-                      <ContextMenuTrigger asChild>
-                        <motion.div
-                          whileHover={{ y: -2 }}
-                          onClick={() => handleNodeClick(item)}
-                          className="group cursor-pointer px-1.5 rounded-lg"
-                        >
-                          <div className="aspect-square bg-white border border-[#E0E0E0] rounded-xl sm:rounded-2xl flex flex-col items-center justify-center mb-2 sm:mb-3 group-hover:shadow-md group-hover:border-blue-200 transition-all relative overflow-hidden">
-                            <div className="absolute top-1 sm:top-2 right-1 sm:right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <button className="p-1 sm:p-1.5 bg-white/90 shadow-sm rounded-full text-[#5F6368] hover:text-blue-600">
-                                <EllipsisVertical className="w-3 h-3 sm:w-4 sm:h-4" />
-                              </button>
-                            </div>
-                            {item.nodeType === 'folder' ? (
-                              <Folder className="w-10 h-10 sm:w-16 sm:h-16 text-gray-200 fill-gray-100" />
-                            ) : (
-                              <File className="w-10 h-10 sm:w-16 sm:h-16 text-gray-200 fill-gray-100" />
-                            )}
-                            <div className="absolute inset-x-0 bottom-0 p-1.5 sm:p-3 bg-linear-to-t from-black/5 to-transparent flex items-center justify-center">
-                              <span className="text-[8px] sm:text-[10px] font-bold uppercase text-gray-400 bg-white px-1.5 py-0.5 rounded shadow-sm border border-gray-100">
-                                {item.nodeType === 'folder'
-                                  ? 'Pasta'
-                                  : 'Arquivo'}
-                              </span>
-                            </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-6 h-full overflow-auto">
+                {data.content.map((item) => (
+                  <ContextMenu key={item.id}>
+                    <ContextMenuTrigger asChild>
+                      <motion.div
+                        whileHover={{ y: -2 }}
+                        onClick={() => handleNodeClick(item)}
+                        className="group cursor-pointer px-1.5 rounded-lg h-fit"
+                      >
+                        <div className="aspect-square bg-white border border-[#E0E0E0] rounded-xl sm:rounded-2xl flex flex-col items-center justify-center mb-2 sm:mb-3 group-hover:shadow-md group-hover:border-blue-200 transition-all relative overflow-hidden">
+                          <div className="absolute top-1 sm:top-2 right-1 sm:right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button className="p-1 sm:p-1.5 bg-white/90 shadow-sm rounded-full text-[#5F6368] hover:text-blue-600">
+                              <EllipsisVertical className="w-3 h-3 sm:w-4 sm:h-4" />
+                            </button>
                           </div>
-                          <div className="flex items-center gap-1.5 sm:gap-2 px-1">
-                            {item.nodeType === 'folder' ? (
-                              <Folder className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 shrink-0" />
-                            ) : (
-                              <File className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 shrink-0" />
-                            )}
-                            <span className="text-xs sm:text-sm font-medium text-[#1F1F1F] truncate flex-1">
-                              {item.name}
+                          {item.nodeType === 'folder' ? (
+                            <Folder className="w-10 h-10 sm:w-16 sm:h-16 text-gray-200 fill-gray-100" />
+                          ) : (
+                            <File className="w-10 h-10 sm:w-16 sm:h-16 text-gray-200 fill-gray-100" />
+                          )}
+                          <div className="absolute inset-x-0 bottom-0 p-1.5 sm:p-3 bg-linear-to-t from-black/5 to-transparent flex items-center justify-center">
+                            <span className="text-[8px] sm:text-[10px] font-bold uppercase text-gray-400 bg-white px-1.5 py-0.5 rounded shadow-sm border border-gray-100">
+                              {item.nodeType === 'folder'
+                                ? 'Pasta'
+                                : 'Arquivo'}
                             </span>
                           </div>
-                        </motion.div>
-                      </ContextMenuTrigger>
-                      <FolderCtxMenu
-                        docType={item}
-                        viewType={type}
-                        onEdit={(node) =>
-                          setModal({ type: 'editNode', data: node })
-                        }
-                        onDelete={(node) =>
-                          setModal({ type: 'deleteNode', data: node })
-                        }
-                      />
-                    </ContextMenu>
-                  ))}
-                </div>
-              </ContextMenuTrigger>
-              {/* Menu da área vazia */}
-              <EmptyAreaContextMenu
-                onCreateFolder={() => setModal({ type: 'createNode' })}
-              />
-            </ContextMenu>
-          )}
-          {/* Menu do Explorer (área vazia) */}
+                        </div>
+                        <div className="flex items-center gap-1.5 sm:gap-2 px-1">
+                          {item.nodeType === 'folder' ? (
+                            <Folder className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 shrink-0" />
+                          ) : (
+                            <File className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 shrink-0" />
+                          )}
+                          <span className="text-xs sm:text-sm font-medium text-[#1F1F1F] truncate flex-1">
+                            {item.name}
+                          </span>
+                        </div>
+                      </motion.div>
+                    </ContextMenuTrigger>
+                    <FolderCtxMenu
+                      docType={item}
+                      viewType={type}
+                      onEdit={(node) =>
+                        setModal({ type: 'editNode', data: node })
+                      }
+                      onDelete={(node) =>
+                        setModal({ type: 'deleteNode', data: node })
+                      }
+                    />
+                  </ContextMenu>
+                ))}
+              </div>
+            )}
+          </ContextMenuTrigger>
           <EmptyAreaContextMenu
             onCreateFolder={() => setModal({ type: 'createNode' })}
           />
@@ -359,7 +352,11 @@ const DocsContent = ({
       {modal?.type === 'editNode' && editNodeData && (
         <FolderModal
           onSave={(form) => {
-            handleEditNode(editNodeData.id, { name: form.name }, editNodeData.nodeType);
+            handleEditNode(
+              editNodeData.id,
+              { name: form.name },
+              editNodeData.nodeType
+            );
             setModal(null);
           }}
           node={editNodeData}
