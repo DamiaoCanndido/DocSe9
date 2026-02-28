@@ -10,6 +10,7 @@ export type ModalType =
   | 'editUser'
   | 'deleteUser'
   | 'editNode'
+  | 'restoreNode'
   | 'createNode'
   | 'deleteNode';
 

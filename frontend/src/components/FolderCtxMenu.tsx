@@ -8,7 +8,8 @@ import {
 import { useRouter } from 'next/navigation';
 import { ViewDocsType } from '@/components/DocsLoad';
 import { usePathname } from 'next/navigation';
-import { getViewUrl } from '@/lib/data';
+import { getViewUrl, restoreFile, restoreFolder } from '@/lib/data';
+import { toast } from 'sonner';
 
 const FolderCtxMenu = ({
   docType,
@@ -23,6 +24,38 @@ const FolderCtxMenu = ({
 }) => {
   const router = useRouter();
   const path = usePathname();
+
+  const handleRestoreNode = async (
+    id: string,
+    nodeType: 'folder' | 'file'
+  ): Promise<void> => {
+    try {
+      if (nodeType === 'folder') {
+        await restoreFolder({
+          folderId: id,
+          path,
+        });
+      } else {
+        await restoreFile({
+          fileId: id,
+          path,
+        });
+      }
+      toast.success('Sucesso', {
+        description: `${
+          nodeType === 'folder' ? 'Pasta' : 'Arquivo'
+        } restaurado com sucesso.`,
+        duration: 2000,
+      });
+    } catch (_error) {
+      toast.error('Erro', {
+        description: `Erro ao restaurar ${
+          nodeType === 'folder' ? 'pasta' : 'arquivo'
+        }.`,
+        duration: 2000,
+      });
+    }
+  };
 
   const handleFileAction = async (action: string) => {
     if (action === 'open') {
@@ -39,6 +72,10 @@ const FolderCtxMenu = ({
     if (action === 'rename') {
       onEdit(docType);
     }
+    if (action === 'restore' && viewType !== 'trash') return;
+    if (action === 'restore') {
+      handleRestoreNode(docType.id, docType.nodeType);
+    }
     if (action === 'delete') {
       onDelete(docType);
     }
@@ -47,7 +84,10 @@ const FolderCtxMenu = ({
   return (
     <>
       <ContextMenuContent>
-        <ContextMenuItem onClick={() => handleFileAction('open')}>
+        <ContextMenuItem
+          disabled={viewType === 'trash'}
+          onClick={() => handleFileAction('open')}
+        >
           Abrir
         </ContextMenuItem>
 
@@ -59,6 +99,12 @@ const FolderCtxMenu = ({
           Renomear
         </ContextMenuItem>
         <ContextMenuItem
+          disabled={viewType !== 'trash'}
+          onClick={() => handleFileAction('restore')}
+        >
+          Restaurar
+        </ContextMenuItem>
+        <ContextMenuItem
           disabled={viewType === 'trash'}
           onClick={() => handleFileAction('move')}
         >
@@ -68,7 +114,9 @@ const FolderCtxMenu = ({
           onClick={() => handleFileAction('delete')}
           className="text-red-600 focus:text-red-600"
         >
-          {viewType === 'trash' ? 'Excluir permanentemente' : 'Mover para lixeira'}
+          {viewType === 'trash'
+            ? 'Excluir permanentemente'
+            : 'Mover para lixeira'}
         </ContextMenuItem>
       </ContextMenuContent>
     </>

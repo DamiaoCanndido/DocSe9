@@ -311,9 +311,7 @@ const DocsContent = ({
                           )}
                           <div className="absolute inset-x-0 bottom-0 p-1.5 sm:p-3 bg-linear-to-t from-black/5 to-transparent flex items-center justify-center">
                             <span className="text-[8px] sm:text-[10px] font-bold uppercase text-gray-400 bg-white px-1.5 py-0.5 rounded shadow-sm border border-gray-100">
-                              {item.nodeType === 'folder'
-                                ? 'Pasta'
-                                : 'Arquivo'}
+                              {item.nodeType === 'folder' ? 'Pasta' : 'Arquivo'}
                             </span>
                           </div>
                         </div>
@@ -363,6 +361,7 @@ const DocsContent = ({
           onClose={() => setModal(null)}
         />
       )}
+
       {modal?.type === 'deleteNode' && editNodeData && (
         <DeleteNodeModal
           node={editNodeData}
