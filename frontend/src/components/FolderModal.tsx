@@ -5,11 +5,11 @@ import { z } from 'zod';
 import AdminInput from './AdminInput';
 import ModalActions from './ModalActions';
 
-export const nodeEditSchema = z.object({
+export const nodeSchema = z.object({
   name: z.string().min(3, 'O nome da pasta deve ter pelo menos 3 caracteres.'),
 });
 
-type NodeEditFormData = z.infer<typeof nodeEditSchema>;
+type NodeEditFormData = z.infer<typeof nodeSchema>;
 
 interface FolderModalProps {
   node?: NodeResProps;
@@ -27,15 +27,18 @@ export default function FolderModal({
     handleSubmit,
     formState: { errors },
   } = useForm<NodeEditFormData>({
-    resolver: zodResolver(nodeEditSchema),
+    resolver: zodResolver(nodeSchema),
     defaultValues: {
-      name: node?.name || '',
+      name:
+        node?.nodeType === 'folder'
+          ? node?.name || ''
+          : node?.name?.replace('.pdf', '') || '',
     },
   });
 
   return (
     <AdminModal
-      title={node?.name ? 'Renomear pasta' : 'Criar pasta'}
+      title={node?.name ? 'Renomear item' : 'Criar item'}
       onClose={onClose}
     >
       <form
@@ -61,7 +64,7 @@ export default function FolderModal({
 
         <ModalActions
           onCancel={onClose}
-          confirmLabel={node?.name ? 'Renomear pasta' : 'Criar pasta'}
+          confirmLabel={node?.name ? 'Renomear' : 'Criar'}
         />
       </form>
     </AdminModal>

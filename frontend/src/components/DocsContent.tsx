@@ -12,7 +12,16 @@ import {
 import FolderCtxMenu from '@/components/FolderCtxMenu';
 import EmptyAreaContextMenu from '@/components/EmptyAreaContextMenu';
 import { ViewDocsType } from '@/components/DocsLoad';
-import { createFolder, getViewUrl, updateFolder } from '@/lib/data';
+import {
+  createFolder,
+  deleteFile,
+  deleteFolder,
+  getViewUrl,
+  permanentDeleteFile,
+  permanentDeleteFolder,
+  updateFile,
+  updateFolder,
+} from '@/lib/data';
 import { usePathname } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -20,6 +29,7 @@ import { useApp } from '@/contexts/AppContext';
 import { useState } from 'react';
 import { ModalState } from '@/components/AdminModal';
 import FolderModal from './FolderModal';
+import DeleteNodeModal from './DeleteNodeModal';
 import { toast } from 'sonner';
 
 export type DisplayMode = 'grid' | 'list';
@@ -80,19 +90,73 @@ const DocsContent = ({
     }
   };
 
-  const handleEditFolder = async (
+  const handleEditNode = async (
     id: string,
-    form: FolderReqProps
+    form: { name: string },
+    nodeType: 'folder' | 'file'
   ): Promise<void> => {
     try {
-      await updateFolder({
-        folderId: id,
-        form,
-        path,
+      if (nodeType === 'folder') {
+        await updateFolder({
+          folderId: id,
+          form: { name: form.name, parentId: null },
+          path,
+        });
+      } else {
+        await updateFile({
+          fileId: id,
+          form: { name: form.name },
+          path,
+        });
+      }
+      toast.success('Sucesso', {
+        description: `${
+          nodeType === 'folder' ? 'Pasta' : 'Arquivo'
+        } renomeado com sucesso.`,
+        duration: 2000,
       });
     } catch (_error) {
       toast.error('Erro', {
-        description: 'Erro ao editar pasta.',
+        description: `Erro ao editar ${
+          nodeType === 'folder' ? 'pasta' : 'arquivo'
+        }.`,
+        duration: 2000,
+      });
+    }
+  };
+
+  const handleDeleteNode = async (node: NodeResProps): Promise<void> => {
+    try {
+      if (type === 'trash') {
+        if (node.nodeType === 'folder') {
+          await permanentDeleteFolder({ folderId: node.id, path });
+        } else {
+          await permanentDeleteFile({ fileId: node.id, path });
+        }
+      } else {
+        if (node.nodeType === 'folder') {
+          await deleteFolder({ folderId: node.id, path });
+        } else {
+          await deleteFile({ fileId: node.id, path });
+        }
+      }
+
+      toast.success('Sucesso', {
+        description:
+          type === 'trash'
+            ? `${
+                node.nodeType === 'folder' ? 'Pasta' : 'Arquivo'
+              } excluído permanentemente.`
+            : `${
+                node.nodeType === 'folder' ? 'Pasta' : 'Arquivo'
+              } movido para a lixeira.`,
+        duration: 2000,
+      });
+    } catch (_error) {
+      toast.error('Erro', {
+        description: `Erro ao excluir ${
+          node.nodeType === 'folder' ? 'pasta' : 'arquivo'
+        }.`,
         duration: 2000,
       });
     }
@@ -213,6 +277,9 @@ const DocsContent = ({
                           onEdit={(node) =>
                             setModal({ type: 'editNode', data: node })
                           }
+                          onDelete={(node) =>
+                            setModal({ type: 'deleteNode', data: node })
+                          }
                         />
                       </ContextMenu>
                     ))}
@@ -269,6 +336,9 @@ const DocsContent = ({
                         onEdit={(node) =>
                           setModal({ type: 'editNode', data: node })
                         }
+                        onDelete={(node) =>
+                          setModal({ type: 'deleteNode', data: node })
+                        }
                       />
                     </ContextMenu>
                   ))}
@@ -289,15 +359,18 @@ const DocsContent = ({
       {modal?.type === 'editNode' && editNodeData && (
         <FolderModal
           onSave={(form) => {
-            if (editNodeData.nodeType === 'folder') {
-              handleEditFolder(editNodeData.id, {
-                name: form.name,
-                parentId: null,
-              });
-            }
+            handleEditNode(editNodeData.id, { name: form.name }, editNodeData.nodeType);
             setModal(null);
           }}
           node={editNodeData}
+          onClose={() => setModal(null)}
+        />
+      )}
+      {modal?.type === 'deleteNode' && editNodeData && (
+        <DeleteNodeModal
+          node={editNodeData}
+          isTrash={type === 'trash'}
+          onConfirm={() => handleDeleteNode(editNodeData)}
           onClose={() => setModal(null)}
         />
       )}

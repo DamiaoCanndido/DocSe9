@@ -14,10 +14,12 @@ const FolderCtxMenu = ({
   docType,
   viewType,
   onEdit,
+  onDelete,
 }: {
   docType: NodeResProps;
   viewType: ViewDocsType;
   onEdit: (node: NodeResProps) => void;
+  onDelete: (node: NodeResProps) => void;
 }) => {
   const router = useRouter();
   const path = usePathname();
@@ -37,6 +39,9 @@ const FolderCtxMenu = ({
     if (action === 'rename') {
       onEdit(docType);
     }
+    if (action === 'delete') {
+      onDelete(docType);
+    }
   };
 
   return (
@@ -47,14 +52,23 @@ const FolderCtxMenu = ({
         </ContextMenuItem>
 
         <ContextMenuSeparator />
-        <ContextMenuItem onClick={() => handleFileAction('rename')}>
+        <ContextMenuItem
+          disabled={viewType === 'trash'}
+          onClick={() => handleFileAction('rename')}
+        >
           Renomear
         </ContextMenuItem>
-        <ContextMenuItem onClick={() => handleFileAction('move')}>
+        <ContextMenuItem
+          disabled={viewType === 'trash'}
+          onClick={() => handleFileAction('move')}
+        >
           Mover
         </ContextMenuItem>
-        <ContextMenuItem onClick={() => handleFileAction('delete')}>
-          Excluir
+        <ContextMenuItem
+          onClick={() => handleFileAction('delete')}
+          className="text-red-600 focus:text-red-600"
+        >
+          {viewType === 'trash' ? 'Excluir permanentemente' : 'Mover para lixeira'}
         </ContextMenuItem>
       </ContextMenuContent>
     </>

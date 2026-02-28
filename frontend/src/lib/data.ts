@@ -368,3 +368,109 @@ export const updateFolder = async ({
     }
   }
 };
+
+export const deleteFolder = async ({
+  folderId,
+  path,
+}: {
+  folderId: string;
+  path: string;
+}) => {
+  try {
+    const token = await getToken();
+    await apiServer.delete(`/v2/folders/${folderId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    revalidatePath(path);
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return redirect('/login');
+    }
+  }
+};
+
+export const deleteFile = async ({
+  fileId,
+  path,
+}: {
+  fileId: string;
+  path: string;
+}) => {
+  try {
+    const token = await getToken();
+    await apiServer.delete(`/v2/files/${fileId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    revalidatePath(path);
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return redirect('/login');
+    }
+  }
+};
+
+export const permanentDeleteFolder = async ({
+  folderId,
+  path,
+}: {
+  folderId: string;
+  path: string;
+}) => {
+  try {
+    const token = await getToken();
+    await apiServer.delete(`/v2/folders/${folderId}/permanent`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    revalidatePath(path);
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return redirect('/login');
+    }
+  }
+};
+
+export const permanentDeleteFile = async ({
+  fileId,
+  path,
+}: {
+  fileId: string;
+  path: string;
+}) => {
+  try {
+    const token = await getToken();
+    await apiServer.delete(`/v2/files/${fileId}/permanent`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    revalidatePath(path);
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return redirect('/login');
+    }
+  }
+};
+
+export const updateFile = async ({
+  fileId,
+  form,
+  path,
+}: {
+  fileId: string;
+  form: { name: string };
+  path: string;
+}) => {
+  try {
+    const token = await getToken();
+    await apiServer.patch(
+      `/v2/files/${fileId}/rename`,
+      { name: form.name },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    revalidatePath(path);
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return redirect('/login');
+    }
+  }
+};
