@@ -19,6 +19,7 @@ import { ViewDocsType } from '@/components/DocsLoad';
 import {
   createFolder,
   deleteFolder,
+  moveFolder,
   permanentDeleteFolder,
   restoreFolder,
   updateFolder,
@@ -26,18 +27,19 @@ import {
 import {
   deleteFile,
   getViewUrl,
+  moveFile,
   permanentDeleteFile,
   restoreFile,
   updateFile,
 } from '@/app/api/files';
-import { usePathname } from 'next/navigation';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useApp } from '@/contexts/AppContext';
 import { useState } from 'react';
 import { ModalState } from '@/components/AdminModal';
 import FolderModal from './FolderModal';
 import DeleteNodeModal from './DeleteNodeModal';
+import MoveModal from './MoveModal';
 import { toast } from 'sonner';
 
 export type DisplayMode = 'grid' | 'list';
@@ -59,9 +61,16 @@ const DocsContent = ({
   const [lastSelectedId, setLastSelectedId] = useState<string | null>(null);
 
   const editNodeData =
-    modal?.data && 'favorite' in modal.data
+    modal?.data && !Array.isArray(modal.data) && 'favorite' in modal.data
       ? (modal.data as NodeResProps)
       : null;
+
+  const moveNodesData =
+    modal?.data && Array.isArray(modal.data)
+      ? (modal.data as NodeResProps[])
+      : editNodeData
+      ? [editNodeData]
+      : [];
 
   const router = useRouter();
 
@@ -204,6 +213,41 @@ const DocsContent = ({
         description: `Erro ao excluir ${
           node.nodeType === 'folder' ? 'pasta' : 'arquivo'
         }.`,
+        duration: 2000,
+      });
+    }
+  };
+
+  const handleMoveNodes = async (
+    nodes: NodeResProps[],
+    targetFolderId: string | null
+  ): Promise<void> => {
+    try {
+      if (targetFolderId === null) {
+        toast.error('Erro', {
+          description: 'Ainda não é possível mover para a raiz.',
+          duration: 2000,
+        });
+        return;
+      }
+
+      const promises = nodes.map((node) => {
+        if (node.nodeType === 'folder') {
+          return moveFolder({ folderId: node.id, targetFolderId, path });
+        } else {
+          return moveFile({ fileId: node.id, targetFolderId, path });
+        }
+      });
+
+      await Promise.all(promises);
+      toast.success('Sucesso', {
+        description: `${nodes.length} itens movidos com sucesso.`,
+        duration: 2000,
+      });
+      clearSelection();
+    } catch (_error) {
+      toast.error('Erro', {
+        description: 'Erro ao mover alguns itens.',
         duration: 2000,
       });
     }
@@ -448,6 +492,9 @@ const DocsContent = ({
                               onDelete={(node) =>
                                 setModal({ type: 'deleteNode', data: node })
                               }
+                              onMove={(node) =>
+                                setModal({ type: 'moveNode', data: node })
+                              }
                             />
                           </ContextMenu>
                         );
@@ -553,6 +600,9 @@ const DocsContent = ({
                         onDelete={(node) =>
                           setModal({ type: 'deleteNode', data: node })
                         }
+                        onMove={(node) =>
+                          setModal({ type: 'moveNode', data: node })
+                        }
                       />
                     </ContextMenu>
                   );
@@ -591,7 +641,10 @@ const DocsContent = ({
               <>
                 <button
                   onClick={() => {
-                    /* Logic for Bulk Move */
+                    const nodesToMove = data.content.filter((node) =>
+                      selectedIds.includes(node.id)
+                    );
+                    setModal({ type: 'moveNode', data: nodesToMove });
                   }}
                   className="p-2 hover:bg-gray-50 rounded-xl text-[#5F6368] hover:text-blue-600 transition-all flex flex-col items-center gap-1"
                   title="Mover"
@@ -700,6 +753,16 @@ const DocsContent = ({
           node={editNodeData}
           isTrash={type === 'trash'}
           onConfirm={() => handleDeleteNode(editNodeData)}
+          onClose={() => setModal(null)}
+        />
+      )}
+      {modal?.type === 'moveNode' && moveNodesData.length > 0 && (
+        <MoveModal
+          nodes={moveNodesData}
+          onMove={(targetFolderId) => {
+            handleMoveNodes(moveNodesData, targetFolderId);
+            setModal(null);
+          }}
           onClose={() => setModal(null)}
         />
       )}

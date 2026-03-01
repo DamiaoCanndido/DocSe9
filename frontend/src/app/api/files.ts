@@ -116,3 +116,29 @@ export const restoreFile = async ({
     }
   }
 };
+
+export const moveFile = async ({
+  fileId,
+  targetFolderId,
+  path,
+}: {
+  fileId: string;
+  targetFolderId: string;
+  path: string;
+}) => {
+  try {
+    const token = await getToken();
+    await apiServer.patch(
+      `/v2/files/${fileId}/move/${targetFolderId}`,
+      {},
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    revalidatePath(path);
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return redirect('/login');
+    }
+  }
+};

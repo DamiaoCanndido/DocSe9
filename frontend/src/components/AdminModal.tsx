@@ -12,11 +12,12 @@ export type ModalType =
   | 'editNode'
   | 'restoreNode'
   | 'createNode'
-  | 'deleteNode';
+  | 'deleteNode'
+  | 'moveNode';
 
 export interface ModalState {
   type: ModalType;
-  data?: UserResProps | TownResProps | NodeResProps;
+  data?: UserResProps | TownResProps | NodeResProps | NodeResProps[];
 }
 
 interface ModalProps {

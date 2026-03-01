@@ -17,11 +17,13 @@ const FolderCtxMenu = ({
   viewType,
   onEdit,
   onDelete,
+  onMove,
 }: {
   docType: NodeResProps;
   viewType: ViewDocsType;
   onEdit: (node: NodeResProps) => void;
   onDelete: (node: NodeResProps) => void;
+  onMove: (node: NodeResProps) => void;
 }) => {
   const router = useRouter();
   const path = usePathname();
@@ -79,6 +81,9 @@ const FolderCtxMenu = ({
     }
     if (action === 'delete') {
       onDelete(docType);
+    }
+    if (action === 'move') {
+      onMove(docType);
     }
   };
 
