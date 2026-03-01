@@ -17,6 +17,8 @@ public record NodeResponseDTO(
         String updatedByName,
         UUID deletedBy,
         String deletedByName,
+        UUID restoredBy,
+        String restoredByName,
         Instant createdAt,
         Instant updatedAt,
         Instant deletedAt,

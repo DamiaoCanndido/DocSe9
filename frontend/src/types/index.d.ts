@@ -51,6 +51,8 @@ declare interface NodeResProps {
   updatedByName: string | null;
   deletedBy: string | null;
   deletedByName: string | null;
+  restoredBy: string | null;
+  restoredByName: string | null;
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;

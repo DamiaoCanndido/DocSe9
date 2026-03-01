@@ -38,9 +38,6 @@ public class Node {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
-    private Boolean favorite = false;
-
     /*
      * ======================
      * Node hierarchy
@@ -56,6 +53,9 @@ public class Node {
 
     @OneToMany(mappedBy = "node", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PermissionV2> permissions = new ArrayList<>();
+
+    @OneToMany(mappedBy = "node", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<NodeUserMetadata> userMetadata = new ArrayList<>();
 
     /*
      * ======================
@@ -84,6 +84,10 @@ public class Node {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "deleted_by")
     private UserV2 deletedBy;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "restored_by")
+    private UserV2 restoredBy;
 
     /*
      * ======================
@@ -116,9 +120,6 @@ public class Node {
     @Column(name = "object_key")
     private String objectKey;
 
-    @Column(name = "last_seen")
-    private Instant lastSeen;
-
     // getters and setters
 
     public UUID getNodeId() {
@@ -145,14 +146,6 @@ public class Node {
         this.name = name;
     }
 
-    public Boolean getFavorite() {
-        return favorite;
-    }
-
-    public void setFavorite(Boolean favorite) {
-        this.favorite = favorite;
-    }
-
     public Node getParent() {
         return parent;
     }
@@ -175,6 +168,14 @@ public class Node {
 
     public void setPermissions(List<PermissionV2> permissions) {
         this.permissions = permissions;
+    }
+
+    public List<NodeUserMetadata> getUserMetadata() {
+        return userMetadata;
+    }
+
+    public void setUserMetadata(List<NodeUserMetadata> userMetadata) {
+        this.userMetadata = userMetadata;
     }
 
     public TownV2 getTown() {
@@ -207,6 +208,14 @@ public class Node {
 
     public void setDeletedBy(UserV2 deletedBy) {
         this.deletedBy = deletedBy;
+    }
+
+    public UserV2 getRestoredBy() {
+        return restoredBy;
+    }
+
+    public void setRestoredBy(UserV2 restoredBy) {
+        this.restoredBy = restoredBy;
     }
 
     public Instant getCreatedAt() {
@@ -255,14 +264,6 @@ public class Node {
 
     public void setObjectKey(String objectKey) {
         this.objectKey = objectKey;
-    }
-
-    public Instant getLastSeen() {
-        return lastSeen;
-    }
-
-    public void setLastSeen(Instant lastSeen) {
-        this.lastSeen = lastSeen;
     }
 
     public void copyPermissionsFrom(Node sourceNode) {

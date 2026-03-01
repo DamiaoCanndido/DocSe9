@@ -8,6 +8,7 @@ import com.nergal.docseq.dto.nodes.NodeUpdateDTO;
 import com.nergal.docseq.dto.search.SearchV2ResponseDTO;
 import com.nergal.docseq.entities.Node;
 import com.nergal.docseq.entities.NodeType;
+import com.nergal.docseq.entities.NodeUserMetadata;
 import com.nergal.docseq.entities.PermissionType;
 import com.nergal.docseq.entities.Role;
 import com.nergal.docseq.entities.UserV2;
@@ -19,6 +20,7 @@ import com.nergal.docseq.helpers.mappers.NodeMapper;
 import com.nergal.docseq.helpers.mappers.PageMapper;
 import com.nergal.docseq.helpers.specifications.FolderV2Specifications;
 import com.nergal.docseq.repositories.NodeRepository;
+import com.nergal.docseq.repositories.NodeUserMetadataRepository;
 import com.nergal.docseq.repositories.UserV2Repository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
@@ -45,16 +47,19 @@ public class NodeService {
     private final UserV2Repository userV2Repository;
     private final StorageService storageService;
     private final PermissionV2Service permissionServiceV2;
+    private final NodeUserMetadataRepository nodeUserMetadataRepository;
 
     public NodeService(
             NodeRepository nodeRepository,
             UserV2Repository userV2Repository,
             StorageService storageService,
-            PermissionV2Service permissionServiceV2) {
+            PermissionV2Service permissionServiceV2,
+            NodeUserMetadataRepository nodeUserMetadataRepository) {
         this.nodeRepository = nodeRepository;
         this.userV2Repository = userV2Repository;
         this.storageService = storageService;
         this.permissionServiceV2 = permissionServiceV2;
+        this.nodeUserMetadataRepository = nodeUserMetadataRepository;
     }
 
     @Transactional(readOnly = true)
@@ -73,7 +78,12 @@ public class NodeService {
                                 user.getUserId(), isManager)
                                 .and(FolderV2Specifications.withEagerLoading()),
                         pageable)
-                .map(NodeMapper::toDTO);
+                .map((Node node) -> {
+                    com.nergal.docseq.entities.NodeUserMetadata metadata = nodeUserMetadataRepository
+                            .findByNodeNodeIdAndUserUserId(node.getNodeId(), user.getUserId())
+                            .orElse(null);
+                    return NodeMapper.toDTO(node, metadata);
+                });
 
         return new NodeContentResponse(PageMapper.toPageResponse(nodePage));
     }
@@ -104,7 +114,12 @@ public class NodeService {
                         PermissionType.READ,
                         user.getUserId(),
                         isManager), pageable)
-                .map(NodeMapper::toDTO);
+                .map((Node n) -> {
+                    NodeUserMetadata metadata = nodeUserMetadataRepository
+                            .findByNodeNodeIdAndUserUserId(n.getNodeId(), user.getUserId())
+                            .orElse(null);
+                    return NodeMapper.toDTO(n, metadata);
+                });
 
         return new NodeContentResponse(PageMapper.toPageResponse(nodePage));
     }
@@ -126,12 +141,22 @@ public class NodeService {
 
         List<NodeResponseDTO> folderDTOs = nodes.stream()
                 .filter(node -> node.getNodeType() == NodeType.folder)
-                .map(NodeMapper::toDTO)
+                .map((Node node) -> {
+                    NodeUserMetadata metadata = nodeUserMetadataRepository
+                            .findByNodeNodeIdAndUserUserId(node.getNodeId(), user.getUserId())
+                            .orElse(null);
+                    return NodeMapper.toDTO(node, metadata);
+                })
                 .collect(Collectors.toList());
 
         List<NodeResponseDTO> fileDTOs = nodes.stream()
                 .filter(node -> node.getNodeType() == NodeType.file)
-                .map(NodeMapper::toDTO)
+                .map((Node node) -> {
+                    NodeUserMetadata metadata = nodeUserMetadataRepository
+                            .findByNodeNodeIdAndUserUserId(node.getNodeId(), user.getUserId())
+                            .orElse(null);
+                    return NodeMapper.toDTO(node, metadata);
+                })
                 .collect(Collectors.toList());
 
         return new SearchV2ResponseDTO(folderDTOs, fileDTOs);
@@ -224,8 +249,13 @@ public class NodeService {
             node.setName(dto.name());
         }
         if (dto.favorite() != null) {
-            node.setFavorite(dto.favorite());
+            var metadata = nodeUserMetadataRepository
+                    .findByNodeNodeIdAndUserUserId(node.getNodeId(), user.getUserId())
+                    .orElseGet(() -> new com.nergal.docseq.entities.NodeUserMetadata(node, user));
+            metadata.setFavorite(dto.favorite());
+            nodeUserMetadataRepository.save(metadata);
         }
+        node.setUpdatedBy(user);
         nodeRepository.save(node);
     }
 
@@ -423,7 +453,12 @@ public class NodeService {
                         user.getRole().getName().name(),
                         permissions,
                         pageable)
-                .map(NodeMapper::toDTO);
+                .map((Node node) -> {
+                    com.nergal.docseq.entities.NodeUserMetadata metadata = nodeUserMetadataRepository
+                            .findByNodeNodeIdAndUserUserId(node.getNodeId(), user.getUserId())
+                            .orElse(null);
+                    return NodeMapper.toDTO(node, metadata);
+                });
 
         return new NodeContentResponse(PageMapper.toPageResponse(nodePage));
     }
@@ -431,6 +466,7 @@ public class NodeService {
     @Transactional
     public void restore(UUID nodeId, JwtAuthenticationToken token) {
         UUID townId = getTownId(token);
+        UserV2 user = getUser(token);
 
         Node node = nodeRepository
                 .findByNodeIdAndTownTownIdAndDeletedAtIsNotNull(
@@ -443,11 +479,11 @@ public class NodeService {
             throw new ForbiddenException("You do not have write permission to restore this node.");
         }
 
-        restoreRecursively(node);
+        restoreRecursively(node, user);
     }
 
     @Transactional
-    public void restoreRecursively(Node root) {
+    public void restoreRecursively(Node root, UserV2 restoredBy) {
         List<Node> allDeletedNodesInTown = nodeRepository
                 .findByTownTownIdAndDeletedAtIsNotNull(root.getTown().getTownId(), Pageable.unpaged()).getContent();
         Map<UUID, List<Node>> parentToChildrenMap = allDeletedNodesInTown.stream()
@@ -476,6 +512,8 @@ public class NodeService {
         for (Node node : nodesToRestore) {
             node.setDeletedAt(null);
             node.setDeletedBy(null);
+            node.setRestoredBy(restoredBy);
+            node.setUpdatedBy(restoredBy);
         }
         nodeRepository.saveAll(nodesToRestore);
     }
@@ -497,8 +535,12 @@ public class NodeService {
             throw new ForbiddenException("You do not have write permission to favorite/unfavorite this node.");
         }
 
-        node.setFavorite(!node.getFavorite());
-        nodeRepository.save(node);
+        var metadata = nodeUserMetadataRepository
+                .findByNodeNodeIdAndUserUserId(node.getNodeId(), user.getUserId())
+                .orElseGet(() -> new com.nergal.docseq.entities.NodeUserMetadata(node, user));
+
+        metadata.setFavorite(!metadata.getFavorite());
+        nodeUserMetadataRepository.save(metadata);
     }
 
     private UserV2 getUser(JwtAuthenticationToken token) {

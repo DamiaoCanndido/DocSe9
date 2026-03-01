@@ -32,18 +32,21 @@ public class FileV2Service {
     private final UserV2Repository userRepository;
     private final StorageService storageService;
     private final PermissionV2Service permissionService;
+    private final com.nergal.docseq.repositories.NodeUserMetadataRepository nodeUserMetadataRepository;
 
     public FileV2Service(
             FileV2Repository fileRepository,
             NodeRepository nodeRepository,
             UserV2Repository userRepository,
             StorageService storageService,
-            PermissionV2Service permissionService) {
+            PermissionV2Service permissionService,
+            com.nergal.docseq.repositories.NodeUserMetadataRepository nodeUserMetadataRepository) {
         this.fileRepository = fileRepository;
         this.nodeRepository = nodeRepository;
         this.userRepository = userRepository;
         this.storageService = storageService;
         this.permissionService = permissionService;
+        this.nodeUserMetadataRepository = nodeUserMetadataRepository;
     }
 
     @Transactional
@@ -100,7 +103,7 @@ public class FileV2Service {
         }
 
         file.setDeletedAt(Instant.now());
-        file.setDeletedBy(getUser(token));
+        file.setDeletedBy(user);
         fileRepository.save(file);
     }
 
@@ -126,6 +129,8 @@ public class FileV2Service {
 
         file.setDeletedAt(null);
         file.setDeletedBy(null);
+        file.setRestoredBy(user);
+        file.setUpdatedBy(user);
         fileRepository.save(file);
     }
 
@@ -144,6 +149,8 @@ public class FileV2Service {
             foldersToRestore.forEach(f -> {
                 f.setDeletedAt(null);
                 f.setDeletedBy(null);
+                f.setRestoredBy(user);
+                f.setUpdatedBy(user);
             });
             nodeRepository.saveAll(foldersToRestore);
         }
@@ -187,6 +194,7 @@ public class FileV2Service {
 
         if (dto.name() != null) {
             file.setName(dto.name() + file.getContentType().replace("application/", "."));
+            file.setUpdatedBy(user);
             fileRepository.save(file);
         }
     }
@@ -212,6 +220,7 @@ public class FileV2Service {
         }
 
         file.setParent(targetFolder);
+        file.setUpdatedBy(user);
         fileRepository.save(file);
     }
 
@@ -226,8 +235,12 @@ public class FileV2Service {
             throw new ForbiddenException("You do not have write permission to favorite/unfavorite this file.");
         }
 
-        file.setFavorite(!file.getFavorite());
-        fileRepository.save(file);
+        var metadata = nodeUserMetadataRepository
+                .findByNodeNodeIdAndUserUserId(file.getNodeId(), user.getUserId())
+                .orElseGet(() -> new com.nergal.docseq.entities.NodeUserMetadata(file, user));
+
+        metadata.setFavorite(!metadata.getFavorite());
+        nodeUserMetadataRepository.save(metadata);
     }
 
     @Transactional
@@ -241,8 +254,13 @@ public class FileV2Service {
             throw new ForbiddenException("You do not have read permission for this file.");
         }
 
-        file.setLastSeen(Instant.now());
-        fileRepository.save(file);
+        var metadata = nodeUserMetadataRepository
+                .findByNodeNodeIdAndUserUserId(file.getNodeId(), user.getUserId())
+                .orElseGet(() -> new com.nergal.docseq.entities.NodeUserMetadata(file, user));
+
+        metadata.setLastSeen(Instant.now());
+        nodeUserMetadataRepository.save(metadata);
+
         return storageService.generateTemporaryUrl(file.getObjectKey());
     }
 

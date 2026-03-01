@@ -4,6 +4,7 @@ import com.nergal.docseq.dto.nodes.NodeResponseDTO;
 import com.nergal.docseq.dto.nodes.NodeTreeResponseDTO;
 import com.nergal.docseq.entities.Node;
 import com.nergal.docseq.entities.NodeType;
+import com.nergal.docseq.entities.NodeUserMetadata;
 
 import java.util.List;
 import java.util.Map;
@@ -12,12 +13,12 @@ import java.util.stream.Collectors;
 
 public class NodeMapper {
 
-    public static NodeResponseDTO toDTO(Node node) {
+    public static NodeResponseDTO toDTO(Node node, NodeUserMetadata metadata) {
         return new NodeResponseDTO(
                 node.getNodeId(),
                 node.getName(),
                 node.getNodeType(),
-                node.getFavorite(),
+                metadata != null ? metadata.getFavorite() : false,
                 node.getParent() != null ? node.getParent().getNodeId() : null,
                 node.getTown() != null ? node.getTown().getTownId() : null,
                 node.getCreatedBy() != null ? node.getCreatedBy().getUserId() : null,
@@ -26,13 +27,19 @@ public class NodeMapper {
                 node.getUpdatedBy() != null ? node.getUpdatedBy().getUsername() : null,
                 node.getDeletedBy() != null ? node.getDeletedBy().getUserId() : null,
                 node.getDeletedBy() != null ? node.getDeletedBy().getUsername() : null,
+                node.getRestoredBy() != null ? node.getRestoredBy().getUserId() : null,
+                node.getRestoredBy() != null ? node.getRestoredBy().getUsername() : null,
                 node.getCreatedAt(),
                 node.getUpdatedAt(),
                 node.getDeletedAt(),
                 node.getContentType(),
                 node.getSize(),
                 node.getObjectKey(),
-                node.getLastSeen());
+                metadata != null ? metadata.getLastSeen() : null);
+    }
+
+    public static NodeResponseDTO toDTO(Node node) {
+        return toDTO(node, null);
     }
 
     public static List<NodeTreeResponseDTO> buildNodeTree(List<Node> allNodes) {
