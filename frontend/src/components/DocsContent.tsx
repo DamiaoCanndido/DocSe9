@@ -59,6 +59,9 @@ const DocsContent = ({
   const [modal, setModal] = useState<ModalState | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [lastSelectedId, setLastSelectedId] = useState<string | null>(null);
+  const clickTimeoutRef = useState<{ timer: NodeJS.Timeout | null }>({
+    timer: null,
+  })[0];
 
   const editNodeData =
     modal?.data && !Array.isArray(modal.data) && 'favorite' in modal.data
@@ -79,7 +82,12 @@ const DocsContent = ({
     return url;
   };
 
-  const handleOpenNode = async (item: NodeResProps) => {
+  const handleOpenNode = async (item: NodeResProps, e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    clearSelection(); // Limpa a seleção imediatamente ao abrir para esconder a toolbar
     if (type === 'trash' && item.nodeType == 'folder') return;
     if (type === 'my-docs' && item.nodeType == 'folder') {
       router.push(`/my-docs/${item.id}`);
@@ -93,35 +101,47 @@ const DocsContent = ({
 
   const handleSelectNode = (item: NodeResProps, e: React.MouseEvent) => {
     e.stopPropagation();
-    const isCtrlPressed = e.ctrlKey || e.metaKey;
-    const isShiftPressed = e.shiftKey;
 
-    if (isShiftPressed && lastSelectedId) {
-      const currentIndex = data.content.findIndex(
-        (node) => node.id === item.id
-      );
-      const lastIndex = data.content.findIndex(
-        (node) => node.id === lastSelectedId
-      );
-
-      const start = Math.min(currentIndex, lastIndex);
-      const end = Math.max(currentIndex, lastIndex);
-
-      const rangeIds = data.content
-        .slice(start, end + 1)
-        .map((node) => node.id);
-      setSelectedIds(Array.from(new Set([...selectedIds, ...rangeIds])));
-    } else if (isCtrlPressed) {
-      setSelectedIds((prev) =>
-        prev.includes(item.id)
-          ? prev.filter((id) => id !== item.id)
-          : [...prev, item.id]
-      );
-      setLastSelectedId(item.id);
-    } else {
-      setSelectedIds([item.id]);
-      setLastSelectedId(item.id);
+    if (e.detail === 2) {
+      if (clickTimeoutRef.timer) {
+        clearTimeout(clickTimeoutRef.timer);
+        clickTimeoutRef.timer = null;
+      }
+      return;
     }
+
+    clickTimeoutRef.timer = setTimeout(() => {
+      const isCtrlPressed = e.ctrlKey || e.metaKey;
+      const isShiftPressed = e.shiftKey;
+
+      if (isShiftPressed && lastSelectedId) {
+        const currentIndex = data.content.findIndex(
+          (node) => node.id === item.id
+        );
+        const lastIndex = data.content.findIndex(
+          (node) => node.id === lastSelectedId
+        );
+
+        const start = Math.min(currentIndex, lastIndex);
+        const end = Math.max(currentIndex, lastIndex);
+
+        const rangeIds = data.content
+          .slice(start, end + 1)
+          .map((node) => node.id);
+        setSelectedIds(Array.from(new Set([...selectedIds, ...rangeIds])));
+      } else if (isCtrlPressed) {
+        setSelectedIds((prev) =>
+          prev.includes(item.id)
+            ? prev.filter((id) => id !== item.id)
+            : [...prev, item.id]
+        );
+        setLastSelectedId(item.id);
+      } else {
+        setSelectedIds([item.id]);
+        setLastSelectedId(item.id);
+      }
+      clickTimeoutRef.timer = null;
+    }, 200);
   };
 
   const clearSelection = () => {
@@ -416,7 +436,7 @@ const DocsContent = ({
                                     : ''
                                 }`}
                                 onClick={(e) => handleSelectNode(item, e)}
-                                onDoubleClick={() => handleOpenNode(item)}
+                                onDoubleClick={(e) => handleOpenNode(item, e)}
                               >
                                 <td className="py-2 px-2">
                                   <div className="flex items-center gap-2">
@@ -513,7 +533,7 @@ const DocsContent = ({
                         <motion.div
                           whileHover={{ y: -2 }}
                           onClick={(e) => handleSelectNode(item, e)}
-                          onDoubleClick={() => handleOpenNode(item)}
+                          onDoubleClick={(e) => handleOpenNode(item, e)}
                           className={`group cursor-pointer px-1.5 py-2 rounded-xl transition-all h-fit ${
                             isSelected ? 'bg-blue-50 ring-2 ring-blue-100' : ''
                           }`}
