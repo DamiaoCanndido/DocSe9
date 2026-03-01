@@ -61,8 +61,4 @@ public class PermissionsCheckService {
         return hasPermission(user, folder, PermissionType.DELETE);
     }
 
-    public boolean canShare(User user, Folder folder) {
-        return hasPermission(user, folder, PermissionType.SHARE);
-    }
-
 }

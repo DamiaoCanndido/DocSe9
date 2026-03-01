@@ -414,7 +414,6 @@ public class NodeService {
         List<PermissionType> permissions = new ArrayList<>(Arrays.asList(
                 PermissionType.READ,
                 PermissionType.WRITE,
-                PermissionType.SHARE,
                 PermissionType.DELETE));
 
         var nodePage = nodeRepository

@@ -46,8 +46,4 @@ public class PermissionsCheckV2Service {
     public boolean canDelete(UserV2 user, Node node) {
         return hasPermission(user, node, PermissionType.DELETE);
     }
-
-    public boolean canShare(UserV2 user, Node node) {
-        return hasPermission(user, node, PermissionType.SHARE);
-    }
 }

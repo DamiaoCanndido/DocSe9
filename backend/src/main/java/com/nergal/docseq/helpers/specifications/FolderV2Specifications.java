@@ -260,7 +260,6 @@ public class FolderV2Specifications { // Renamed from FolderSpecifications
                     permissions.get("permissionType").in(
                             PermissionType.READ,
                             PermissionType.WRITE,
-                            PermissionType.SHARE,
                             PermissionType.DELETE));
         };
     }
@@ -276,7 +275,6 @@ public class FolderV2Specifications { // Renamed from FolderSpecifications
                     cb.equal(permissions.get("user").get("userId"), userId),
                     permissions.get("permissionType").in(
                             PermissionType.WRITE,
-                            PermissionType.SHARE,
                             PermissionType.DELETE));
         };
     }
@@ -291,7 +289,6 @@ public class FolderV2Specifications { // Renamed from FolderSpecifications
             return cb.and(
                     cb.equal(permissions.get("user").get("userId"), userId),
                     permissions.get("permissionType").in(
-                            PermissionType.SHARE,
                             PermissionType.DELETE));
         };
     }

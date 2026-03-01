@@ -486,7 +486,6 @@ public class FolderService {
         List<PermissionType> permissions = new ArrayList<>(Arrays.asList(
                 PermissionType.READ,
                 PermissionType.WRITE,
-                PermissionType.SHARE,
                 PermissionType.DELETE));
 
         var folderPage = folderRepository

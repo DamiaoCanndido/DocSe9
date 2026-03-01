@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import {
   LayoutDashboard,
   HardDrive,
-  Users,
   Clock,
   Star,
   Trash2,
@@ -25,7 +24,6 @@ export const Sidebar: React.FC<{ currentUser: UserResProps }> = ({
   const navItems = [
     { id: 'dashboard', label: 'Painel inicial', icon: LayoutDashboard },
     { id: 'my-docs', label: 'Meus documentos', icon: HardDrive },
-    { id: 'shared', label: 'Compartilhados', icon: Users },
     { id: 'recent', label: 'Recentes', icon: Clock },
     { id: 'starred', label: 'Favoritos', icon: Star },
     { id: 'trash', label: 'Lixeira', icon: Trash2 },
@@ -100,7 +98,6 @@ export const Sidebar: React.FC<{ currentUser: UserResProps }> = ({
                   setCurrentView(item.id as ViewType);
                   switch (item.id) {
                     case 'my-docs':
-                    case 'shared':
                     case 'recent':
                     case 'starred':
                       router.push('/my-docs');
