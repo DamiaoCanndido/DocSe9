@@ -309,6 +309,31 @@ public class FolderV2Specifications { // Renamed from FolderSpecifications
         };
     }
 
+    public static Specification<Node> withTreeFilters(
+            UUID townId,
+            UUID userId,
+            boolean isManager) {
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            predicates.add(cb.equal(root.get("town").get("townId"), townId));
+            predicates.add(cb.isNull(root.get("deletedAt")));
+            predicates.add(cb.equal(root.get("nodeType"), com.nergal.docseq.entities.NodeType.folder));
+
+            if (!isManager && userId != null) {
+                Join<Node, PermissionV2> permissionsJoin = root.join("permissions", JoinType.INNER);
+                predicates.add(cb.equal(permissionsJoin.get("user").get("userId"), userId));
+
+                List<PermissionType> acceptablePermissions = getAcceptablePermissions(PermissionType.WRITE);
+                predicates.add(permissionsJoin.get("permissionType").in(acceptablePermissions));
+
+                query.distinct(true);
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+    }
+
     public static Specification<Node> withEagerLoading() { // Changed Folder to Node
         return (root, query, cb) -> {
             if (query.getResultType() != Long.class && query.getResultType() != long.class) {

@@ -141,16 +141,15 @@ public class NodeService {
     public List<NodeTreeResponseDTO> getNodeTree(
             JwtAuthenticationToken token) {
         UserV2 user = getUser(token);
-        if (user.getRole().getName().equals(Role.Values.basic)) {
-            throw new ForbiddenException(
-                    "Basic users cannot view the full node tree without explicit read permissions.");
-        }
+        boolean isManager = user.getRole().getName().equals(Role.Values.manager);
         UUID townId = user.getTown().getTownId();
 
-        var nodes = nodeRepository
-                .findByTownTownIdAndNodeTypeAndDeletedAtIsNull(townId, NodeType.folder)
-                .stream()
-                .collect(Collectors.toList());
+        List<Node> nodes = nodeRepository.findAll(
+                FolderV2Specifications.withTreeFilters(
+                        townId,
+                        user.getUserId(),
+                        isManager)
+                        .and(FolderV2Specifications.withEagerLoading()));
 
         return NodeMapper.buildNodeTree(nodes);
     }

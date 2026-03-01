@@ -54,6 +54,9 @@ public class NodeMapper {
                     NodeTreeResponseDTO parentDTO = nodeMap.get(node.getParent().getNodeId());
                     if (parentDTO != null) {
                         parentDTO.children().add(nodeDTO);
+                    } else {
+                        // If parent is not in the list (no permission), treat as root
+                        rootNodes.add(nodeDTO);
                     }
                 }
             }
