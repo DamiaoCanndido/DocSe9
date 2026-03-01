@@ -8,6 +8,10 @@ import {
   Folder,
   Grid,
   List,
+  RotateCcw,
+  Star,
+  Trash2,
+  X,
 } from 'lucide-react';
 import FolderCtxMenu from '@/components/FolderCtxMenu';
 import EmptyAreaContextMenu from '@/components/EmptyAreaContextMenu';
@@ -19,6 +23,8 @@ import {
   getViewUrl,
   permanentDeleteFile,
   permanentDeleteFolder,
+  restoreFile,
+  restoreFolder,
   updateFile,
   updateFolder,
 } from '@/lib/data';
@@ -45,9 +51,10 @@ const DocsContent = ({
 }) => {
   const path = usePathname();
 
-  // const [sortBy, setSortBy] = useState<'name' | 'modified' | 'size'>('name');
   const { displayMode, setDisplayMode } = useApp();
   const [modal, setModal] = useState<ModalState | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [lastSelectedId, setLastSelectedId] = useState<string | null>(null);
 
   const editNodeData =
     modal?.data && 'favorite' in modal.data
@@ -61,7 +68,7 @@ const DocsContent = ({
     return url;
   };
 
-  const handleNodeClick = async (item: NodeResProps) => {
+  const handleOpenNode = async (item: NodeResProps) => {
     if (type === 'trash' && item.nodeType == 'folder') return;
     if (type === 'my-docs' && item.nodeType == 'folder') {
       router.push(`/my-docs/${item.id}`);
@@ -71,6 +78,44 @@ const DocsContent = ({
       const result = await getFileLink(item.id, path);
       window.open(result.url, '_blank', 'noopener,noreferrer');
     }
+  };
+
+  const handleSelectNode = (item: NodeResProps, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const isCtrlPressed = e.ctrlKey || e.metaKey;
+    const isShiftPressed = e.shiftKey;
+
+    if (isShiftPressed && lastSelectedId) {
+      const currentIndex = data.content.findIndex(
+        (node) => node.id === item.id
+      );
+      const lastIndex = data.content.findIndex(
+        (node) => node.id === lastSelectedId
+      );
+
+      const start = Math.min(currentIndex, lastIndex);
+      const end = Math.max(currentIndex, lastIndex);
+
+      const rangeIds = data.content
+        .slice(start, end + 1)
+        .map((node) => node.id);
+      setSelectedIds(Array.from(new Set([...selectedIds, ...rangeIds])));
+    } else if (isCtrlPressed) {
+      setSelectedIds((prev) =>
+        prev.includes(item.id)
+          ? prev.filter((id) => id !== item.id)
+          : [...prev, item.id]
+      );
+      setLastSelectedId(item.id);
+    } else {
+      setSelectedIds([item.id]);
+      setLastSelectedId(item.id);
+    }
+  };
+
+  const clearSelection = () => {
+    setSelectedIds([]);
+    setLastSelectedId(null);
   };
 
   const getTitle = () => {
@@ -183,8 +228,75 @@ const DocsContent = ({
     }
   };
 
+  const handleBulkRestore = async () => {
+    try {
+      const nodesToRestore = data.content.filter((node) =>
+        selectedIds.includes(node.id)
+      );
+
+      const promises = nodesToRestore.map((node) => {
+        if (node.nodeType === 'folder') {
+          return restoreFolder({ folderId: node.id, path });
+        } else {
+          return restoreFile({ fileId: node.id, path });
+        }
+      });
+
+      await Promise.all(promises);
+      toast.success('Sucesso', {
+        description: `${selectedIds.length} itens restaurados com sucesso.`,
+        duration: 2000,
+      });
+      clearSelection();
+    } catch (_error) {
+      toast.error('Erro', {
+        description: 'Erro ao restaurar itens.',
+        duration: 2000,
+      });
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    try {
+      const nodesToDelete = data.content.filter((node) =>
+        selectedIds.includes(node.id)
+      );
+
+      const promises = nodesToDelete.map((node) => {
+        if (type === 'trash') {
+          if (node.nodeType === 'folder') {
+            return permanentDeleteFolder({ folderId: node.id, path });
+          } else {
+            return permanentDeleteFile({ fileId: node.id, path });
+          }
+        } else {
+          if (node.nodeType === 'folder') {
+            return deleteFolder({ folderId: node.id, path });
+          } else {
+            return deleteFile({ fileId: node.id, path });
+          }
+        }
+      });
+
+      await Promise.all(promises);
+      toast.success('Sucesso', {
+        description:
+          type === 'trash'
+            ? `${selectedIds.length} itens excluídos permanentemente.`
+            : `${selectedIds.length} itens movidos para a lixeira.`,
+        duration: 2000,
+      });
+      clearSelection();
+    } catch (_error) {
+      toast.error('Erro', {
+        description: `Erro ao ${type === 'trash' ? 'excluir' : 'mover'} itens.`,
+        duration: 2000,
+      });
+    }
+  };
+
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col relative" onClick={clearSelection}>
       <div className="flex flex-col gap-2 sm:gap-4 mb-6 mx-4">
         <div className="flex items-center gap-1 sm:gap-2 text-[10px] sm:text-xs text-[#5F6368] mb-1 overflow-x-auto whitespace-nowrap pb-1 no-scrollbar">
           <span>Documentos</span>
@@ -199,7 +311,10 @@ const DocsContent = ({
 
           <div className="flex items-center gap-1 bg-[#F1F3F4] p-1 rounded-lg border border-[#E0E0E0] shrink-0">
             <button
-              onClick={() => setDisplayMode('list')}
+              onClick={(e) => {
+                e.stopPropagation();
+                setDisplayMode('list');
+              }}
               className={`p-1 sm:p-1.5 rounded-md transition-colors ${
                 displayMode === 'list'
                   ? 'bg-white shadow-sm text-blue-600'
@@ -209,7 +324,10 @@ const DocsContent = ({
               <List className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
             <button
-              onClick={() => setDisplayMode('grid')}
+              onClick={(e) => {
+                e.stopPropagation();
+                setDisplayMode('grid');
+              }}
               className={`p-1 sm:p-1.5 rounded-md transition-colors ${
                 displayMode === 'grid'
                   ? 'bg-white shadow-sm text-blue-600'
@@ -240,105 +358,203 @@ const DocsContent = ({
                       </tr>
                     </thead>
                     <tbody>
-                      {data.content.map((item) => (
-                        <ContextMenu key={item.id}>
-                          <ContextMenuTrigger asChild>
-                            <tr
-                              className="hover:bg-accent cursor-pointer"
-                              onClick={() => handleNodeClick(item)}
-                            >
-                              <td className="py-2 px-2">
-                                <div className="flex items-center gap-2">
-                                  {item.nodeType === 'folder' ? (
-                                    <>
-                                      <Folder className="h-4 w-4 shrink-0" />
-                                      <span>{item.name}</span>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <File className="h-4 w-4 shrink-0" />
-                                      <span>{item.name}</span>
-                                    </>
+                      {data.content.map((item) => {
+                        const isSelected = selectedIds.includes(item.id);
+                        return (
+                          <ContextMenu key={item.id}>
+                            <ContextMenuTrigger asChild>
+                              <tr
+                                className={`hover:bg-accent cursor-pointer transition-colors ${
+                                  isSelected
+                                    ? 'bg-blue-50 hover:bg-blue-100'
+                                    : ''
+                                }`}
+                                onClick={(e) => handleSelectNode(item, e)}
+                                onDoubleClick={() => handleOpenNode(item)}
+                              >
+                                <td className="py-2 px-2">
+                                  <div className="flex items-center gap-2">
+                                    {item.nodeType === 'folder' ? (
+                                      <>
+                                        <Folder
+                                          className={`h-4 w-4 shrink-0 ${
+                                            isSelected
+                                              ? 'text-blue-600'
+                                              : 'text-gray-400'
+                                          }`}
+                                        />
+                                        <span
+                                          className={
+                                            isSelected
+                                              ? 'text-blue-700 font-medium'
+                                              : ''
+                                          }
+                                        >
+                                          {item.name}
+                                        </span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <File
+                                          className={`h-4 w-4 shrink-0 ${
+                                            isSelected
+                                              ? 'text-blue-600'
+                                              : 'text-gray-400'
+                                          }`}
+                                        />
+                                        <span
+                                          className={
+                                            isSelected
+                                              ? 'text-blue-700 font-medium'
+                                              : ''
+                                          }
+                                        >
+                                          {item.name}
+                                        </span>
+                                      </>
+                                    )}
+                                  </div>
+                                </td>
+                                <td
+                                  className={`hidden lg:table-cell py-2 px-2 ${
+                                    isSelected
+                                      ? 'text-blue-600/70'
+                                      : 'text-muted-foreground'
+                                  }`}
+                                >
+                                  {new Date(item.createdAt).toLocaleDateString(
+                                    'pt-BR'
                                   )}
-                                </div>
-                              </td>
-                              <td className="hidden lg:table-cell py-2 px-2 text-muted-foreground">
-                                {new Date(item.createdAt).toLocaleDateString(
-                                  'pt-BR'
-                                )}
-                              </td>
-                              <td className="hidden lg:table-cell py-2 px-2 text-muted-foreground">
-                                {item.nodeType === 'folder' ? '-' : item.size}
-                              </td>
-                            </tr>
-                          </ContextMenuTrigger>
-                          <FolderCtxMenu
-                            docType={item}
-                            viewType={type}
-                            onEdit={(node) =>
-                              setModal({ type: 'editNode', data: node })
-                            }
-                            onDelete={(node) =>
-                              setModal({ type: 'deleteNode', data: node })
-                            }
-                          />
-                        </ContextMenu>
-                      ))}
+                                </td>
+                                <td
+                                  className={`hidden lg:table-cell py-2 px-2 ${
+                                    isSelected
+                                      ? 'text-blue-600/70'
+                                      : 'text-muted-foreground'
+                                  }`}
+                                >
+                                  {item.nodeType === 'folder' ? '-' : item.size}
+                                </td>
+                              </tr>
+                            </ContextMenuTrigger>
+                            <FolderCtxMenu
+                              docType={item}
+                              viewType={type}
+                              onEdit={(node) =>
+                                setModal({ type: 'editNode', data: node })
+                              }
+                              onDelete={(node) =>
+                                setModal({ type: 'deleteNode', data: node })
+                              }
+                            />
+                          </ContextMenu>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-6 h-full overflow-auto">
-                {data.content.map((item) => (
-                  <ContextMenu key={item.id}>
-                    <ContextMenuTrigger asChild>
-                      <motion.div
-                        whileHover={{ y: -2 }}
-                        onClick={() => handleNodeClick(item)}
-                        className="group cursor-pointer px-1.5 rounded-lg h-fit"
-                      >
-                        <div className="aspect-square bg-white border border-[#E0E0E0] rounded-xl sm:rounded-2xl flex flex-col items-center justify-center mb-2 sm:mb-3 group-hover:shadow-md group-hover:border-blue-200 transition-all relative overflow-hidden">
-                          <div className="absolute top-1 sm:top-2 right-1 sm:right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button className="p-1 sm:p-1.5 bg-white/90 shadow-sm rounded-full text-[#5F6368] hover:text-blue-600">
-                              <EllipsisVertical className="w-3 h-3 sm:w-4 sm:h-4" />
-                            </button>
+                {data.content.map((item) => {
+                  const isSelected = selectedIds.includes(item.id);
+                  return (
+                    <ContextMenu key={item.id}>
+                      <ContextMenuTrigger asChild>
+                        <motion.div
+                          whileHover={{ y: -2 }}
+                          onClick={(e) => handleSelectNode(item, e)}
+                          onDoubleClick={() => handleOpenNode(item)}
+                          className={`group cursor-pointer px-1.5 py-2 rounded-xl transition-all h-fit ${
+                            isSelected ? 'bg-blue-50 ring-2 ring-blue-100' : ''
+                          }`}
+                        >
+                          <div
+                            className={`aspect-square border rounded-xl sm:rounded-2xl flex flex-col items-center justify-center mb-2 sm:mb-3 transition-all relative overflow-hidden ${
+                              isSelected
+                                ? 'bg-white border-blue-300 shadow-sm'
+                                : 'bg-white border-[#E0E0E0] group-hover:shadow-md group-hover:border-blue-200'
+                            }`}
+                          >
+                            <div className="absolute top-1 sm:top-2 right-1 sm:right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button
+                                className="p-1 sm:p-1.5 bg-white/90 shadow-sm rounded-full text-[#5F6368] hover:text-blue-600"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  // Context menu usually handles this, but we can add logic here if needed
+                                }}
+                              >
+                                <EllipsisVertical className="w-3 h-3 sm:w-4 sm:h-4" />
+                              </button>
+                            </div>
+                            {item.nodeType === 'folder' ? (
+                              <Folder
+                                className={`w-10 h-10 sm:w-16 sm:h-16 transition-colors ${
+                                  isSelected
+                                    ? 'text-blue-400 fill-blue-50'
+                                    : 'text-gray-200 fill-gray-100'
+                                }`}
+                              />
+                            ) : (
+                              <File
+                                className={`w-10 h-10 sm:w-16 sm:h-16 transition-colors ${
+                                  isSelected
+                                    ? 'text-blue-400 fill-blue-50'
+                                    : 'text-gray-200 fill-gray-100'
+                                }`}
+                              />
+                            )}
+                            <div className="absolute inset-x-0 bottom-0 p-1.5 sm:p-3 bg-linear-to-t from-black/5 to-transparent flex items-center justify-center">
+                              <span
+                                className={`text-[8px] sm:text-[10px] font-bold uppercase px-1.5 py-0.5 rounded shadow-sm border transition-colors ${
+                                  isSelected
+                                    ? 'text-blue-600 bg-white border-blue-100'
+                                    : 'text-gray-400 bg-white border-gray-100'
+                                }`}
+                              >
+                                {item.nodeType === 'folder'
+                                  ? 'Pasta'
+                                  : 'Arquivo'}
+                              </span>
+                            </div>
                           </div>
-                          {item.nodeType === 'folder' ? (
-                            <Folder className="w-10 h-10 sm:w-16 sm:h-16 text-gray-200 fill-gray-100" />
-                          ) : (
-                            <File className="w-10 h-10 sm:w-16 sm:h-16 text-gray-200 fill-gray-100" />
-                          )}
-                          <div className="absolute inset-x-0 bottom-0 p-1.5 sm:p-3 bg-linear-to-t from-black/5 to-transparent flex items-center justify-center">
-                            <span className="text-[8px] sm:text-[10px] font-bold uppercase text-gray-400 bg-white px-1.5 py-0.5 rounded shadow-sm border border-gray-100">
-                              {item.nodeType === 'folder' ? 'Pasta' : 'Arquivo'}
+                          <div className="flex items-center gap-1.5 sm:gap-2 px-1">
+                            {item.nodeType === 'folder' ? (
+                              <Folder
+                                className={`w-3 h-3 sm:w-4 sm:h-4 shrink-0 ${
+                                  isSelected ? 'text-blue-600' : 'text-gray-400'
+                                }`}
+                              />
+                            ) : (
+                              <File
+                                className={`w-3 h-3 sm:w-4 sm:h-4 shrink-0 ${
+                                  isSelected ? 'text-blue-600' : 'text-gray-400'
+                                }`}
+                              />
+                            )}
+                            <span
+                              className={`text-xs sm:text-sm font-medium truncate flex-1 transition-colors ${
+                                isSelected ? 'text-blue-700' : 'text-[#1F1F1F]'
+                              }`}
+                            >
+                              {item.name}
                             </span>
                           </div>
-                        </div>
-                        <div className="flex items-center gap-1.5 sm:gap-2 px-1">
-                          {item.nodeType === 'folder' ? (
-                            <Folder className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 shrink-0" />
-                          ) : (
-                            <File className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 shrink-0" />
-                          )}
-                          <span className="text-xs sm:text-sm font-medium text-[#1F1F1F] truncate flex-1">
-                            {item.name}
-                          </span>
-                        </div>
-                      </motion.div>
-                    </ContextMenuTrigger>
-                    <FolderCtxMenu
-                      docType={item}
-                      viewType={type}
-                      onEdit={(node) =>
-                        setModal({ type: 'editNode', data: node })
-                      }
-                      onDelete={(node) =>
-                        setModal({ type: 'deleteNode', data: node })
-                      }
-                    />
-                  </ContextMenu>
-                ))}
+                        </motion.div>
+                      </ContextMenuTrigger>
+                      <FolderCtxMenu
+                        docType={item}
+                        viewType={type}
+                        onEdit={(node) =>
+                          setModal({ type: 'editNode', data: node })
+                        }
+                        onDelete={(node) =>
+                          setModal({ type: 'deleteNode', data: node })
+                        }
+                      />
+                    </ContextMenu>
+                  );
+                })}
               </div>
             )}
           </ContextMenuTrigger>
@@ -347,6 +563,119 @@ const DocsContent = ({
           />
         </div>
       </ContextMenu>
+
+      {/* Selection Toolbar */}
+      {selectedIds.length > 0 && (
+        <motion.div
+          initial={{ y: 100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: 100, opacity: 0 }}
+          className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-white border border-[#E0E0E0] rounded-2xl shadow-2xl px-6 py-3 flex items-center gap-6 z-50"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex items-center gap-3 pr-6 border-r border-gray-100">
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white text-xs font-bold">
+              {selectedIds.length}
+            </div>
+            <span className="text-sm font-semibold text-gray-700">
+              {selectedIds.length === 1
+                ? 'Item selecionado'
+                : 'Itens selecionados'}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {type !== 'trash' ? (
+              <>
+                <button
+                  onClick={() => {
+                    /* Logic for Bulk Move */
+                  }}
+                  className="p-2 hover:bg-gray-50 rounded-xl text-[#5F6368] hover:text-blue-600 transition-all flex flex-col items-center gap-1"
+                  title="Mover"
+                >
+                  <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-gray-50 group-hover:bg-blue-50 transition-colors">
+                    <Grid className="w-5 h-5" />
+                  </div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider">
+                    Mover
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    /* Logic for Bulk Favorite */
+                  }}
+                  className="p-2 hover:bg-gray-50 rounded-xl text-[#5F6368] hover:text-blue-600 transition-all flex flex-col items-center gap-1"
+                  title="Favoritar"
+                >
+                  <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-gray-50">
+                    <Star className="w-5 h-5" />
+                  </div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider">
+                    Favoritos
+                  </span>
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={handleBulkRestore}
+                className="p-2 hover:bg-blue-50 rounded-xl text-[#5F6368] hover:text-blue-600 transition-all flex flex-col items-center gap-1"
+                title="Restaurar"
+              >
+                <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-blue-50/0 hover:bg-blue-50">
+                  <RotateCcw className="w-5 h-5" />
+                </div>
+                <span className="text-[10px] font-bold uppercase tracking-wider">
+                  Restaurar
+                </span>
+              </button>
+            )}
+
+            <button
+              onClick={handleBulkDelete}
+              className={`p-2 rounded-xl transition-all flex flex-col items-center gap-1 ${
+                type === 'trash'
+                  ? 'hover:bg-red-50 text-red-600'
+                  : 'hover:bg-red-50 text-[#5F6368] hover:text-red-600'
+              }`}
+              title={
+                type === 'trash' ? 'Excluir permanentemente' : 'Mover para lixeira'
+              }
+            >
+              <div
+                className={`w-10 h-10 flex items-center justify-center rounded-lg ${
+                  type === 'trash' ? 'bg-red-50' : 'bg-red-50/0 hover:bg-red-50'
+                }`}
+              >
+                <Trash2 className="w-5 h-5" />
+              </div>
+              <span
+                className={`text-[10px] font-bold uppercase tracking-wider ${
+                  type === 'trash' ? 'text-red-600' : 'text-red-600/70'
+                }`}
+              >
+                {type === 'trash' ? 'Excluir' : 'Excluir'}
+              </span>
+            </button>
+
+            <div className="w-px h-8 bg-gray-100 mx-2" />
+
+            <button
+              onClick={clearSelection}
+              className="p-2 hover:bg-gray-50 rounded-xl text-gray-400 hover:text-gray-600 transition-all flex flex-col items-center gap-1"
+            >
+              <div className="w-10 h-10 flex items-center justify-center rounded-lg">
+                <X className="w-5 h-5" />
+              </div>
+              <span className="text-[10px] font-bold uppercase tracking-wider">
+                Cancelar
+              </span>
+            </button>
+          </div>
+        </motion.div>
+      )}
+
       {modal?.type === 'editNode' && editNodeData && (
         <FolderModal
           onSave={(form) => {
