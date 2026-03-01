@@ -8,7 +8,8 @@ import {
 import { useRouter } from 'next/navigation';
 import { ViewDocsType } from '@/components/DocsLoad';
 import { usePathname } from 'next/navigation';
-import { getViewUrl, restoreFile, restoreFolder } from '@/lib/data';
+import { getViewUrl, restoreFile } from '@/app/api/files';
+import { restoreFolder } from '@/app/api/folders';
 import { toast } from 'sonner';
 
 const FolderCtxMenu = ({

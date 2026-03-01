@@ -25,7 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { apiClient } from '@/lib/axios';
+import { login } from '@/app/api/users';
 
 type FormType = 'login' | 'register';
 
@@ -137,13 +137,10 @@ const AuthForm = ({ type }: { type: FormType }) => {
     setIsLoading(true);
     try {
       if (type === 'login') {
-        const { data } = await apiClient.post('/api/auth/login', {
-          email: values.email,
-          password: values.password,
+        await login({
+          form: { email: values.email, password: values.password },
         });
-        if (data.success) {
-          toast.success('Sucesso');
-        }
+        toast.success('Login realizado com sucesso!');
         router.replace('/dashboard');
       }
     } catch (error) {

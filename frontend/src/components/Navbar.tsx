@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Settings, Bell, Menu, ChevronDown } from 'lucide-react';
 import Image from 'next/image';
 import { useApp } from '@/contexts/AppContext';
-import { signOutUser } from '@/lib/data';
+import { signOutUser } from '@/app/api/users';
 import SearchFoldersAndFiles from '@/components/Search';
 
 export const Navbar: React.FC<{ currentUser: UserResProps }> = ({

@@ -1,5 +1,6 @@
 import AdminSuite from '@/components/AdminSuite';
-import { getMe, getTowns, getUsers } from '@/lib/data';
+import { getMe, getUsers } from '@/app/api/users';
+import { getTowns } from '@/app/api/towns';
 
 export default async function AdminPanel({ searchParams }: SearchParamProps) {
   const currentUser: UserResProps = await getMe();

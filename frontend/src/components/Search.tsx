@@ -1,6 +1,7 @@
 'use client';
 
-import { getSearchResults, getViewUrl } from '@/lib/data';
+import { getSearchResults } from '@/app/api/folders';
+import { getViewUrl } from '@/app/api/files';
 import { Search, Filter, Folder, File } from 'lucide-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';

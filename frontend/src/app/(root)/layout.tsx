@@ -1,4 +1,4 @@
-import { getMe } from '@/lib/data';
+import { getMe } from '@/app/api/users';
 import { Sidebar } from '@/components/Sidebar';
 import React from 'react';
 import { Navbar } from '@/components/Navbar';

@@ -15,7 +15,7 @@ declare interface LoginResponse {
   expiresIn: number;
 }
 
-declare interface LoginRequest {
+declare interface LoginReqProps {
   email: string;
   password: string;
 }

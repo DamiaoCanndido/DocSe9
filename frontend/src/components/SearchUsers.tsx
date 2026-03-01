@@ -1,6 +1,6 @@
 'use client';
 
-import { getUsers } from '@/lib/data';
+import { getUsers } from '@/app/api/users';
 import { ChevronDown, Plus, Search } from 'lucide-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';

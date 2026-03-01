@@ -1,5 +1,5 @@
 import DocsContent from '@/components/DocsContent';
-import { getChildrenFolders } from '@/lib/data';
+import { getChildrenFolders } from '@/app/api/folders';
 
 export default async function MySubDocs({
   searchParams,

@@ -18,16 +18,18 @@ import EmptyAreaContextMenu from '@/components/EmptyAreaContextMenu';
 import { ViewDocsType } from '@/components/DocsLoad';
 import {
   createFolder,
-  deleteFile,
   deleteFolder,
+  permanentDeleteFolder,
+  restoreFolder,
+  updateFolder,
+} from '@/app/api/folders';
+import {
+  deleteFile,
   getViewUrl,
   permanentDeleteFile,
-  permanentDeleteFolder,
   restoreFile,
-  restoreFolder,
   updateFile,
-  updateFolder,
-} from '@/lib/data';
+} from '@/app/api/files';
 import { usePathname } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -640,7 +642,9 @@ const DocsContent = ({
                   : 'hover:bg-red-50 text-[#5F6368] hover:text-red-600'
               }`}
               title={
-                type === 'trash' ? 'Excluir permanentemente' : 'Mover para lixeira'
+                type === 'trash'
+                  ? 'Excluir permanentemente'
+                  : 'Mover para lixeira'
               }
             >
               <div

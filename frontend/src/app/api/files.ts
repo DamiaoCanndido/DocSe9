@@ -1,0 +1,118 @@
+'use server';
+
+import { cookies } from 'next/headers';
+import { apiServer } from '@/lib/axios';
+import { redirect } from 'next/navigation';
+import { AxiosError } from 'axios';
+import { parseStringify } from '@/lib/utils';
+import { revalidatePath } from 'next/cache';
+
+async function getToken() {
+  const token = (await cookies()).get('docse9-auth-token');
+  return token?.value;
+}
+
+export const getViewUrl = async (fileId: string, path: string) => {
+  try {
+    const token = await getToken();
+    const docs = await apiServer.get(`/v2/files/${fileId}/view-url`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    revalidatePath(path);
+    return parseStringify(docs.data);
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return redirect('/login');
+    }
+  }
+};
+
+export const deleteFile = async ({
+  fileId,
+  path,
+}: {
+  fileId: string;
+  path: string;
+}) => {
+  try {
+    const token = await getToken();
+    await apiServer.delete(`/v2/files/${fileId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    revalidatePath(path);
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return redirect('/login');
+    }
+  }
+};
+
+export const permanentDeleteFile = async ({
+  fileId,
+  path,
+}: {
+  fileId: string;
+  path: string;
+}) => {
+  try {
+    const token = await getToken();
+    await apiServer.delete(`/v2/files/${fileId}/permanent`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    revalidatePath(path);
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return redirect('/login');
+    }
+  }
+};
+
+export const updateFile = async ({
+  fileId,
+  form,
+  path,
+}: {
+  fileId: string;
+  form: { name: string };
+  path: string;
+}) => {
+  try {
+    const token = await getToken();
+    await apiServer.patch(
+      `/v2/files/${fileId}/rename`,
+      { name: form.name },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    revalidatePath(path);
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return redirect('/login');
+    }
+  }
+};
+
+export const restoreFile = async ({
+  fileId,
+  path,
+}: {
+  fileId: string;
+  path: string;
+}) => {
+  try {
+    const token = await getToken();
+    await apiServer.post(
+      `/v2/files/${fileId}/restore`,
+      {},
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    revalidatePath(path);
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return redirect('/login');
+    }
+  }
+};

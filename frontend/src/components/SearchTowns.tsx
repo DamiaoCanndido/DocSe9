@@ -1,6 +1,6 @@
 'use client';
 
-import { getTowns } from '@/lib/data';
+import { getTowns } from '@/app/api/towns';
 import { Search } from 'lucide-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';

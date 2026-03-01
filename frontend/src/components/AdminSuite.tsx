@@ -25,14 +25,8 @@ import {
 } from 'recharts';
 import AdminSettings from '@/components/AdminSettings';
 import { usePathname } from 'next/navigation';
-import {
-  deleteTown,
-  deleteUser,
-  newTown,
-  registerUser,
-  updateTown,
-  updateUser,
-} from '@/lib/data';
+import { deleteTown, newTown, updateTown } from '@/app/api/towns';
+import { deleteUser, registerUser, updateUser } from '@/app/api/users';
 import { toast } from 'sonner';
 import AdminTowns from '@/components/AdminTowns';
 import AddTownModal, { TownFormData } from '@/components/AddTownModal';

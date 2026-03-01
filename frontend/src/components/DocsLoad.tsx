@@ -1,5 +1,5 @@
 import DocsContent from '@/components/DocsContent';
-import { getRootFolders, getTrashFolders } from '@/lib/data';
+import { getRootFolders, getTrashFolders } from '@/app/api/folders';
 
 export type ViewDocsType =
   | 'my-docs'
