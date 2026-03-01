@@ -186,7 +186,7 @@ export const Sidebar: React.FC<{ currentUser: UserResProps }> = ({
       </AnimatePresence>
 
       {/* Bottom Nav for Mobile */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-[#E0E0E0] z-50 px-4 flex items-center justify-around">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-[#E0E0E0] z-50 flex items-center">
         {navItems.slice(0, 4).map((item) => {
           const isActive = currentView === item.id;
           const Icon = item.icon;
@@ -194,23 +194,23 @@ export const Sidebar: React.FC<{ currentUser: UserResProps }> = ({
             <button
               key={item.id}
               onClick={() => setCurrentView(item.id as ViewType)}
-              className={`flex flex-col items-center gap-1 min-w-64px ${
-                isActive ? 'text-blue-600' : 'text-#5F6368'
+              className={`flex-1 flex flex-col items-center justify-center gap-1 h-full ${
+                isActive ? 'text-blue-600' : 'text-[#5F6368]'
               }`}
             >
               <Icon className="w-5 h-5" />
-              <span className="text-[10px] font-medium">{item.label}</span>
+              <span className="text-[10px] font-medium text-center px-1">{item.label}</span>
             </button>
           );
         })}
         <button
           onClick={() => setCurrentView('settings')}
-          className={`flex flex-col items-center gap-1 min-w-64px ${
-            currentView === 'settings' ? 'text-blue-600' : 'text-#5F6368'
+          className={`flex-1 flex flex-col items-center justify-center gap-1 h-full ${
+            currentView === 'settings' ? 'text-blue-600' : 'text-[#5F6368]'
           }`}
         >
           <Plus className="w-5 h-5 rotate-45" />
-          <span className="text-[10px] font-medium">More</span>
+          <span className="text-[10px] font-medium">Mais</span>
         </button>
       </nav>
     </>
