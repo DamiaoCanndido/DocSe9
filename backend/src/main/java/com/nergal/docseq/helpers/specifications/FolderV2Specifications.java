@@ -4,6 +4,7 @@ import com.nergal.docseq.entities.Node;
 import com.nergal.docseq.entities.PermissionV2;
 import com.nergal.docseq.entities.PermissionType;
 import com.nergal.docseq.entities.UserV2;
+import com.nergal.docseq.entities.NodeUserMetadata;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
@@ -328,6 +329,17 @@ public class FolderV2Specifications { // Renamed from FolderSpecifications
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));
+        };
+    }
+
+    public static Specification<Node> withFavorites(UUID userId, UUID townId) {
+        return (root, query, cb) -> {
+            Join<Node, NodeUserMetadata> metadataJoin = root.join("userMetadata", JoinType.INNER);
+            return cb.and(
+                    cb.equal(root.get("town").get("townId"), townId),
+                    cb.isNull(root.get("deletedAt")),
+                    cb.equal(metadataJoin.get("user").get("userId"), userId),
+                    cb.equal(metadataJoin.get("favorite"), true));
         };
     }
 

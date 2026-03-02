@@ -179,6 +179,32 @@ public class NodeService {
         return NodeMapper.buildNodeTree(nodes);
     }
 
+    @Transactional(readOnly = true)
+    public NodeContentResponse listFavorites(
+            Pageable pageable,
+            JwtAuthenticationToken token) {
+        UserV2 user = getUser(token);
+        boolean isManager = user.getRole().getName().equals(Role.Values.manager);
+        UUID townId = user.getTown().getTownId();
+
+        var spec = FolderV2Specifications.withFavorites(user.getUserId(), townId);
+
+        if (!isManager) {
+            spec = spec.and(FolderV2Specifications.userCanRead(user.getUserId()));
+        }
+
+        var nodePage = nodeRepository
+                .findAll(spec.and(FolderV2Specifications.withEagerLoading()), pageable)
+                .map((Node node) -> {
+                    NodeUserMetadata metadata = nodeUserMetadataRepository
+                            .findByNodeNodeIdAndUserUserId(node.getNodeId(), user.getUserId())
+                            .orElse(null);
+                    return NodeMapper.toDTO(node, metadata);
+                });
+
+        return new NodeContentResponse(PageMapper.toPageResponse(nodePage));
+    }
+
     @Transactional
     public void create(NodeRequestDTO dto, JwtAuthenticationToken token) {
         UserV2 user = getUser(token);

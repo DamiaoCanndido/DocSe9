@@ -103,6 +103,16 @@ public class NodeController {
     }
 
     /**
+     * List favorite folders and files
+     */
+    @GetMapping("/favorites")
+    public ResponseEntity<NodeContentResponse> listFavorites(
+            Pageable pageable,
+            JwtAuthenticationToken token) {
+        return ResponseEntity.ok(nodeService.listFavorites(pageable, token));
+    }
+
+    /**
      * Favorite/unfavorite folder
      */
     @PatchMapping("/{folderId}/favorite")
