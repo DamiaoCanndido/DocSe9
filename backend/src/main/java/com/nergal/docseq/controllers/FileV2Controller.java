@@ -1,5 +1,6 @@
 package com.nergal.docseq.controllers;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -33,6 +34,12 @@ public class FileV2Controller {
 
     public FileV2Controller(FileV2Service fileService) {
         this.fileService = fileService;
+    }
+
+    @GetMapping("/recents")
+    public ResponseEntity<List<NodeResponseDTO>> getRecents(JwtAuthenticationToken token) {
+        List<NodeResponseDTO> recents = fileService.getRecents(token);
+        return ResponseEntity.ok(recents);
     }
 
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

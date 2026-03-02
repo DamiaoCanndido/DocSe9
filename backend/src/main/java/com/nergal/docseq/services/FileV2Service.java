@@ -4,7 +4,10 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -242,6 +245,19 @@ public class FileV2Service {
 
         metadata.setFavorite(!metadata.getFavorite());
         nodeUserMetadataRepository.save(metadata);
+    }
+
+    @Transactional(readOnly = true)
+    public List<NodeResponseDTO> getRecents(JwtAuthenticationToken token) {
+        UserV2 user = getUser(token);
+
+        Pageable pageable = PageRequest.of(0, 20);
+        List<NodeUserMetadata> recentMetadata = nodeUserMetadataRepository.findRecentFilesByUser(user.getUserId(), pageable);
+
+        return recentMetadata.stream()
+                .filter(m -> permissionService.checkPermission(m.getNode().getNodeId(), PermissionType.READ, token))
+                .map(m -> NodeMapper.toDTO(m.getNode(), m))
+                .collect(Collectors.toList());
     }
 
     @Transactional
