@@ -57,7 +57,12 @@ export default function AddUserModal({
       password: '',
       confirm: '',
       role: 'basic',
-      townId: me.role.name === 'admin' ? towns[0].townId : me.town?.townId,
+      townId:
+        towns.length === 0
+          ? undefined
+          : me.role.name === 'admin'
+          ? towns[0].townId
+          : me.town?.townId,
     },
   });
 
@@ -70,7 +75,11 @@ export default function AddUserModal({
     } else if (!addTownId) {
       setValue(
         'townId',
-        me.role.name === 'admin' ? towns[0].townId : me.town?.townId
+        towns.length === 0
+          ? undefined
+          : me.role.name === 'admin'
+          ? towns[0].townId
+          : me.town?.townId
       );
     }
   }, [addRole]);
@@ -136,7 +145,7 @@ export default function AddUserModal({
               />
             )}
           />
-          {addRole !== 'admin' && (
+          {addRole !== 'admin' && towns.length > 0 && (
             <Controller
               name="townId"
               control={control}
