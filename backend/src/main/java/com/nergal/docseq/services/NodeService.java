@@ -79,7 +79,7 @@ public class NodeService {
                                 .and(FolderV2Specifications.withEagerLoading()),
                         pageable)
                 .map((Node node) -> {
-                    com.nergal.docseq.entities.NodeUserMetadata metadata = nodeUserMetadataRepository
+                    NodeUserMetadata metadata = nodeUserMetadataRepository
                             .findByNodeNodeIdAndUserUserId(node.getNodeId(), user.getUserId())
                             .orElse(null);
                     return NodeMapper.toDTO(node, metadata);
@@ -251,7 +251,7 @@ public class NodeService {
         if (dto.favorite() != null) {
             var metadata = nodeUserMetadataRepository
                     .findByNodeNodeIdAndUserUserId(node.getNodeId(), user.getUserId())
-                    .orElseGet(() -> new com.nergal.docseq.entities.NodeUserMetadata(node, user));
+                    .orElseGet(() -> new NodeUserMetadata(node, user));
             metadata.setFavorite(dto.favorite());
             nodeUserMetadataRepository.save(metadata);
         }
@@ -454,7 +454,7 @@ public class NodeService {
                         permissions,
                         pageable)
                 .map((Node node) -> {
-                    com.nergal.docseq.entities.NodeUserMetadata metadata = nodeUserMetadataRepository
+                    NodeUserMetadata metadata = nodeUserMetadataRepository
                             .findByNodeNodeIdAndUserUserId(node.getNodeId(), user.getUserId())
                             .orElse(null);
                     return NodeMapper.toDTO(node, metadata);
@@ -537,7 +537,7 @@ public class NodeService {
 
         var metadata = nodeUserMetadataRepository
                 .findByNodeNodeIdAndUserUserId(node.getNodeId(), user.getUserId())
-                .orElseGet(() -> new com.nergal.docseq.entities.NodeUserMetadata(node, user));
+                .orElseGet(() -> new NodeUserMetadata(node, user));
 
         metadata.setFavorite(!metadata.getFavorite());
         nodeUserMetadataRepository.save(metadata);

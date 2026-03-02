@@ -14,6 +14,7 @@ import com.nergal.docseq.dto.files.FileUpdateDTO;
 import com.nergal.docseq.dto.nodes.NodeResponseDTO;
 import com.nergal.docseq.entities.Node;
 import com.nergal.docseq.entities.NodeType;
+import com.nergal.docseq.entities.NodeUserMetadata;
 import com.nergal.docseq.entities.PermissionType;
 import com.nergal.docseq.entities.UserV2;
 import com.nergal.docseq.exception.BadRequestException;
@@ -237,7 +238,7 @@ public class FileV2Service {
 
         var metadata = nodeUserMetadataRepository
                 .findByNodeNodeIdAndUserUserId(file.getNodeId(), user.getUserId())
-                .orElseGet(() -> new com.nergal.docseq.entities.NodeUserMetadata(file, user));
+                .orElseGet(() -> new NodeUserMetadata(file, user));
 
         metadata.setFavorite(!metadata.getFavorite());
         nodeUserMetadataRepository.save(metadata);
@@ -256,7 +257,7 @@ public class FileV2Service {
 
         var metadata = nodeUserMetadataRepository
                 .findByNodeNodeIdAndUserUserId(file.getNodeId(), user.getUserId())
-                .orElseGet(() -> new com.nergal.docseq.entities.NodeUserMetadata(file, user));
+                .orElseGet(() -> new NodeUserMetadata(file, user));
 
         metadata.setLastSeen(Instant.now());
         nodeUserMetadataRepository.save(metadata);
