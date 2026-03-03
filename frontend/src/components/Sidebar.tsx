@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import {
   LayoutDashboard,
   HardDrive,
@@ -13,8 +13,8 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useRouter } from 'next/navigation';
-import { ViewType, useApp } from '@/contexts/AppContext';
+import { useRouter, usePathname } from 'next/navigation';
+import { useApp } from '@/contexts/AppContext';
 
 const onUpload = () => {};
 
@@ -31,10 +31,9 @@ export const Sidebar: React.FC<{ currentUser: UserResProps }> = ({
   ];
 
   const router = useRouter();
+  const pathname = usePathname();
 
   const { isSidebarOpen, toggleSidebar } = useApp();
-
-  const [currentView, setCurrentView] = useState<ViewType>('dashboard');
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full p-4">
@@ -88,19 +87,28 @@ export const Sidebar: React.FC<{ currentUser: UserResProps }> = ({
             return true;
           })
           .map((item) => {
-            const isActive = currentView === item.id;
+            const isActive =
+              (item.id === 'dashboard' && pathname === '/dashboard') ||
+              (item.id === 'my-docs' && pathname.startsWith('/my-docs')) ||
+              (item.id === 'starred' && pathname === '/starred') ||
+              (item.id === 'trash' && pathname === '/trash') ||
+              (item.id === 'admin' && pathname === '/admin-panel');
+
             const Icon = item.icon;
 
             return (
               <button
                 key={item.id}
                 onClick={() => {
-                  setCurrentView(item.id as ViewType);
                   switch (item.id) {
                     case 'my-docs':
-                    case 'recent':
-                    case 'starred':
                       router.push('/my-docs');
+                      break;
+                    case 'recent':
+                      router.push('/recent');
+                      break;
+                    case 'starred':
+                      router.push('/starred');
                       break;
                     case 'trash':
                       router.push('/trash');
@@ -188,26 +196,50 @@ export const Sidebar: React.FC<{ currentUser: UserResProps }> = ({
       {/* Bottom Nav for Mobile */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-[#E0E0E0] z-50 flex items-center">
         {navItems.slice(0, 4).map((item) => {
-          const isActive = currentView === item.id;
+          const isActive =
+            (item.id === 'dashboard' && pathname === '/dashboard') ||
+            (item.id === 'my-docs' && pathname.startsWith('/my-docs')) ||
+            (item.id === 'starred' && pathname === '/starred') ||
+            (item.id === 'trash' && pathname === '/trash');
+
           const Icon = item.icon;
           return (
             <button
               key={item.id}
-              onClick={() => setCurrentView(item.id as ViewType)}
+              onClick={() => {
+                switch (item.id) {
+                  case 'my-docs':
+                    router.push('/my-docs');
+                    break;
+                  case 'recent':
+                    router.push('/recent');
+                    break;
+                  case 'starred':
+                    router.push('/starred');
+                    break;
+                  case 'trash':
+                    router.push('/trash');
+                    break;
+                  default:
+                    router.push('/dashboard');
+                }
+              }}
               className={`flex-1 flex flex-col items-center justify-center gap-1 h-full ${
                 isActive ? 'text-blue-600' : 'text-[#5F6368]'
               }`}
             >
               <Icon className="w-5 h-5" />
-              <span className="text-[10px] font-medium text-center px-1">{item.label}</span>
+              <span className="text-[10px] font-medium text-center px-1">
+                {item.label}
+              </span>
             </button>
           );
         })}
         <button
-          onClick={() => setCurrentView('settings')}
-          className={`flex-1 flex flex-col items-center justify-center gap-1 h-full ${
-            currentView === 'settings' ? 'text-blue-600' : 'text-[#5F6368]'
-          }`}
+          onClick={() => {
+            /* Handle more menu if needed */
+          }}
+          className={`flex-1 flex flex-col items-center justify-center gap-1 h-full text-[#5F6368]`}
         >
           <Plus className="w-5 h-5 rotate-45" />
           <span className="text-[10px] font-medium">Mais</span>

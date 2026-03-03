@@ -89,11 +89,17 @@ const DocsContent = ({
     }
     clearSelection(); // Limpa a seleção imediatamente ao abrir para esconder a toolbar
     if (type === 'trash' && item.nodeType == 'folder') return;
-    if (type === 'my-docs' && item.nodeType == 'folder') {
+    if (
+      (type === 'my-docs' || type === 'starred' || type === 'recent') &&
+      item.nodeType == 'folder'
+    ) {
       router.push(`/my-docs/${item.id}`);
     }
     if (type === 'trash' && item.nodeType == 'file') return;
-    if (type === 'my-docs' && item.nodeType == 'file') {
+    if (
+      (type === 'my-docs' || type === 'starred' || type === 'recent') &&
+      item.nodeType == 'file'
+    ) {
       const result = await getFileLink(item.id, path);
       window.open(result.url, '_blank', 'noopener,noreferrer');
     }

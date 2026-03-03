@@ -72,6 +72,21 @@ export const getTrashFolders = async (queries: DocsQueries) => {
   }
 };
 
+export const getFavoriteNodes = async (queries: DocsQueries) => {
+  try {
+    const token = await getToken();
+    const docs = await apiServer.get('/v2/folders/favorites', {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { ...queries },
+    });
+    return parseStringify(docs.data);
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return redirect('/login');
+    }
+  }
+};
+
 export const createFolder = async ({
   form,
   path,

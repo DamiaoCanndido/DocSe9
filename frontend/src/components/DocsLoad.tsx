@@ -1,5 +1,9 @@
 import DocsContent from '@/components/DocsContent';
-import { getRootFolders, getTrashFolders } from '@/app/api/folders';
+import {
+  getFavoriteNodes,
+  getRootFolders,
+  getTrashFolders,
+} from '@/app/api/folders';
 
 export type ViewDocsType =
   | 'my-docs'
@@ -39,6 +43,9 @@ export default async function DocsLoad({
       break;
     case 'trash':
       data = await getTrashFolders(setQueries);
+      break;
+    case 'starred':
+      data = await getFavoriteNodes(setQueries);
       break;
   }
 
