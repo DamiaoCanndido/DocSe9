@@ -143,6 +143,30 @@ export const moveFile = async ({
   }
 };
 
+export const favoriteFile = async ({
+  fileId,
+  path,
+}: {
+  fileId: string;
+  path: string;
+}) => {
+  try {
+    const token = await getToken();
+    await apiServer.patch(
+      `/v2/files/${fileId}/favorite`,
+      {},
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    revalidatePath(path);
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return redirect('/login');
+    }
+  }
+};
+
 export const getRecentFiles = async (queries: DocsQueries) => {
   try {
     const token = await getToken();

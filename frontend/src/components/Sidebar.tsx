@@ -237,15 +237,6 @@ export const Sidebar: React.FC<{ currentUser: UserResProps }> = ({
             </button>
           );
         })}
-        <button
-          onClick={() => {
-            /* Handle more menu if needed */
-          }}
-          className={`flex-1 flex flex-col items-center justify-center gap-1 h-full text-[#5F6368]`}
-        >
-          <Plus className="w-5 h-5 rotate-45" />
-          <span className="text-[10px] font-medium">Mais</span>
-        </button>
       </nav>
     </>
   );

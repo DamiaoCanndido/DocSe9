@@ -2,6 +2,10 @@
 
 import { ContextMenu, ContextMenuTrigger } from '@/components/ui/context-menu';
 import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
   ChevronRight,
   EllipsisVertical,
   File,
@@ -19,6 +23,7 @@ import { ViewDocsType } from '@/components/DocsLoad';
 import {
   createFolder,
   deleteFolder,
+  favoriteFolder,
   moveFolder,
   permanentDeleteFolder,
   restoreFolder,
@@ -26,6 +31,7 @@ import {
 } from '@/app/api/folders';
 import {
   deleteFile,
+  favoriteFile,
   getViewUrl,
   moveFile,
   permanentDeleteFile,
@@ -367,6 +373,34 @@ const DocsContent = ({
     }
   };
 
+  const handleBulkFavorite = async () => {
+    try {
+      const nodesToFavorite = data.content.filter((node) =>
+        selectedIds.includes(node.id)
+      );
+
+      const promises = nodesToFavorite.map((node) => {
+        if (node.nodeType === 'folder') {
+          return favoriteFolder({ folderId: node.id, path });
+        } else {
+          return favoriteFile({ fileId: node.id, path });
+        }
+      });
+
+      await Promise.all(promises);
+      toast.success('Sucesso', {
+        description: `${selectedIds.length} itens atualizados nos favoritos.`,
+        duration: 2000,
+      });
+      clearSelection();
+    } catch (_error) {
+      toast.error('Erro', {
+        description: 'Erro ao favoritar itens.',
+        duration: 2000,
+      });
+    }
+  };
+
   return (
     <div className="h-full flex flex-col relative" onClick={clearSelection}>
       <div className="flex flex-col gap-2 sm:gap-4 mb-6 mx-4">
@@ -507,6 +541,41 @@ const DocsContent = ({
                                 >
                                   {item.nodeType === 'folder' ? '-' : item.size}
                                 </td>
+                                <td className="py-2 px-2 text-right">
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <button
+                                        className="p-1 hover:bg-gray-200 rounded-full text-[#5F6368]"
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
+                                        <EllipsisVertical className="w-4 h-4" />
+                                      </button>
+                                    </DropdownMenuTrigger>
+                                    <FolderCtxMenu
+                                      isDropdown
+                                      docType={item}
+                                      viewType={type}
+                                      onEdit={(node) =>
+                                        setModal({
+                                          type: 'editNode',
+                                          data: node,
+                                        })
+                                      }
+                                      onDelete={(node) =>
+                                        setModal({
+                                          type: 'deleteNode',
+                                          data: node,
+                                        })
+                                      }
+                                      onMove={(node) =>
+                                        setModal({
+                                          type: 'moveNode',
+                                          data: node,
+                                        })
+                                      }
+                                    />
+                                  </DropdownMenu>
+                                </td>
                               </tr>
                             </ContextMenuTrigger>
                             <FolderCtxMenu
@@ -551,16 +620,33 @@ const DocsContent = ({
                                 : 'bg-white border-[#E0E0E0] group-hover:shadow-md group-hover:border-blue-200'
                             }`}
                           >
-                            <div className="absolute top-1 sm:top-2 right-1 sm:right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <button
-                                className="p-1 sm:p-1.5 bg-white/90 shadow-sm rounded-full text-[#5F6368] hover:text-blue-600"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  // Context menu usually handles this, but we can add logic here if needed
-                                }}
-                              >
-                                <EllipsisVertical className="w-3 h-3 sm:w-4 sm:h-4" />
-                              </button>
+                            <div className="absolute top-1 sm:top-2 right-1 sm:right-2 flex gap-1 z-10">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <button
+                                    className="p-1 sm:p-1.5 bg-white/90 shadow-sm rounded-full text-[#5F6368] hover:text-blue-600"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                    }}
+                                  >
+                                    <EllipsisVertical className="w-3 h-3 sm:w-4 sm:h-4" />
+                                  </button>
+                                </DropdownMenuTrigger>
+                                <FolderCtxMenu
+                                  isDropdown
+                                  docType={item}
+                                  viewType={type}
+                                  onEdit={(node) =>
+                                    setModal({ type: 'editNode', data: node })
+                                  }
+                                  onDelete={(node) =>
+                                    setModal({ type: 'deleteNode', data: node })
+                                  }
+                                  onMove={(node) =>
+                                    setModal({ type: 'moveNode', data: node })
+                                  }
+                                />
+                              </DropdownMenu>
                             </div>
                             {item.nodeType === 'folder' ? (
                               <Folder
@@ -684,9 +770,7 @@ const DocsContent = ({
                 </button>
 
                 <button
-                  onClick={() => {
-                    /* Logic for Bulk Favorite */
-                  }}
+                  onClick={handleBulkFavorite}
                   className="p-2 hover:bg-gray-50 rounded-xl text-[#5F6368] hover:text-blue-600 transition-all flex flex-col items-center gap-1"
                   title="Favoritar"
                 >

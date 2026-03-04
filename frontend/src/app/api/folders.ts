@@ -226,3 +226,27 @@ export const moveFolder = async ({
     }
   }
 };
+
+export const favoriteFolder = async ({
+  folderId,
+  path,
+}: {
+  folderId: string;
+  path: string;
+}) => {
+  try {
+    const token = await getToken();
+    await apiServer.patch(
+      `/v2/folders/${folderId}/favorite`,
+      {},
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    revalidatePath(path);
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return redirect('/login');
+    }
+  }
+};
