@@ -142,3 +142,31 @@ export const moveFile = async ({
     }
   }
 };
+
+export const getRecentFiles = async (queries: DocsQueries) => {
+  try {
+    const token = await getToken();
+    const docs = await apiServer.get('/v2/files/recents', {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { ...queries },
+    });
+    
+    // As the backend returns a simple list, we wrap it in the expected PaginatedResponse structure.
+    const paginatedData = {
+      data: {
+        content: docs.data,
+        page: 0,
+        pageSize: docs.data.length,
+        totalElements: docs.data.length,
+        totalPages: 1,
+        last: true,
+      }
+    };
+    
+    return parseStringify(paginatedData);
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return redirect('/login');
+    }
+  }
+};

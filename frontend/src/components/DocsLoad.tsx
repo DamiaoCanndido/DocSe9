@@ -4,6 +4,7 @@ import {
   getRootFolders,
   getTrashFolders,
 } from '@/app/api/folders';
+import { getRecentFiles } from '@/app/api/files';
 
 export type ViewDocsType =
   | 'my-docs'
@@ -46,6 +47,9 @@ export default async function DocsLoad({
       break;
     case 'starred':
       data = await getFavoriteNodes(setQueries);
+      break;
+    case 'recent':
+      data = await getRecentFiles(setQueries);
       break;
   }
 

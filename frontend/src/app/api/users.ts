@@ -36,7 +36,7 @@ export async function login({ form }: { form: LoginReqProps }) {
     const cookieStore = await cookies();
     cookieStore.set('docse9-auth-token', me.data.accessToken, {
       httpOnly: true,
-      secure: true,
+      secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
       maxAge: 60 * 30,
       path: '/',

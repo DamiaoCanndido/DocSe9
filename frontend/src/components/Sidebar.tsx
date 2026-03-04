@@ -90,6 +90,7 @@ export const Sidebar: React.FC<{ currentUser: UserResProps }> = ({
             const isActive =
               (item.id === 'dashboard' && pathname === '/dashboard') ||
               (item.id === 'my-docs' && pathname.startsWith('/my-docs')) ||
+              (item.id === 'recent' && pathname === '/recent') ||
               (item.id === 'starred' && pathname === '/starred') ||
               (item.id === 'trash' && pathname === '/trash') ||
               (item.id === 'admin' && pathname === '/admin-panel');
@@ -199,6 +200,7 @@ export const Sidebar: React.FC<{ currentUser: UserResProps }> = ({
           const isActive =
             (item.id === 'dashboard' && pathname === '/dashboard') ||
             (item.id === 'my-docs' && pathname.startsWith('/my-docs')) ||
+            (item.id === 'recent' && pathname === '/recent') ||
             (item.id === 'starred' && pathname === '/starred') ||
             (item.id === 'trash' && pathname === '/trash');
 
