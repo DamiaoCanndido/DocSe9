@@ -31,12 +31,13 @@ public class PermissionV2Controller {
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/{permissionId}")
+    @DeleteMapping("/{userId}/user/{nodeId}")
     @PreAuthorize("hasAnyAuthority('SCOPE_manager', 'SCOPE_admin')")
     public ResponseEntity<Void> revokePermission(
-            @PathVariable UUID permissionId,
+            @PathVariable UUID userId,
+            @PathVariable UUID nodeId,
             JwtAuthenticationToken token) {
-        permissionService.revokePermission(permissionId, token);
+        permissionService.revokePermission(userId, nodeId, token);
         return ResponseEntity.noContent().build();
     }
 
@@ -44,8 +45,9 @@ public class PermissionV2Controller {
     @PreAuthorize("hasAnyAuthority('SCOPE_admin', 'SCOPE_manager', 'SCOPE_basic')")
     public ResponseEntity<List<PermissionResponseDTO>> listPermissions(
             @RequestParam(required = false) UUID userId,
+            @RequestParam(required = false) UUID nodeId,
             JwtAuthenticationToken token) {
-        List<PermissionResponseDTO> permissions = permissionService.listPermissions(userId, token);
+        List<PermissionResponseDTO> permissions = permissionService.listPermissions(userId, nodeId, token);
         return ResponseEntity.ok(permissions);
     }
 }

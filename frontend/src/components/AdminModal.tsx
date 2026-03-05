@@ -13,7 +13,8 @@ export type ModalType =
   | 'restoreNode'
   | 'createNode'
   | 'deleteNode'
-  | 'moveNode';
+  | 'moveNode'
+  | 'permissions';
 
 export interface ModalState {
   type: ModalType;

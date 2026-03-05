@@ -5,6 +5,7 @@ import {
   getTrashFolders,
 } from '@/app/api/folders';
 import { getRecentFiles } from '@/app/api/files';
+import { getMe } from '@/app/api/users';
 
 export type ViewDocsType =
   | 'my-docs'
@@ -20,6 +21,7 @@ export default async function DocsLoad({
   queries: DocsQueries;
   type: ViewDocsType;
 }) {
+  const currentUser: UserResProps = await getMe();
   let data: ApiResponse<NodeResProps> = {
     data: {
       content: [],
@@ -59,6 +61,7 @@ export default async function DocsLoad({
       data={data.data}
       type={type}
       parentId={queries.id as string | undefined}
+      currentUser={currentUser}
     />
   );
 }

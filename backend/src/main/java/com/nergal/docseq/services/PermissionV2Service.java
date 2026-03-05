@@ -79,26 +79,26 @@ public class PermissionV2Service {
     }
 
     @Transactional
-    public void revokePermission(UUID permissionId, JwtAuthenticationToken token) {
-        UserV2 managerUser = getUser(token);
-        validateManagerUser(managerUser);
+    public void revokePermission(UUID userId, UUID nodeId, JwtAuthenticationToken token) {
+        UserV2 currentUser = getUser(token);
 
-        PermissionV2 permission = permissionV2Repository.findById(permissionId)
-                .orElseThrow(() -> new NotFoundException("Permission not found"));
+        PermissionV2 permission = permissionV2Repository.findByUserUserIdAndNodeNodeId(userId, nodeId)
+                .orElseThrow(() -> new NotFoundException("Permission not found for this user and resource"));
 
-        if (!permission.getGrantedBy().getUserId().equals(managerUser.getUserId())) {
+        if (!currentUser.getRole().getName().equals(Role.Values.admin) &&
+                !permission.getGrantedBy().getUserId().equals(currentUser.getUserId())) {
             throw new ForbiddenException("You are not authorized to revoke this permission.");
         }
 
-        Node node = permission.getNode(); // Get the node from the permission
+        Node node = permission.getNode();
 
-        removePermission(node, permission.getUser().getUserId());
+        removePermission(node, userId);
 
         // Remove das subpastas/subarquivos
         if (node.getNodeType() == NodeType.folder) {
             List<Node> childNodes = nodeRepository.findAllChildNodesRecursive(node.getNodeId());
             for (Node childNode : childNodes) {
-                removePermission(childNode, permission.getUser().getUserId());
+                removePermission(childNode, userId);
             }
         }
 
@@ -106,59 +106,52 @@ public class PermissionV2Service {
     }
 
     @Transactional(readOnly = true)
-    public List<PermissionResponseDTO> listPermissions(UUID targetUserId, JwtAuthenticationToken token) {
+    public List<PermissionResponseDTO> listPermissions(UUID targetUserId, UUID nodeId, JwtAuthenticationToken token) {
         UserV2 currentUser = getUser(token);
-        List<PermissionV2> permissions;
-        Specification<PermissionV2> spec; // Placeholder for future
+        Specification<PermissionV2> spec = PermissionV2Specifications.withEagerLoading();
 
         if (currentUser.getRole().getName().equals(Role.Values.admin)) {
             if (targetUserId != null) {
-                // Admin seeking permissions for a specific user.
-                spec = PermissionV2Specifications.withEagerLoading()
-                        .and(PermissionV2Specifications.byUserId(targetUserId));
-
-                permissions = permissionV2Repository.findAll(spec);
-            } else {
-                // Admin seeking all permissions
-                spec = PermissionV2Specifications.withEagerLoading();
-
-                permissions = permissionV2Repository.findAll(spec);
+                spec = spec.and(PermissionV2Specifications.byUserId(targetUserId));
+            }
+            if (nodeId != null) {
+                spec = spec.and(PermissionV2Specifications.byNodeId(nodeId));
             }
         } else if (currentUser.getRole().getName().equals(Role.Values.manager)) {
-            // Managers can only list permissions they granted or for basic users in their
-            // town
             if (targetUserId != null) {
                 UserV2 targetUser = userV2Repository.findById(targetUserId)
                         .orElseThrow(() -> new NotFoundException("Target user not found"));
                 validateBasicUser(targetUser);
                 validateSameTown(currentUser, targetUser);
+                spec = spec.and(PermissionV2Specifications.byUserId(targetUserId));
+            }
 
-                // Manager searching for permissions for a specific user.
-                spec = PermissionV2Specifications.withEagerLoading()
-                        .and(PermissionV2Specifications.byUserId(targetUserId));
+            if (nodeId != null) {
+                Node node = nodeRepository.findById(nodeId)
+                        .orElseThrow(() -> new NotFoundException("Node not found"));
+                if (!node.getTown().getTownId().equals(currentUser.getTown().getTownId())) {
+                    throw new ForbiddenException("Node does not belong to your town");
+                }
+                spec = spec.and(PermissionV2Specifications.byNodeId(nodeId));
+            }
 
-                permissions = permissionV2Repository.findAll(spec);
-            } else {
-                // List all permissions granted by this manager
-                spec = PermissionV2Specifications.withEagerLoading()
-                        .and(PermissionV2Specifications.byGrantedByUserId(currentUser.getUserId()));
-
-                permissions = permissionV2Repository.findAll(spec);
+            // If no filters are provided, default to permissions granted by this manager
+            if (targetUserId == null && nodeId == null) {
+                spec = spec.and(PermissionV2Specifications.byGrantedByUserId(currentUser.getUserId()));
             }
         } else {
             // Basic users can only list their own permissions
             if (targetUserId != null && !targetUserId.equals(currentUser.getUserId())) {
                 throw new ForbiddenException("Basic users can only view their own permissions.");
             }
+            spec = spec.and(PermissionV2Specifications.byUserId(currentUser.getUserId()));
 
-            // Basic user seeking their own permissions.
-            spec = PermissionV2Specifications.withEagerLoading()
-                    .and(PermissionV2Specifications.byUserId(currentUser.getUserId()));
-
-            permissions = permissionV2Repository.findAll(spec);
+            if (nodeId != null) {
+                spec = spec.and(PermissionV2Specifications.byNodeId(nodeId));
+            }
         }
 
-        return permissions.stream()
+        return permissionV2Repository.findAll(spec).stream()
                 .map(this::mapToResponseDTO)
                 .collect(Collectors.toList());
     }
@@ -206,6 +199,7 @@ public class PermissionV2Service {
                     existingPermission.get().getPermissionId(),
                     user.getUserId(),
                     user.getUsername(),
+                    user.getEmail(),
                     node != null ? node.getNodeId() : null,
                     node.getName(),
                     existingPermission.get().getPermissionType(),
@@ -230,6 +224,7 @@ public class PermissionV2Service {
                 newPermission.getPermissionId(),
                 user.getUserId(),
                 user.getUsername(),
+                user.getEmail(),
                 node != null ? node.getNodeId() : null,
                 node.getName(),
                 newPermission.getPermissionType(),
@@ -271,6 +266,7 @@ public class PermissionV2Service {
                 permission.getPermissionId(),
                 permission.getUser().getUserId(),
                 permission.getUser().getUsername(),
+                permission.getUser().getEmail(),
                 permission.getNode() != null ? permission.getNode().getNodeId() : null,
                 permission.getNode() != null ? permission.getNode().getName() : null,
                 permission.getPermissionType(),

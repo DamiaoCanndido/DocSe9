@@ -8,6 +8,7 @@ public record PermissionResponseDTO(
                 UUID permissionId,
                 UUID userId,
                 String username,
+                String email,
                 UUID nodeId,
                 String name,
                 PermissionType permissionType,

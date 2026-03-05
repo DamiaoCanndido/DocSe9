@@ -46,6 +46,7 @@ import { ModalState } from '@/components/AdminModal';
 import FolderModal from './FolderModal';
 import DeleteNodeModal from './DeleteNodeModal';
 import MoveModal from './MoveModal';
+import PermissionsModal from './PermissionsModal';
 import { toast } from 'sonner';
 
 export type DisplayMode = 'grid' | 'list';
@@ -54,10 +55,12 @@ const DocsContent = ({
   data,
   type,
   parentId,
+  currentUser,
 }: {
   data: ApiResponse<NodeResProps>['data'];
   type: ViewDocsType;
   parentId?: string;
+  currentUser: UserResProps;
 }) => {
   const path = usePathname();
 
@@ -555,6 +558,7 @@ const DocsContent = ({
                                       isDropdown
                                       docType={item}
                                       viewType={type}
+                                      currentUser={currentUser}
                                       onEdit={(node) =>
                                         setModal({
                                           type: 'editNode',
@@ -573,6 +577,12 @@ const DocsContent = ({
                                           data: node,
                                         })
                                       }
+                                      onPermissions={(node) =>
+                                        setModal({
+                                          type: 'permissions',
+                                          data: node,
+                                        })
+                                      }
                                     />
                                   </DropdownMenu>
                                 </td>
@@ -581,6 +591,7 @@ const DocsContent = ({
                             <FolderCtxMenu
                               docType={item}
                               viewType={type}
+                              currentUser={currentUser}
                               onEdit={(node) =>
                                 setModal({ type: 'editNode', data: node })
                               }
@@ -589,6 +600,9 @@ const DocsContent = ({
                               }
                               onMove={(node) =>
                                 setModal({ type: 'moveNode', data: node })
+                              }
+                              onPermissions={(node) =>
+                                setModal({ type: 'permissions', data: node })
                               }
                             />
                           </ContextMenu>
@@ -636,6 +650,7 @@ const DocsContent = ({
                                   isDropdown
                                   docType={item}
                                   viewType={type}
+                                  currentUser={currentUser}
                                   onEdit={(node) =>
                                     setModal({ type: 'editNode', data: node })
                                   }
@@ -644,6 +659,9 @@ const DocsContent = ({
                                   }
                                   onMove={(node) =>
                                     setModal({ type: 'moveNode', data: node })
+                                  }
+                                  onPermissions={(node) =>
+                                    setModal({ type: 'permissions', data: node })
                                   }
                                 />
                               </DropdownMenu>
@@ -706,6 +724,7 @@ const DocsContent = ({
                       <FolderCtxMenu
                         docType={item}
                         viewType={type}
+                        currentUser={currentUser}
                         onEdit={(node) =>
                           setModal({ type: 'editNode', data: node })
                         }
@@ -714,6 +733,9 @@ const DocsContent = ({
                         }
                         onMove={(node) =>
                           setModal({ type: 'moveNode', data: node })
+                        }
+                        onPermissions={(node) =>
+                          setModal({ type: 'permissions', data: node })
                         }
                       />
                     </ContextMenu>
@@ -882,6 +904,13 @@ const DocsContent = ({
             handleCreateFolder({ name: form.name, parentId: null });
             setModal(null);
           }}
+          onClose={() => setModal(null)}
+        />
+      )}
+      {modal?.type === 'permissions' && editNodeData && (
+        <PermissionsModal
+          node={editNodeData}
+          currentUser={currentUser}
           onClose={() => setModal(null)}
         />
       )}

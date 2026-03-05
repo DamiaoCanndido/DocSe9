@@ -30,6 +30,8 @@ public interface PermissionV2Repository
     Optional<PermissionV2> findByUserUserIdAndNodeNodeIdAndPermissionType(
             UUID userId, UUID nodeId, PermissionType permissionType);
 
+    Optional<PermissionV2> findByUserUserIdAndNodeNodeId(UUID userId, UUID nodeId);
+
     List<PermissionV2> findByNodeNodeId(UUID nodeId);
 
     void deleteByUserUserIdAndNodeNodeIdAndPermissionType(

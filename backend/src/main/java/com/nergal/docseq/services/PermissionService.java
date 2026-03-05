@@ -214,6 +214,7 @@ public class PermissionService {
                     existingPermission.get().getPermissionId(),
                     user.getUserId(),
                     user.getUsername(),
+                    user.getEmail(),
                     folder != null ? folder.getFolderId() : null,
                     folder.getName(),
                     existingPermission.get().getPermissionType(),
@@ -231,15 +232,16 @@ public class PermissionService {
         folderRepository.save(folder);
 
         return new PermissionResponseDTO(
-                newPermission.getPermissionId(),
+                existingPermission.get().getPermissionId(),
                 user.getUserId(),
                 user.getUsername(),
+                user.getEmail(),
                 folder != null ? folder.getFolderId() : null,
                 folder.getName(),
-                newPermission.getPermissionType(),
+                existingPermission.get().getPermissionType(),
                 grantedBy.getUserId(),
                 grantedBy.getUsername(),
-                newPermission.getCreatedAt());
+                existingPermission.get().getCreatedAt());
     }
 
     private void removePermission(Folder folder, UUID userId) {
@@ -275,6 +277,7 @@ public class PermissionService {
                 permission.getPermissionId(),
                 permission.getUser().getUserId(),
                 permission.getUser().getUsername(),
+                permission.getUser().getEmail(),
                 permission.getFolder() != null ? permission.getFolder().getFolderId() : null,
                 permission.getFolder() != null ? permission.getFolder().getName() : null,
                 permission.getPermissionType(),

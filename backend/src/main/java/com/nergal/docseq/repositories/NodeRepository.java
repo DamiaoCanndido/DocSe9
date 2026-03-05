@@ -57,17 +57,17 @@ public interface NodeRepository extends JpaRepository<Node, UUID>, JpaSpecificat
     // QUERY RECURSIVA PARA BUSCAR TODAS AS SUBPASTAS
     @Query(value = """
             WITH RECURSIVE subnode_tree AS (
-                SELECT node_id, parent_id, name, node_type, town_id, favorite,
+                SELECT node_id, parent_id, name, node_type, town_id,
                        created_by, updated_by, deleted_by, created_at, updated_at, deleted_at,
-                       content_type, size, object_key, last_seen
+                       content_type, size, object_key, restored_by
                 FROM tb_nodes
                 WHERE node_id = :nodeId AND node_type = 'folder'
 
                 UNION ALL
 
-                SELECT n.node_id, n.parent_id, n.name, n.node_type, n.town_id, n.favorite,
+                SELECT n.node_id, n.parent_id, n.name, n.node_type, n.town_id,
                        n.created_by, n.updated_by, n.deleted_by, n.created_at, n.updated_at, n.deleted_at,
-                       n.content_type, n.size, n.object_key, n.last_seen
+                       n.content_type, n.size, n.object_key, n.restored_by
                 FROM tb_nodes n
                 INNER JOIN subnode_tree st ON n.parent_id = st.node_id
             )

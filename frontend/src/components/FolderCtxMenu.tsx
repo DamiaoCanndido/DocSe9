@@ -17,12 +17,16 @@ import { getViewUrl, restoreFile, favoriteFile } from '@/app/api/files';
 import { restoreFolder, favoriteFolder } from '@/app/api/folders';
 import { toast } from 'sonner';
 
+import { Shield } from 'lucide-react';
+
 const FolderCtxMenu = ({
   docType,
   viewType,
   onEdit,
   onDelete,
   onMove,
+  onPermissions,
+  currentUser,
   isDropdown = false,
 }: {
   docType: NodeResProps;
@@ -30,6 +34,8 @@ const FolderCtxMenu = ({
   onEdit: (node: NodeResProps) => void;
   onDelete: (node: NodeResProps) => void;
   onMove: (node: NodeResProps) => void;
+  onPermissions: (node: NodeResProps) => void;
+  currentUser: UserResProps;
   isDropdown?: boolean;
 }) => {
   const router = useRouter();
@@ -123,6 +129,9 @@ const FolderCtxMenu = ({
     if (action === 'move') {
       onMove(docType);
     }
+    if (action === 'permissions') {
+      onPermissions(docType);
+    }
     if (action === 'favorite') {
       handleFavoriteNode(docType.id, docType.nodeType);
     }
@@ -131,6 +140,8 @@ const FolderCtxMenu = ({
   const Content = isDropdown ? DropdownMenuContent : ContextMenuContent;
   const Item = isDropdown ? DropdownMenuItem : ContextMenuItem;
   const Separator = isDropdown ? DropdownMenuSeparator : ContextMenuSeparator;
+
+  const canManagePermissions = currentUser.role.name === 'manager' || currentUser.role.name === 'admin';
 
   return (
     <Content>
@@ -145,6 +156,24 @@ const FolderCtxMenu = ({
       </Item>
 
       <Separator />
+
+      {canManagePermissions && (
+        <>
+          <Item
+            disabled={viewType === 'trash'}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleFileAction('permissions');
+            }}
+            className="flex items-center gap-2 text-blue-600 focus:text-blue-700 font-medium"
+          >
+            <Shield size={14} />
+            Permissões
+          </Item>
+          <Separator />
+        </>
+      )}
+
       <Item
         disabled={viewType === 'trash'}
         onClick={(e) => {

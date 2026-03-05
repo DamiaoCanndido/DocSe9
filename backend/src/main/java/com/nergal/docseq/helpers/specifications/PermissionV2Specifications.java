@@ -43,4 +43,14 @@ public class PermissionV2Specifications {
             return cb.equal(root.get("grantedBy").get("userId"), grantedByUserId);
         };
     }
+
+    // Filter by nodeId
+    public static Specification<PermissionV2> byNodeId(UUID nodeId) {
+        return (root, query, cb) -> {
+            if (nodeId == null) {
+                return cb.conjunction();
+            }
+            return cb.equal(root.get("node").get("nodeId"), nodeId);
+        };
+    }
 }
