@@ -74,7 +74,7 @@ export const Navbar: React.FC<{ currentUser: UserResProps }> = ({
                   className="w-full text-left px-4 py-3 text-sm text-[#1F1F1F] hover:bg-gray-50 flex items-center gap-3"
                 >
                   <Settings className="w-4 h-4 text-[#5F6368]" />
-                  Settings
+                  Configurações
                 </button>
                 <div className="h-px bg-[#E0E0E0] my-1" />
                 <button
@@ -87,7 +87,7 @@ export const Navbar: React.FC<{ currentUser: UserResProps }> = ({
                   <div className="w-4 h-4 flex items-center justify-center">
                     <div className="w-2 h-2 rounded-full bg-red-600" />
                   </div>
-                  Sign out
+                  Sair
                 </button>
               </div>
             </>

@@ -175,13 +175,15 @@ export const getRecentFiles = async (queries: DocsQueries) => {
       params: { ...queries },
     });
     
+    const content = Array.isArray(docs.data) ? docs.data : [];
+
     // As the backend returns a simple list, we wrap it in the expected PaginatedResponse structure.
     const paginatedData = {
       data: {
-        content: docs.data,
+        content: content,
         page: 0,
-        pageSize: docs.data.length,
-        totalElements: docs.data.length,
+        pageSize: content.length,
+        totalElements: content.length,
         totalPages: 1,
         last: true,
       }
@@ -189,8 +191,16 @@ export const getRecentFiles = async (queries: DocsQueries) => {
     
     return parseStringify(paginatedData);
   } catch (error) {
-    if (error instanceof AxiosError) {
-      return redirect('/login');
-    }
+    console.error('Error fetching recent files:', error);
+    return {
+      data: {
+        content: [],
+        page: 0,
+        pageSize: 0,
+        totalElements: 0,
+        totalPages: 0,
+        last: true,
+      }
+    };
   }
 };
