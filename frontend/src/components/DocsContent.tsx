@@ -48,6 +48,7 @@ import DeleteNodeModal from './DeleteNodeModal';
 import MoveModal from './MoveModal';
 import PermissionsModal from './PermissionsModal';
 import { toast } from 'sonner';
+import { formatBytes } from '@/lib/utils';
 
 export type DisplayMode = 'grid' | 'list';
 
@@ -463,7 +464,7 @@ const DocsContent = ({
         <div className="flex-1 min-h-0">
           <ContextMenuTrigger className="h-full w-full">
             {displayMode === 'list' ? (
-              <div className="flex flex-col h-full w-full border rounded-lg p-4 overflow-auto">
+              <div className="flex flex-col h-full w-full border rounded-lg p-4 overflow-auto pb-24 sm:pb-32">
                 <div className="w-full">
                   <table className="w-full text-sm">
                     <thead>
@@ -553,7 +554,9 @@ const DocsContent = ({
                                       : 'text-muted-foreground'
                                   }`}
                                 >
-                                  {item.nodeType === 'folder' ? '-' : item.size}
+                                  {item.nodeType === 'folder'
+                                    ? '-'
+                                    : formatBytes(item.size!)}
                                 </td>
                                 <td className="py-2 px-2 text-right">
                                   <DropdownMenu>
@@ -624,7 +627,7 @@ const DocsContent = ({
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-6 h-full overflow-auto">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-6 h-full overflow-auto pb-24 sm:pb-32">
                 {data.content.map((item) => {
                   const isSelected = selectedIds.includes(item.id);
                   return (
@@ -777,21 +780,19 @@ const DocsContent = ({
           initial={{ y: 100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 100, opacity: 0 }}
-          className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-white border border-[#E0E0E0] rounded-2xl shadow-2xl px-6 py-3 flex items-center gap-6 z-50"
+          className="fixed bottom-4 sm:bottom-8 left-1/2 -translate-x-1/2 bg-white border border-[#E0E0E0] rounded-xl sm:rounded-2xl shadow-2xl px-3 sm:px-6 py-2 sm:py-3 flex items-center gap-3 sm:gap-6 z-50 max-w-[95vw] sm:max-w-none"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex items-center gap-3 pr-6 border-r border-gray-100">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white text-xs font-bold">
+          <div className="flex items-center gap-2 sm:gap-3 pr-3 sm:pr-6 border-r border-gray-100">
+            <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white text-[10px] sm:text-xs font-bold">
               {selectedIds.length}
             </div>
-            <span className="text-sm font-semibold text-gray-700">
-              {selectedIds.length === 1
-                ? 'Item selecionado'
-                : 'Itens selecionados'}
+            <span className="text-xs sm:text-sm font-semibold text-gray-700 hidden sm:block">
+              {selectedIds.length === 1 ? 'Selecionado' : 'Selecionados'}
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
             {type !== 'trash' ? (
               <>
                 <button
@@ -801,26 +802,26 @@ const DocsContent = ({
                     );
                     setModal({ type: 'moveNode', data: nodesToMove });
                   }}
-                  className="p-2 hover:bg-gray-50 rounded-xl text-[#5F6368] hover:text-blue-600 transition-all flex flex-col items-center gap-1"
+                  className="p-1 sm:p-2 hover:bg-gray-50 rounded-xl text-[#5F6368] hover:text-blue-600 transition-all flex flex-col items-center gap-0.5 sm:gap-1"
                   title="Mover"
                 >
-                  <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-gray-50 group-hover:bg-blue-50 transition-colors">
-                    <Grid className="w-5 h-5" />
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg bg-gray-50 group-hover:bg-blue-50 transition-colors">
+                    <Grid className="w-4 h-4 sm:w-5 sm:h-5" />
                   </div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider">
+                  <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wider hidden sm:block">
                     Mover
                   </span>
                 </button>
 
                 <button
                   onClick={handleBulkFavorite}
-                  className="p-2 hover:bg-gray-50 rounded-xl text-[#5F6368] hover:text-blue-600 transition-all flex flex-col items-center gap-1"
+                  className="p-1 sm:p-2 hover:bg-gray-50 rounded-xl text-[#5F6368] hover:text-blue-600 transition-all flex flex-col items-center gap-0.5 sm:gap-1"
                   title="Favoritar"
                 >
-                  <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-gray-50">
-                    <Star className="w-5 h-5" />
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg bg-gray-50">
+                    <Star className="w-4 h-4 sm:w-5 sm:h-5" />
                   </div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider">
+                  <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wider hidden sm:block">
                     Favoritos
                   </span>
                 </button>
@@ -828,13 +829,13 @@ const DocsContent = ({
             ) : (
               <button
                 onClick={handleBulkRestore}
-                className="p-2 hover:bg-blue-50 rounded-xl text-[#5F6368] hover:text-blue-600 transition-all flex flex-col items-center gap-1"
+                className="p-1 sm:p-2 hover:bg-blue-50 rounded-xl text-[#5F6368] hover:text-blue-600 transition-all flex flex-col items-center gap-0.5 sm:gap-1"
                 title="Restaurar"
               >
-                <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-blue-50/0 hover:bg-blue-50">
-                  <RotateCcw className="w-5 h-5" />
+                <div className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg bg-blue-50/0 hover:bg-blue-50">
+                  <RotateCcw className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
-                <span className="text-[10px] font-bold uppercase tracking-wider">
+                <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wider hidden sm:block">
                   Restaurar
                 </span>
               </button>
@@ -842,7 +843,7 @@ const DocsContent = ({
 
             <button
               onClick={handleBulkDelete}
-              className={`p-2 rounded-xl transition-all flex flex-col items-center gap-1 ${
+              className={`p-1 sm:p-2 rounded-xl transition-all flex flex-col items-center gap-0.5 sm:gap-1 ${
                 type === 'trash'
                   ? 'hover:bg-red-50 text-red-600'
                   : 'hover:bg-red-50 text-[#5F6368] hover:text-red-600'
@@ -854,14 +855,14 @@ const DocsContent = ({
               }
             >
               <div
-                className={`w-10 h-10 flex items-center justify-center rounded-lg ${
+                className={`w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg ${
                   type === 'trash' ? 'bg-red-50' : 'bg-red-50/0 hover:bg-red-50'
                 }`}
               >
-                <Trash2 className="w-5 h-5" />
+                <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
               <span
-                className={`text-[10px] font-bold uppercase tracking-wider ${
+                className={`text-[8px] sm:text-[10px] font-bold uppercase tracking-wider hidden sm:block ${
                   type === 'trash' ? 'text-red-600' : 'text-red-600/70'
                 }`}
               >
@@ -869,16 +870,17 @@ const DocsContent = ({
               </span>
             </button>
 
-            <div className="w-px h-8 bg-gray-100 mx-2" />
+            <div className="w-px h-6 sm:h-8 bg-gray-100 mx-1 sm:mx-2" />
 
             <button
               onClick={clearSelection}
-              className="p-2 hover:bg-gray-50 rounded-xl text-gray-400 hover:text-gray-600 transition-all flex flex-col items-center gap-1"
+              className="p-1 sm:p-2 hover:bg-gray-50 rounded-xl text-gray-400 hover:text-gray-600 transition-all flex flex-col items-center gap-0.5 sm:gap-1"
+              title="Cancelar"
             >
-              <div className="w-10 h-10 flex items-center justify-center rounded-lg">
-                <X className="w-5 h-5" />
+              <div className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg">
+                <X className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
-              <span className="text-[10px] font-bold uppercase tracking-wider">
+              <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wider hidden sm:block">
                 Cancelar
               </span>
             </button>

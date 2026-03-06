@@ -83,7 +83,7 @@ const FileUploader = () => {
                 ? {
                     ...f,
                     status: 'failed',
-                    error: error.response?.data?.error || 'Upload falhou',
+                    error: 'Upload falhou',
                   }
                 : f
             )

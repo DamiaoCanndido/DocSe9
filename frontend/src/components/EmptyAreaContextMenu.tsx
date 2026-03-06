@@ -5,6 +5,7 @@ import {
   ContextMenuItem,
   ContextMenuSeparator,
 } from '@/components/ui/context-menu';
+import { useRouter } from 'next/navigation';
 
 interface EmptyAreaContextMenuProps {
   onCreateFolder?: () => void;
@@ -15,6 +16,8 @@ const EmptyAreaContextMenu = ({
   onCreateFolder,
   onCreateFile,
 }: EmptyAreaContextMenuProps) => {
+  const router = useRouter();
+
   return (
     <ContextMenuContent>
       {onCreateFolder && (
@@ -24,8 +27,9 @@ const EmptyAreaContextMenu = ({
         <ContextMenuItem onClick={onCreateFile}>Novo arquivo</ContextMenuItem>
       )}
       {(onCreateFolder || onCreateFile) && <ContextMenuSeparator />}
-      <ContextMenuItem>Colar</ContextMenuItem>
-      <ContextMenuItem>Atualizar</ContextMenuItem>
+      <ContextMenuItem onClick={() => router.refresh()}>
+        Atualizar
+      </ContextMenuItem>
     </ContextMenuContent>
   );
 };

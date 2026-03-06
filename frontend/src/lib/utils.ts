@@ -43,6 +43,19 @@ export const formatDateTime = (isoString: string | null | undefined) => {
   return `${time}, ${day} ${month}`;
 };
 
+export function formatBytes(bytes: number | string, decimals: number = 2) {
+  const size = typeof bytes === 'string' ? parseInt(bytes) : bytes;
+  if (!size || size === 0) return '0 Bytes';
+
+  const k = 1024;
+  const dm = decimals < 0 ? 0 : decimals;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+
+  const i = Math.floor(Math.log(size) / Math.log(k));
+
+  return `${parseFloat((size / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+}
+
 export function translateRole(role: string): string {
   const translations: Record<string, string> = {
     basic: 'Básico',

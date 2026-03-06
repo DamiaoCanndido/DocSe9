@@ -65,7 +65,7 @@ export const Sidebar: React.FC<{ currentUser: UserResProps }> = ({
           className="flex items-center gap-3 px-4 py-4 bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow mb-8 text-[#1F1F1F] font-medium border border-[#E0E0E0]"
         >
           <Plus className="w-6 h-6 text-blue-600" />
-          <span>New</span>
+          <span>Novo</span>
         </motion.button>
       )}
 
