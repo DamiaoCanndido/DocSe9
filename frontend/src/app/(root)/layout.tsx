@@ -2,6 +2,7 @@ import { getMe } from '@/app/api/users';
 import { Sidebar } from '@/components/Sidebar';
 import React from 'react';
 import { Navbar } from '@/components/Navbar';
+import FileUploader from '@/components/FileUploader';
 
 const Layout = async ({ children }: { children: React.ReactNode }) => {
   const currentUser: UserResProps = await getMe();
@@ -13,6 +14,7 @@ const Layout = async ({ children }: { children: React.ReactNode }) => {
         <Navbar currentUser={currentUser} />
         {children}
       </div>
+      <FileUploader />
     </div>
   );
 };

@@ -41,7 +41,7 @@ import {
 import { usePathname, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useApp } from '@/contexts/AppContext';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ModalState } from '@/components/AdminModal';
 import FolderModal from './FolderModal';
 import DeleteNodeModal from './DeleteNodeModal';
@@ -64,8 +64,19 @@ const DocsContent = ({
 }) => {
   const path = usePathname();
 
-  const { displayMode, setDisplayMode } = useApp();
+  const {
+    displayMode,
+    setDisplayMode,
+    setCurrentFolderId,
+    setIsUploadModalOpen,
+  } = useApp();
   const [modal, setModal] = useState<ModalState | null>(null);
+
+  useEffect(() => {
+    setCurrentFolderId(parentId || null);
+    return () => setCurrentFolderId(null);
+  }, [parentId, setCurrentFolderId]);
+
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [lastSelectedId, setLastSelectedId] = useState<string | null>(null);
   const clickTimeoutRef = useState<{ timer: NodeJS.Timeout | null }>({
@@ -661,7 +672,10 @@ const DocsContent = ({
                                     setModal({ type: 'moveNode', data: node })
                                   }
                                   onPermissions={(node) =>
-                                    setModal({ type: 'permissions', data: node })
+                                    setModal({
+                                      type: 'permissions',
+                                      data: node,
+                                    })
                                   }
                                 />
                               </DropdownMenu>
@@ -745,7 +759,14 @@ const DocsContent = ({
             )}
           </ContextMenuTrigger>
           <EmptyAreaContextMenu
-            onCreateFolder={() => setModal({ type: 'createNode' })}
+            onCreateFolder={
+              type === 'my-docs'
+                ? () => setModal({ type: 'createNode' })
+                : undefined
+            }
+            onCreateFile={
+              type === 'my-docs' ? () => setIsUploadModalOpen(true) : undefined
+            }
           />
         </div>
       </ContextMenu>

@@ -17,9 +17,13 @@ const EmptyAreaContextMenu = ({
 }: EmptyAreaContextMenuProps) => {
   return (
     <ContextMenuContent>
-      <ContextMenuItem onClick={onCreateFolder}>Nova pasta</ContextMenuItem>
-      <ContextMenuItem onClick={onCreateFile}>Novo arquivo</ContextMenuItem>
-      <ContextMenuSeparator />
+      {onCreateFolder && (
+        <ContextMenuItem onClick={onCreateFolder}>Nova pasta</ContextMenuItem>
+      )}
+      {onCreateFile && (
+        <ContextMenuItem onClick={onCreateFile}>Novo arquivo</ContextMenuItem>
+      )}
+      {(onCreateFolder || onCreateFile) && <ContextMenuSeparator />}
       <ContextMenuItem>Colar</ContextMenuItem>
       <ContextMenuItem>Atualizar</ContextMenuItem>
     </ContextMenuContent>

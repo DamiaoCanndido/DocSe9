@@ -16,8 +16,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter, usePathname } from 'next/navigation';
 import { useApp } from '@/contexts/AppContext';
 
-const onUpload = () => {};
-
 export const Sidebar: React.FC<{ currentUser: UserResProps }> = ({
   currentUser,
 }) => {
@@ -33,7 +31,7 @@ export const Sidebar: React.FC<{ currentUser: UserResProps }> = ({
   const router = useRouter();
   const pathname = usePathname();
 
-  const { isSidebarOpen, toggleSidebar } = useApp();
+  const { isSidebarOpen, toggleSidebar, setIsUploadModalOpen } = useApp();
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full p-4">
@@ -56,12 +54,12 @@ export const Sidebar: React.FC<{ currentUser: UserResProps }> = ({
       </div>
 
       {/* New Button */}
-      {currentUser.role.name !== 'admin' && (
+      {currentUser.role.name !== 'admin' && pathname.startsWith('/my-docs') && (
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={() => {
-            onUpload();
+            setIsUploadModalOpen(true);
             toggleSidebar();
           }}
           className="flex items-center gap-3 px-4 py-4 bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow mb-8 text-[#1F1F1F] font-medium border border-[#E0E0E0]"
