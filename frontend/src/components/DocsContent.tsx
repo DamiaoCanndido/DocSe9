@@ -24,6 +24,10 @@ import {
   createFolder,
   deleteFolder,
   favoriteFolder,
+  getChildrenFolders,
+  getFavoriteNodes,
+  getRootFolders,
+  getTrashFolders,
   moveFolder,
   permanentDeleteFolder,
   restoreFolder,
@@ -41,7 +45,7 @@ import {
 import { usePathname, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useApp } from '@/contexts/AppContext';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ModalState } from '@/components/AdminModal';
 import FolderModal from './FolderModal';
 import DeleteNodeModal from './DeleteNodeModal';
@@ -53,7 +57,7 @@ import { formatBytes } from '@/lib/utils';
 export type DisplayMode = 'grid' | 'list';
 
 const DocsContent = ({
-  data,
+  data: initialData,
   type,
   parentId,
   currentUser,
@@ -72,6 +76,78 @@ const DocsContent = ({
     setIsUploadModalOpen,
   } = useApp();
   const [modal, setModal] = useState<ModalState | null>(null);
+
+  // --- Infinite Scroll Logic ---
+  const [nodes, setNodes] = useState<NodeResProps[]>(initialData.content);
+  const [page, setPage] = useState(initialData.page);
+  const [hasMore, setHasMore] = useState(!initialData.last);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+
+  // Re-sync with initialData whenever it changes (e.g. on navigation)
+  useEffect(() => {
+    setNodes(initialData.content);
+    setPage(initialData.page);
+    setHasMore(!initialData.last);
+  }, [initialData]);
+
+  const loadMore = useCallback(async () => {
+    if (isLoadingMore || !hasMore) return;
+
+    setIsLoadingMore(true);
+    const nextPage = page + 1;
+
+    try {
+      let response: ApiResponse<NodeResProps> | undefined;
+      const queries: DocsQueries = {
+        page: nextPage.toString(),
+        size: initialData.pageSize.toString(),
+      };
+
+      switch (type) {
+        case 'my-docs':
+          if (parentId) {
+            response = await getChildrenFolders(parentId, queries);
+          } else {
+            response = await getRootFolders(queries);
+          }
+          break;
+        case 'trash':
+          response = await getTrashFolders(queries);
+          break;
+        case 'starred':
+          response = await getFavoriteNodes(queries);
+          break;
+      }
+
+      if (response?.data) {
+        setNodes((prev) => [...prev, ...response!.data.content]);
+        setPage(response.data.page);
+        setHasMore(!response.data.last);
+      }
+    } catch (error) {
+      console.error('Error loading more nodes:', error);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [page, hasMore, isLoadingMore, type, parentId, initialData.pageSize]);
+
+  const lastNodeRef = useCallback(
+    (node: HTMLElement | null) => {
+      if (isLoadingMore) return;
+      if (observerRef.current) observerRef.current.disconnect();
+
+      observerRef.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && hasMore) {
+          loadMore();
+        }
+      });
+
+      if (node) observerRef.current.observe(node);
+    },
+    [isLoadingMore, hasMore, loadMore]
+  );
+  // --- End Infinite Scroll Logic ---
 
   useEffect(() => {
     setCurrentFolderId(parentId || null);
@@ -142,19 +218,13 @@ const DocsContent = ({
       const isShiftPressed = e.shiftKey;
 
       if (isShiftPressed && lastSelectedId) {
-        const currentIndex = data.content.findIndex(
-          (node) => node.id === item.id
-        );
-        const lastIndex = data.content.findIndex(
-          (node) => node.id === lastSelectedId
-        );
+        const currentIndex = nodes.findIndex((node) => node.id === item.id);
+        const lastIndex = nodes.findIndex((node) => node.id === lastSelectedId);
 
         const start = Math.min(currentIndex, lastIndex);
         const end = Math.max(currentIndex, lastIndex);
 
-        const rangeIds = data.content
-          .slice(start, end + 1)
-          .map((node) => node.id);
+        const rangeIds = nodes.slice(start, end + 1).map((node) => node.id);
         setSelectedIds(Array.from(new Set([...selectedIds, ...rangeIds])));
       } else if (isCtrlPressed) {
         setSelectedIds((prev) =>
@@ -323,7 +393,7 @@ const DocsContent = ({
 
   const handleBulkRestore = async () => {
     try {
-      const nodesToRestore = data.content.filter((node) =>
+      const nodesToRestore = nodes.filter((node) =>
         selectedIds.includes(node.id)
       );
 
@@ -351,7 +421,7 @@ const DocsContent = ({
 
   const handleBulkDelete = async () => {
     try {
-      const nodesToDelete = data.content.filter((node) =>
+      const nodesToDelete = nodes.filter((node) =>
         selectedIds.includes(node.id)
       );
 
@@ -390,7 +460,7 @@ const DocsContent = ({
 
   const handleBulkFavorite = async () => {
     try {
-      const nodesToFavorite = data.content.filter((node) =>
+      const nodesToFavorite = nodes.filter((node) =>
         selectedIds.includes(node.id)
       );
 
@@ -479,7 +549,7 @@ const DocsContent = ({
                       </tr>
                     </thead>
                     <tbody>
-                      {data.content.map((item) => {
+                      {nodes.map((item) => {
                         const isSelected = selectedIds.includes(item.id);
                         return (
                           <ContextMenu key={item.id}>
@@ -624,11 +694,12 @@ const DocsContent = ({
                       })}
                     </tbody>
                   </table>
+                  <div ref={lastNodeRef} className="h-4 w-full" />
                 </div>
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-6 h-full overflow-auto pb-24 sm:pb-32">
-                {data.content.map((item) => {
+                {nodes.map((item) => {
                   const isSelected = selectedIds.includes(item.id);
                   return (
                     <ContextMenu key={item.id}>
@@ -758,6 +829,7 @@ const DocsContent = ({
                     </ContextMenu>
                   );
                 })}
+                <div ref={lastNodeRef} className="h-4 w-full col-span-full" />
               </div>
             )}
           </ContextMenuTrigger>
@@ -797,7 +869,7 @@ const DocsContent = ({
               <>
                 <button
                   onClick={() => {
-                    const nodesToMove = data.content.filter((node) =>
+                    const nodesToMove = nodes.filter((node) =>
                       selectedIds.includes(node.id)
                     );
                     setModal({ type: 'moveNode', data: nodesToMove });
