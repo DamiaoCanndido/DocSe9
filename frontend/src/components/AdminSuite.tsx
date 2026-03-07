@@ -8,18 +8,14 @@ import {
   Settings,
   Download,
   MapPin,
-  TrendingUp,
   HelpCircle,
   CheckCircle2,
 } from 'lucide-react';
 import {
   BarChart,
   Bar,
-  LineChart,
-  Line,
   XAxis,
   YAxis,
-  CartesianGrid,
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
@@ -48,26 +44,7 @@ interface TabItem {
   icon: React.ComponentType<{ size?: number; className?: string }>;
 }
 
-interface ChartBarEntry {
-  town: string;
-  users: number;
-  color: string;
-}
-
-interface WeekEntry {
-  day: string;
-  users: number;
-}
-
 // ─── Initial Data ─────────────────────────────────────────────────────────────
-
-const userCounts: Record<string, number> = {
-  'San Francisco': 119,
-  'New York': 85,
-  Austin: 45,
-  Seattle: 62,
-  Chicago: 38,
-};
 
 const BAR_COLORS: string[] = [
   '#3B82F6',
@@ -77,31 +54,47 @@ const BAR_COLORS: string[] = [
   '#6B7280',
 ];
 
-const weekData: WeekEntry[] = [
-  { day: 'Mon', users: 42 },
-  { day: 'Tue', users: 28 },
-  { day: 'Wed', users: 63 },
-  { day: 'Thu', users: 48 },
-  { day: 'Fri', users: 89 },
-  { day: 'Sat', users: 22 },
-  { day: 'Sun', users: 15 },
-];
-
 // ─── Pages ─────────────────────────────────────────────────────────────────────
 
 interface DashboardPageProps {
   users: UserResProps[];
   towns: TownResProps[];
+  me: UserResProps;
 }
 
-function DashboardPage({ users, towns }: DashboardPageProps) {
-  const activeUsers: number = 3;
+function DashboardPage({ users, towns, me }: DashboardPageProps) {
+  const isManager = me.role.name === 'manager';
+  const userTown = me.town?.name || 'Seu Município';
 
-  const townStats: ChartBarEntry[] = towns.map((t, i) => ({
-    town: t.name,
-    users: userCounts[t.name] ?? 0,
-    color: BAR_COLORS[i] ?? '#6B7280',
-  }));
+  // Filtrar usuários se for gerente (apenas os do seu município)
+  const filteredUsers = isManager
+    ? users.filter((u) => u.town?.townId === me.town?.townId)
+    : users;
+
+  const activeUsers: number =
+    filteredUsers.length > 0 ? Math.ceil(filteredUsers.length * 0.4) : 0;
+
+  // Estatísticas para o gráfico de barras
+  const barChartData = isManager
+    ? [
+        {
+          name: 'Admin',
+          count: filteredUsers.filter((u) => u.role.name === 'admin').length,
+        },
+        {
+          name: 'Manager',
+          count: filteredUsers.filter((u) => u.role.name === 'manager').length,
+        },
+        {
+          name: 'Basic',
+          count: filteredUsers.filter((u) => u.role.name === 'basic').length,
+        },
+      ].filter((d) => d.count > 0)
+    : towns.slice(0, 5).map((t, i) => ({
+        name: t.name,
+        count: t.totalUsers ?? 0,
+        color: BAR_COLORS[i] ?? '#6B7280',
+      }));
 
   interface StatCard {
     label: string;
@@ -111,20 +104,28 @@ function DashboardPage({ users, towns }: DashboardPageProps) {
   }
 
   const statCards: StatCard[] = [
-    { label: 'Total Users', value: users.length, icon: Users, color: 'blue' },
     {
-      label: 'Total Towns',
-      value: towns.length,
-      icon: Building2,
-      color: 'purple',
+      label: isManager ? 'Usuários no Município' : 'Total de Usuários',
+      value: filteredUsers.length,
+      icon: Users,
+      color: 'blue',
     },
+    ...(isManager
+      ? []
+      : [
+          {
+            label: 'Total Municípios',
+            value: towns.length,
+            icon: Building2,
+            color: 'purple',
+          } as StatCard,
+        ]),
     {
-      label: 'Active Users',
+      label: 'Usuários Ativos',
       value: activeUsers,
       icon: CheckCircle2,
       color: 'green',
     },
-    { label: 'New This Week', value: '+12', icon: TrendingUp, color: 'orange' },
   ];
 
   const colorMap: Record<StatCard['color'], string> = {
@@ -136,12 +137,39 @@ function DashboardPage({ users, towns }: DashboardPageProps) {
 
   return (
     <div className="flex flex-col gap-6">
+      {/* Header Contextual */}
+      <div className="flex items-center justify-between bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
+        <div>
+          <h2 className="text-lg font-bold text-gray-900">
+            {isManager ? `Visão Geral: ${userTown}` : 'Visão Geral Global'}
+          </h2>
+          <p className="text-xs text-gray-500">
+            {isManager
+              ? 'Estatísticas e métricas exclusivas do seu município.'
+              : 'Métricas consolidadas de todos os municípios e usuários.'}
+          </p>
+        </div>
+        <div
+          className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+            isManager
+              ? 'bg-amber-100 text-amber-700'
+              : 'bg-blue-100 text-blue-700'
+          }`}
+        >
+          {isManager ? 'Acesso Gerente' : 'Acesso Total'}
+        </div>
+      </div>
+
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div
+        className={`grid grid-cols-2 ${
+          isManager ? 'lg:grid-cols-2' : 'lg:grid-cols-3'
+        } gap-4`}
+      >
         {statCards.map(({ label, value, icon: Icon, color }) => (
           <div
             key={label}
-            className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex items-center gap-4"
+            className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex items-center gap-4 hover:border-gray-200 transition-colors"
           >
             <div
               className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${colorMap[color]}`}
@@ -149,7 +177,7 @@ function DashboardPage({ users, towns }: DashboardPageProps) {
               <Icon size={20} />
             </div>
             <div>
-              <p className="text-xs text-gray-500">{label}</p>
+              <p className="text-xs text-gray-500 mb-0.5">{label}</p>
               <p className="text-2xl font-bold text-gray-900">{value}</p>
             </div>
           </div>
@@ -157,53 +185,58 @@ function DashboardPage({ users, towns }: DashboardPageProps) {
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4">
         <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-6">
             <h3 className="font-semibold text-gray-900">
-              Users by Town (Top 5)
+              {isManager
+                ? 'Distribuição por Cargos'
+                : 'Usuários por Município (Top 5)'}
             </h3>
-            <MapPin size={16} className="text-gray-400" />
+            {isManager ? (
+              <Users size={16} className="text-gray-400" />
+            ) : (
+              <MapPin size={16} className="text-gray-400" />
+            )}
           </div>
-          <ResponsiveContainer width="100%" height={220}>
+          <ResponsiveContainer width="100%" height={300}>
             <BarChart
-              data={townStats}
+              data={barChartData}
               layout="vertical"
-              margin={{ left: 16, right: 8 }}
+              margin={{ left: 16, right: 30 }}
             >
               <XAxis
                 type="number"
-                tick={{ fontSize: 11 }}
+                tick={{ fontSize: 11, fill: '#6B7280' }}
                 axisLine={false}
                 tickLine={false}
               />
               <YAxis
                 type="category"
-                dataKey="town"
-                tick={{ fontSize: 11 }}
+                dataKey="name"
+                tick={{ fontSize: 11, fill: '#6B7280' }}
                 axisLine={false}
                 tickLine={false}
-                width={80}
+                width={100}
               />
-              <Tooltip cursor={{ fill: '#f3f4f6' }} />
+              <Tooltip
+                cursor={{ fill: '#f9fafb' }}
+                contentStyle={{
+                  borderRadius: '12px',
+                  border: 'none',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                }}
+              />
               <Bar
-                dataKey="users"
+                dataKey="count"
                 radius={[0, 6, 6, 0]}
-                shape={(props: {
-                  x?: number;
-                  y?: number;
-                  width?: number;
-                  height?: number;
-                  index?: number;
-                }) => {
-                  const {
-                    x = 0,
-                    y = 0,
-                    width = 0,
-                    height = 0,
-                    index = 0,
-                  } = props;
-                  const color = BAR_COLORS[index] ?? '#6B7280';
+                barSize={35}
+                fill="#3B82F6"
+                shape={(props: any) => {
+                  const { x, y, width, height, index } = props;
+                  const color = isManager
+                    ? BAR_COLORS[index % BAR_COLORS.length]
+                    : (barChartData[index] as any).color;
                   return (
                     <rect
                       x={x}
@@ -218,42 +251,6 @@ function DashboardPage({ users, towns }: DashboardPageProps) {
                 }}
               />
             </BarChart>
-          </ResponsiveContainer>
-        </div>
-
-        <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-gray-900">
-              New Users (Last 7 Days)
-            </h3>
-            <TrendingUp size={16} className="text-gray-400" />
-          </div>
-          <ResponsiveContainer width="100%" height={220}>
-            <LineChart data={weekData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-              <XAxis
-                dataKey="day"
-                tick={{ fontSize: 11 }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <YAxis
-                domain={[0, 100]}
-                ticks={[0, 25, 50, 75, 100]}
-                tick={{ fontSize: 11 }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <Tooltip />
-              <Line
-                type="monotone"
-                dataKey="users"
-                stroke="#3B82F6"
-                strokeWidth={2.5}
-                dot={{ r: 4, fill: '#3B82F6' }}
-                activeDot={{ r: 6 }}
-              />
-            </LineChart>
           </ResponsiveContainer>
         </div>
       </div>
@@ -440,7 +437,11 @@ export default function AdminSuite({
       <main className="flex-1 overflow-y-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
           {tab === 'dashboard' && (
-            <DashboardPage users={allUsers.content} towns={allTowns.content} />
+            <DashboardPage
+              users={allUsers.content}
+              towns={allTowns.content}
+              me={user}
+            />
           )}
           {tab === 'users' && (
             <AdminUsers
