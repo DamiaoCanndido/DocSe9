@@ -15,9 +15,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.nergal.docseq.dto.roles.RoleItemDTO;
 import com.nergal.docseq.dto.towns.TownItemDTO;
+import com.nergal.docseq.dto.users.ChangePasswordRequest;
+import com.nergal.docseq.dto.users.ForgotPasswordRequest;
 import com.nergal.docseq.dto.users.LoginRequest;
 import com.nergal.docseq.dto.users.LoginResponse;
 import com.nergal.docseq.dto.users.RegisterUserDTO;
+import com.nergal.docseq.dto.users.ResetPasswordRequest;
 import com.nergal.docseq.dto.users.UserContentResponse;
 import com.nergal.docseq.dto.users.UserItemDTO;
 import com.nergal.docseq.dto.users.UserUpdateDTO;
@@ -257,6 +260,50 @@ public class UserV2Service {
         } else {
             throw new ForbiddenException("You do not have permission to delete this user.");
         }
+    }
+
+    @Transactional
+    public void forgotPassword(ForgotPasswordRequest dto) {
+        var user = userRepository.findByEmail(dto.email())
+                .orElseThrow(() -> new NotFoundException("User not found with this email"));
+
+        String token = UUID.randomUUID().toString();
+        user.setResetToken(token);
+        user.setResetTokenExpiry(Instant.now().plusSeconds(3600)); // 1 hour
+
+        userRepository.save(user);
+
+        // TODO: Enviar e-mail com o token.
+        // Exemplo: emailService.sendResetPasswordEmail(user.getEmail(), token);
+        System.out.println("Reset token for " + user.getEmail() + ": " + token);
+    }
+
+    @Transactional
+    public void resetPassword(ResetPasswordRequest dto) {
+        var user = userRepository.findByResetToken(dto.token())
+                .orElseThrow(() -> new UnprocessableContentException("Invalid or expired token"));
+
+        if (user.getResetTokenExpiry().isBefore(Instant.now())) {
+            throw new UnprocessableContentException("Token expired");
+        }
+
+        user.setPassword(passwordEncoder.encode(dto.newPassword()));
+        user.setResetToken(null);
+        user.setResetTokenExpiry(null);
+
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public void changePassword(ChangePasswordRequest dto, JwtAuthenticationToken token) {
+        var user = getUser(token);
+
+        if (!passwordEncoder.matches(dto.currentPassword(), user.getPassword())) {
+            throw new BadCredentialsException("Current password does not match");
+        }
+
+        user.setPassword(passwordEncoder.encode(dto.newPassword()));
+        userRepository.save(user);
     }
 
     // Auxiliary methods

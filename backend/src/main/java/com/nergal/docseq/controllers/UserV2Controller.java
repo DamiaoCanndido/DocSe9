@@ -16,9 +16,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.nergal.docseq.dto.users.ChangePasswordRequest;
+import com.nergal.docseq.dto.users.ForgotPasswordRequest;
 import com.nergal.docseq.dto.users.LoginRequest;
 import com.nergal.docseq.dto.users.LoginResponse;
 import com.nergal.docseq.dto.users.RegisterUserDTO;
+import com.nergal.docseq.dto.users.ResetPasswordRequest;
 import com.nergal.docseq.dto.users.UserContentResponse;
 import com.nergal.docseq.dto.users.UserItemDTO;
 import com.nergal.docseq.dto.users.UserUpdateDTO;
@@ -63,6 +66,26 @@ public class UserV2Controller {
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
         return ResponseEntity.ok(userService.login(loginRequest));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Void> forgotPassword(@Valid @RequestBody ForgotPasswordRequest dto) {
+        userService.forgotPassword(dto);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Void> resetPassword(@Valid @RequestBody ResetPasswordRequest dto) {
+        userService.resetPassword(dto);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<Void> changePassword(
+            @Valid @RequestBody ChangePasswordRequest dto,
+            JwtAuthenticationToken token) {
+        userService.changePassword(dto, token);
+        return ResponseEntity.ok().build();
     }
 
     @PatchMapping("/user/{id}")
