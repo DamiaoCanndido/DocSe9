@@ -6,11 +6,13 @@ import Image from 'next/image';
 import { useApp } from '@/contexts/AppContext';
 import { signOutUser } from '@/app/api/users';
 import SearchFoldersAndFiles from '@/components/Search';
+import { useRouter } from 'next/navigation';
 
 export const Navbar: React.FC<{ currentUser: UserResProps }> = ({
   currentUser,
 }) => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const router = useRouter();
 
   const { toggleSidebar } = useApp();
 
@@ -35,7 +37,7 @@ export const Navbar: React.FC<{ currentUser: UserResProps }> = ({
       {/* Right Actions */}
       <div className="flex items-center gap-1 sm:gap-2 ml-2 sm:ml-4 shrink-0">
         <button
-          onClick={() => {}}
+          onClick={() => router.push('/profile')}
           className="p-2 sm:p-2.5 hover:bg-[#F1F3F4] rounded-full text-[#5F6368] transition-colors"
         >
           <Settings className="h-6 w-6" />
@@ -69,7 +71,8 @@ export const Navbar: React.FC<{ currentUser: UserResProps }> = ({
               <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-[#E0E0E0] rounded-2xl shadow-xl z-20 overflow-hidden py-1">
                 <button
                   onClick={() => {
-                    /* onSettings(); */ setShowProfileMenu(false);
+                    router.push('/profile');
+                    setShowProfileMenu(false);
                   }}
                   className="w-full text-left px-4 py-3 text-sm text-[#1F1F1F] hover:bg-gray-50 flex items-center gap-3"
                 >
