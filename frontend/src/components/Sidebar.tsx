@@ -101,24 +101,24 @@ export const Sidebar: React.FC<{ currentUser: UserResProps }> = ({
                 onClick={() => {
                   switch (item.id) {
                     case 'my-docs':
-                      router.push('/my-docs');
+                      router.replace('/my-docs');
                       break;
                     case 'recent':
-                      router.push('/recent');
+                      router.replace('/recent');
                       break;
                     case 'starred':
-                      router.push('/starred');
+                      router.replace('/starred');
                       break;
                     case 'trash':
-                      router.push('/trash');
+                      router.replace('/trash');
                       break;
                     case 'admin':
                       if (currentUser.role.name !== 'basic') {
-                        router.push('/admin-panel');
+                        router.replace('/admin-panel');
                       }
                       break;
                     default:
-                      router.push('/dashboard');
+                      router.replace('/dashboard');
                   }
                   toggleSidebar();
                 }}
@@ -130,7 +130,9 @@ export const Sidebar: React.FC<{ currentUser: UserResProps }> = ({
               >
                 <Icon
                   className={`w-5 h-5 ${
-                    isActive ? 'text-blue-700 dark:text-blue-400' : 'text-[#444746] dark:text-zinc-400'
+                    isActive
+                      ? 'text-blue-700 dark:text-blue-400'
+                      : 'text-[#444746] dark:text-zinc-400'
                   }`}
                 />
                 {item.label}
@@ -209,19 +211,19 @@ export const Sidebar: React.FC<{ currentUser: UserResProps }> = ({
               onClick={() => {
                 switch (item.id) {
                   case 'my-docs':
-                    router.push('/my-docs');
+                    router.replace('/my-docs');
                     break;
                   case 'recent':
-                    router.push('/recent');
+                    router.replace('/recent');
                     break;
                   case 'starred':
-                    router.push('/starred');
+                    router.replace('/starred');
                     break;
                   case 'trash':
-                    router.push('/trash');
+                    router.replace('/trash');
                     break;
                   default:
-                    router.push('/dashboard');
+                    router.replace('/dashboard');
                 }
               }}
               className={`flex-1 flex flex-col items-center justify-center gap-1 h-full ${

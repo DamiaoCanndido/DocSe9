@@ -49,6 +49,7 @@ export default async function Dashboard() {
               <div className="flex flex-wrap gap-4 mt-8 justify-center">
                 <Link
                   href="/admin-panel"
+                  replace
                   className="px-6 py-2.5 bg-blue-600 text-white rounded-full text-sm font-medium hover:bg-blue-700 transition-colors shadow-sm"
                 >
                   Gerenciar Sistema
@@ -59,20 +60,26 @@ export default async function Dashboard() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
               <Link
                 href="/admin-panel"
+                replace
                 className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-[#E0E0E0] dark:border-zinc-800 hover:shadow-md dark:hover:shadow-blue-900/10 transition-all group"
               >
                 <Users className="w-8 h-8 text-purple-500 mb-4 group-hover:scale-110 transition-transform" />
-                <h4 className="font-medium text-[#1F1F1F] dark:text-zinc-100">Usuários</h4>
+                <h4 className="font-medium text-[#1F1F1F] dark:text-zinc-100">
+                  Usuários
+                </h4>
                 <p className="text-xs text-[#5F6368] dark:text-zinc-400 mt-1">
                   Gerencie contas e permissões
                 </p>
               </Link>
               <Link
                 href="/admin-panel"
+                replace
                 className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-[#E0E0E0] dark:border-zinc-800 hover:shadow-md dark:hover:shadow-blue-900/10 transition-all group"
               >
                 <Building2 className="w-8 h-8 text-amber-500 mb-4 group-hover:scale-110 transition-transform" />
-                <h4 className="font-medium text-[#1F1F1F] dark:text-zinc-100">Municípios</h4>
+                <h4 className="font-medium text-[#1F1F1F] dark:text-zinc-100">
+                  Municípios
+                </h4>
                 <p className="text-xs text-[#5F6368] dark:text-zinc-400 mt-1">
                   Adicione ou edite prefeituras
                 </p>
@@ -110,6 +117,7 @@ export default async function Dashboard() {
                 </p>
                 <Link
                   href="/my-docs"
+                  replace
                   className="mt-4 text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline"
                 >
                   Ir para Meus Documentos
@@ -126,6 +134,7 @@ export default async function Dashboard() {
                 {recentFiles.length > 0 && (
                   <Link
                     href="/recent"
+                    replace
                     className="text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline"
                   >
                     Ver tudo
@@ -152,6 +161,7 @@ export default async function Dashboard() {
             <section className="mt-10 grid grid-cols-1 sm:grid-cols-2 gap-4 pb-12">
               <Link
                 href="/my-docs"
+                replace
                 className="flex items-center gap-4 p-4 bg-white dark:bg-zinc-900 rounded-xl border border-[#E0E0E0] dark:border-zinc-800 hover:shadow-md dark:hover:shadow-blue-900/10 transition-shadow group"
               >
                 <div className="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-600 dark:text-blue-400 group-hover:bg-blue-600 group-hover:text-white transition-colors">
@@ -168,6 +178,7 @@ export default async function Dashboard() {
               </Link>
               <Link
                 href="/starred"
+                replace
                 className="flex items-center gap-4 p-4 bg-white dark:bg-zinc-900 rounded-xl border border-[#E0E0E0] dark:border-zinc-800 hover:shadow-md dark:hover:shadow-blue-900/10 transition-shadow group"
               >
                 <div className="w-10 h-10 rounded-full bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center text-amber-600 dark:text-amber-400 group-hover:bg-amber-600 group-hover:text-white transition-colors">

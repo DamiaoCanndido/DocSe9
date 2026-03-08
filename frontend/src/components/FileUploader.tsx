@@ -131,7 +131,7 @@ const FileUploader = () => {
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 20, opacity: 0 }}
-          className="fixed bottom-6 right-6 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 z-70 overflow-hidden"
+          className="fixed bottom-6 right-6 w-80 bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-zinc-800 z-70 overflow-hidden transition-colors"
         >
           {/* Header */}
           <div className="bg-blue-600 px-4 py-3 flex items-center justify-between text-white">
@@ -159,15 +159,15 @@ const FileUploader = () => {
             {files.map((file) => (
               <div
                 key={file.id}
-                className="p-4 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors"
+                className="p-4 border-b border-gray-50 dark:border-zinc-800/50 last:border-0 hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors"
               >
                 <div className="flex items-start gap-3">
-                  <div className="p-2 bg-blue-50 rounded-lg shrink-0">
-                    <File className="w-4 h-4 text-blue-600" />
+                  <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg shrink-0">
+                    <File className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
-                      <p className="text-xs font-medium text-gray-900 truncate pr-2">
+                      <p className="text-xs font-medium text-gray-900 dark:text-zinc-100 truncate pr-2">
                         {file.name}
                       </p>
                       {file.status === 'completed' ? (
@@ -177,7 +177,7 @@ const FileUploader = () => {
                       ) : (
                         <button
                           onClick={() => removeFile(file.id)}
-                          className="text-gray-400 hover:text-gray-600"
+                          className="text-gray-400 hover:text-gray-600 dark:text-zinc-500 dark:hover:text-zinc-300"
                         >
                           <X className="w-3 h-3" />
                         </button>
@@ -185,18 +185,18 @@ const FileUploader = () => {
                     </div>
 
                     <div className="flex items-center justify-between gap-4">
-                      <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="flex-1 h-1.5 bg-gray-100 dark:bg-zinc-800 rounded-full overflow-hidden">
                         <motion.div
                           initial={{ width: 0 }}
                           animate={{ width: `${file.progress}%` }}
                           className={`h-full ${
                             file.status === 'failed'
                               ? 'bg-red-500'
-                              : 'bg-blue-600'
+                              : 'bg-blue-600 dark:bg-blue-500'
                           }`}
                         />
                       </div>
-                      <span className="text-[10px] font-medium text-gray-500 tabular-nums">
+                      <span className="text-[10px] font-medium text-gray-500 dark:text-zinc-400 tabular-nums">
                         {file.progress}%
                       </span>
                     </div>

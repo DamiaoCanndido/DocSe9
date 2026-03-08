@@ -15,7 +15,7 @@ export const SuggestedCard = ({
 
   const handleOpen = async () => {
     if (file.nodeType === 'folder') {
-      router.push(`/my-docs/${file.id}`);
+      router.replace(`/my-docs/${file.id}`);
     } else {
       const result = await getViewUrl(file.id, path);
       window.open(result.url, '_blank', 'noopener,noreferrer');
@@ -73,7 +73,7 @@ export const RecentFilesTable = ({
 
   const handleOpen = async (file: NodeResProps) => {
     if (file.nodeType === 'folder') {
-      router.push(`/my-docs/${file.id}`);
+      router.replace(`/my-docs/${file.id}`);
     } else {
       const result = await getViewUrl(file.id, path);
       window.open(result.url, '_blank', 'noopener,noreferrer');

@@ -190,7 +190,7 @@ const DocsContent = ({
       (type === 'my-docs' || type === 'starred' || type === 'recent') &&
       item.nodeType == 'folder'
     ) {
-      router.push(`/my-docs/${item.id}`);
+      router.replace(`/my-docs/${item.id}`);
     }
     if (type === 'trash' && item.nodeType == 'file') return;
     if (
@@ -487,7 +487,10 @@ const DocsContent = ({
   };
 
   return (
-    <div className="h-full flex flex-col relative transition-colors" onClick={clearSelection}>
+    <div
+      className="h-full flex flex-col relative transition-colors"
+      onClick={clearSelection}
+    >
       <div className="flex flex-col gap-2 sm:gap-4 mb-6 mx-4">
         <div className="flex items-center gap-1 sm:gap-2 text-[10px] sm:text-xs text-[#5F6368] dark:text-zinc-500 mb-1 overflow-x-auto whitespace-nowrap pb-1 no-scrollbar">
           <span>Documentos</span>
@@ -709,7 +712,9 @@ const DocsContent = ({
                           onClick={(e) => handleSelectNode(item, e)}
                           onDoubleClick={(e) => handleOpenNode(item, e)}
                           className={`group cursor-pointer px-1.5 py-2 rounded-xl transition-all h-fit ${
-                            isSelected ? 'bg-blue-50 dark:bg-blue-900/20 ring-2 ring-blue-100 dark:ring-blue-900/30' : ''
+                            isSelected
+                              ? 'bg-blue-50 dark:bg-blue-900/20 ring-2 ring-blue-100 dark:ring-blue-900/30'
+                              : ''
                           }`}
                         >
                           <div
@@ -789,19 +794,25 @@ const DocsContent = ({
                             {item.nodeType === 'folder' ? (
                               <Folder
                                 className={`w-3 h-3 sm:w-4 sm:h-4 shrink-0 ${
-                                  isSelected ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-zinc-500'
+                                  isSelected
+                                    ? 'text-blue-600 dark:text-blue-400'
+                                    : 'text-gray-400 dark:text-zinc-500'
                                 }`}
                               />
                             ) : (
                               <File
                                 className={`w-3 h-3 sm:w-4 sm:h-4 shrink-0 ${
-                                  isSelected ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-zinc-500'
+                                  isSelected
+                                    ? 'text-blue-600 dark:text-blue-400'
+                                    : 'text-gray-400 dark:text-zinc-500'
                                 }`}
                               />
                             )}
                             <span
                               className={`text-xs sm:text-sm font-medium truncate flex-1 transition-colors ${
-                                isSelected ? 'text-blue-700 dark:text-blue-300' : 'text-[#1F1F1F] dark:text-zinc-200'
+                                isSelected
+                                  ? 'text-blue-700 dark:text-blue-300'
+                                  : 'text-[#1F1F1F] dark:text-zinc-200'
                               }`}
                             >
                               {item.name}
@@ -928,14 +939,18 @@ const DocsContent = ({
             >
               <div
                 className={`w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg ${
-                  type === 'trash' ? 'bg-red-50 dark:bg-red-950/20' : 'bg-red-50/0 group-hover:bg-red-50 dark:group-hover:bg-red-950/20'
+                  type === 'trash'
+                    ? 'bg-red-50 dark:bg-red-950/20'
+                    : 'bg-red-50/0 group-hover:bg-red-50 dark:group-hover:bg-red-950/20'
                 } transition-colors`}
               >
                 <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
               <span
                 className={`text-[8px] sm:text-[10px] font-bold uppercase tracking-wider hidden sm:block ${
-                  type === 'trash' ? 'text-red-600' : 'text-red-600/70 dark:text-zinc-500 group-hover:text-red-500'
+                  type === 'trash'
+                    ? 'text-red-600'
+                    : 'text-red-600/70 dark:text-zinc-500 group-hover:text-red-500'
                 }`}
               >
                 {type === 'trash' ? 'Excluir' : 'Excluir'}

@@ -36,7 +36,7 @@ const SearchFoldersAndFiles = () => {
           files: [],
         });
         setOpen(false);
-        return router.push(path.replace(searchParams.toString(), ''));
+        return router.replace(path.replace(searchParams.toString(), ''));
       }
 
       setResults(files);
@@ -61,7 +61,7 @@ const SearchFoldersAndFiles = () => {
     setQuery('');
 
     if (node.nodeType === 'folder') {
-      router.push(`/my-docs/${node.id}`);
+      router.replace(`/my-docs/${node.id}`);
     } else {
       const result = await getViewUrl(node.id, path);
       window.open(result.url, '_blank', 'noopener,noreferrer');

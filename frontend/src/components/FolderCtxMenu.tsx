@@ -108,7 +108,8 @@ const FolderCtxMenu = ({
   const handleFileAction = async (action: string) => {
     if (action === 'open') {
       if (docType.nodeType === 'folder' && viewType === 'trash') return;
-      if (docType.nodeType === 'folder') router.push(`/my-docs/${docType.id}`);
+      if (docType.nodeType === 'folder')
+        router.replace(`/my-docs/${docType.id}`);
       if (docType.nodeType === 'file' && viewType === 'trash') return;
       if (docType.nodeType === 'file') {
         const result = await getViewUrl(docType.id, path);
@@ -141,7 +142,8 @@ const FolderCtxMenu = ({
   const Item = isDropdown ? DropdownMenuItem : ContextMenuItem;
   const Separator = isDropdown ? DropdownMenuSeparator : ContextMenuSeparator;
 
-  const canManagePermissions = currentUser.role.name === 'manager' || currentUser.role.name === 'admin';
+  const canManagePermissions =
+    currentUser.role.name === 'manager' || currentUser.role.name === 'admin';
 
   return (
     <Content>

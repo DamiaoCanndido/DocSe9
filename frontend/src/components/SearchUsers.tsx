@@ -40,7 +40,7 @@ const SearchUsers = (props: {
       if (townFilter) params.set('town', townFilter);
       if (roleFilter) params.set('role', roleFilter);
 
-      router.push(`/admin-panel?${params.toString()}`);
+      router.replace(`/admin-panel?${params.toString()}`);
     };
 
     filteredItems();

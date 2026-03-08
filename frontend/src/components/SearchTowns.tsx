@@ -21,7 +21,7 @@ const SearchTowns = () => {
   useEffect(() => {
     const filteredItems = async () => {
       await getTowns({ queries: { name: debouncedQuery }, path });
-      router.push(`/admin-panel?name=${query}`);
+      router.replace(`/admin-panel?name=${query}`);
     };
     filteredItems();
   }, [debouncedQuery]);
