@@ -141,6 +141,35 @@ export const updateUser = async ({
   }
 };
 
+export const changePassword = async ({
+  form,
+}: {
+  form: ChangePasswordReqProps;
+}) => {
+  try {
+    const token = await getToken();
+    await apiServer.post(
+      '/v2/change-password',
+      {
+        currentPassword: form.currentPassword,
+        newPassword: form.newPassword,
+        confirmPassword: form.confirmPassword,
+      },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        throw new Error('Senha atual incorreta.');
+      }
+      throw new Error(error.response?.data?.message || 'Erro ao mudar senha.');
+    }
+    throw error;
+  }
+};
+
 export const deleteUser = async ({
   userId,
   path,

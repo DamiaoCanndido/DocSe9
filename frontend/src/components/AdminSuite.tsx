@@ -177,8 +177,12 @@ function DashboardPage({ users, towns, me }: DashboardPageProps) {
               <Icon size={20} />
             </div>
             <div>
-              <p className="text-xs text-gray-500 dark:text-zinc-400 mb-0.5">{label}</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
+              <p className="text-xs text-gray-500 dark:text-zinc-400 mb-0.5">
+                {label}
+              </p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                {value}
+              </p>
             </div>
           </div>
         ))}

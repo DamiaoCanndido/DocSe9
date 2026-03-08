@@ -20,13 +20,19 @@ declare interface LoginReqProps {
   password: string;
 }
 
+declare interface ChangePasswordReqProps {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
 declare interface UserReqProps {
   username: string;
   email: string;
   role: 'basic' | 'manager' | 'admin';
   townId: string | null;
-  password: string;
-  confirmPassword: string;
+  password?: string;
+  confirmPassword?: string;
 }
 
 declare interface UserResProps {

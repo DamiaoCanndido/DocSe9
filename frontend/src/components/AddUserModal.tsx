@@ -58,11 +58,11 @@ export default function AddUserModal({
       confirm: '',
       role: 'basic',
       townId:
-        towns.length === 0
-          ? undefined
-          : me.role.name === 'admin'
+        me.role.name === 'manager'
+          ? me.town?.townId
+          : towns.length > 0
           ? towns[0].townId
-          : me.town?.townId,
+          : undefined,
     },
   });
 
@@ -75,11 +75,11 @@ export default function AddUserModal({
     } else if (!addTownId) {
       setValue(
         'townId',
-        towns.length === 0
-          ? undefined
-          : me.role.name === 'admin'
+        me.role.name === 'manager'
+          ? me.town?.townId
+          : towns.length > 0
           ? towns[0].townId
-          : me.town?.townId
+          : undefined
       );
     }
   }, [addRole]);
@@ -145,7 +145,7 @@ export default function AddUserModal({
               />
             )}
           />
-          {addRole !== 'admin' && towns.length > 0 && (
+          {addRole !== 'admin' && (me.role.name === 'manager' || towns.length > 0) && (
             <Controller
               name="townId"
               control={control}
