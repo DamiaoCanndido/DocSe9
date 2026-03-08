@@ -487,20 +487,20 @@ const DocsContent = ({
   };
 
   return (
-    <div className="h-full flex flex-col relative" onClick={clearSelection}>
+    <div className="h-full flex flex-col relative transition-colors" onClick={clearSelection}>
       <div className="flex flex-col gap-2 sm:gap-4 mb-6 mx-4">
-        <div className="flex items-center gap-1 sm:gap-2 text-[10px] sm:text-xs text-[#5F6368] mb-1 overflow-x-auto whitespace-nowrap pb-1 no-scrollbar">
+        <div className="flex items-center gap-1 sm:gap-2 text-[10px] sm:text-xs text-[#5F6368] dark:text-zinc-500 mb-1 overflow-x-auto whitespace-nowrap pb-1 no-scrollbar">
           <span>Documentos</span>
           <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 shrink-0" />
-          {/*<span className="text-[#1F1F1F] font-medium">{type === 'search' ? 'Search' : getTitle()}</span>*/}
+          {/*<span className="text-[#1F1F1F] dark:text-zinc-100 font-medium">{type === 'search' ? 'Search' : getTitle()}</span>*/}
         </div>
 
         <div className="flex items-center justify-between">
-          <h1 className="text-xl sm:text-2xl font-normal text-[#1F1F1F] truncate mr-4">
+          <h1 className="text-xl sm:text-2xl font-normal text-[#1F1F1F] dark:text-zinc-100 truncate mr-4">
             {getTitle()}
           </h1>
 
-          <div className="flex items-center gap-1 bg-[#F1F3F4] p-1 rounded-lg border border-[#E0E0E0] shrink-0">
+          <div className="flex items-center gap-1 bg-[#F1F3F4] dark:bg-zinc-900 p-1 rounded-lg border border-[#E0E0E0] dark:border-zinc-800 shrink-0">
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -508,8 +508,8 @@ const DocsContent = ({
               }}
               className={`p-1 sm:p-1.5 rounded-md transition-colors ${
                 displayMode === 'list'
-                  ? 'bg-white shadow-sm text-blue-600'
-                  : 'text-[#5F6368] hover:bg-gray-200'
+                  ? 'bg-white dark:bg-zinc-800 shadow-sm text-blue-600 dark:text-blue-400'
+                  : 'text-[#5F6368] dark:text-zinc-500 hover:bg-gray-200 dark:hover:bg-zinc-700'
               }`}
             >
               <List className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -521,8 +521,8 @@ const DocsContent = ({
               }}
               className={`p-1 sm:p-1.5 rounded-md transition-colors ${
                 displayMode === 'grid'
-                  ? 'bg-white shadow-sm text-blue-600'
-                  : 'text-[#5F6368] hover:bg-gray-200'
+                  ? 'bg-white dark:bg-zinc-800 shadow-sm text-blue-600 dark:text-blue-400'
+                  : 'text-[#5F6368] dark:text-zinc-500 hover:bg-gray-200 dark:hover:bg-zinc-700'
               }`}
             >
               <Grid className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -534,11 +534,11 @@ const DocsContent = ({
         <div className="flex-1 min-h-0">
           <ContextMenuTrigger className="h-full w-full">
             {displayMode === 'list' ? (
-              <div className="flex flex-col h-full w-full border rounded-lg p-4 overflow-auto pb-24 sm:pb-32">
+              <div className="flex flex-col h-full w-full border dark:border-zinc-800 rounded-lg p-4 overflow-auto pb-24 sm:pb-32 transition-colors">
                 <div className="w-full">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b text-muted-foreground text-left">
+                      <tr className="border-b dark:border-zinc-800 text-muted-foreground dark:text-zinc-500 text-left">
                         <th className="pb-2 font-medium">Nome</th>
                         <th className="hidden lg:table-cell pb-2 font-medium">
                           Criado
@@ -555,9 +555,9 @@ const DocsContent = ({
                           <ContextMenu key={item.id}>
                             <ContextMenuTrigger asChild>
                               <tr
-                                className={`hover:bg-accent cursor-pointer transition-colors ${
+                                className={`hover:bg-accent dark:hover:bg-zinc-800/50 cursor-pointer transition-colors ${
                                   isSelected
-                                    ? 'bg-blue-50 hover:bg-blue-100'
+                                    ? 'bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30'
                                     : ''
                                 }`}
                                 onClick={(e) => handleSelectNode(item, e)}
@@ -570,15 +570,15 @@ const DocsContent = ({
                                         <Folder
                                           className={`h-4 w-4 shrink-0 ${
                                             isSelected
-                                              ? 'text-blue-600'
-                                              : 'text-gray-400'
+                                              ? 'text-blue-600 dark:text-blue-400'
+                                              : 'text-gray-400 dark:text-zinc-500'
                                           }`}
                                         />
                                         <span
                                           className={
                                             isSelected
-                                              ? 'text-blue-700 font-medium'
-                                              : ''
+                                              ? 'text-blue-700 dark:text-blue-300 font-medium'
+                                              : 'text-[#1F1F1F] dark:text-zinc-200'
                                           }
                                         >
                                           {item.name}
@@ -589,15 +589,15 @@ const DocsContent = ({
                                         <File
                                           className={`h-4 w-4 shrink-0 ${
                                             isSelected
-                                              ? 'text-blue-600'
-                                              : 'text-gray-400'
+                                              ? 'text-blue-600 dark:text-blue-400'
+                                              : 'text-gray-400 dark:text-zinc-500'
                                           }`}
                                         />
                                         <span
                                           className={
                                             isSelected
-                                              ? 'text-blue-700 font-medium'
-                                              : ''
+                                              ? 'text-blue-700 dark:text-blue-300 font-medium'
+                                              : 'text-[#1F1F1F] dark:text-zinc-200'
                                           }
                                         >
                                           {item.name}
@@ -609,8 +609,8 @@ const DocsContent = ({
                                 <td
                                   className={`hidden lg:table-cell py-2 px-2 ${
                                     isSelected
-                                      ? 'text-blue-600/70'
-                                      : 'text-muted-foreground'
+                                      ? 'text-blue-600/70 dark:text-blue-400/70'
+                                      : 'text-muted-foreground dark:text-zinc-500'
                                   }`}
                                 >
                                   {new Date(item.createdAt).toLocaleDateString(
@@ -620,8 +620,8 @@ const DocsContent = ({
                                 <td
                                   className={`hidden lg:table-cell py-2 px-2 ${
                                     isSelected
-                                      ? 'text-blue-600/70'
-                                      : 'text-muted-foreground'
+                                      ? 'text-blue-600/70 dark:text-blue-400/70'
+                                      : 'text-muted-foreground dark:text-zinc-500'
                                   }`}
                                 >
                                   {item.nodeType === 'folder'
@@ -632,7 +632,7 @@ const DocsContent = ({
                                   <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                       <button
-                                        className="p-1 hover:bg-gray-200 rounded-full text-[#5F6368]"
+                                        className="p-1 hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-full text-[#5F6368] dark:text-zinc-400 transition-colors"
                                         onClick={(e) => e.stopPropagation()}
                                       >
                                         <EllipsisVertical className="w-4 h-4" />
@@ -709,21 +709,21 @@ const DocsContent = ({
                           onClick={(e) => handleSelectNode(item, e)}
                           onDoubleClick={(e) => handleOpenNode(item, e)}
                           className={`group cursor-pointer px-1.5 py-2 rounded-xl transition-all h-fit ${
-                            isSelected ? 'bg-blue-50 ring-2 ring-blue-100' : ''
+                            isSelected ? 'bg-blue-50 dark:bg-blue-900/20 ring-2 ring-blue-100 dark:ring-blue-900/30' : ''
                           }`}
                         >
                           <div
                             className={`aspect-square border rounded-xl sm:rounded-2xl flex flex-col items-center justify-center mb-2 sm:mb-3 transition-all relative overflow-hidden ${
                               isSelected
-                                ? 'bg-white border-blue-300 shadow-sm'
-                                : 'bg-white border-[#E0E0E0] group-hover:shadow-md group-hover:border-blue-200'
+                                ? 'bg-white dark:bg-zinc-900 border-blue-300 dark:border-blue-800 shadow-sm'
+                                : 'bg-white dark:bg-zinc-900 border-[#E0E0E0] dark:border-zinc-800 group-hover:shadow-md dark:group-hover:shadow-blue-900/10 group-hover:border-blue-200 dark:group-hover:border-zinc-700'
                             }`}
                           >
                             <div className="absolute top-1 sm:top-2 right-1 sm:right-2 flex gap-1 z-10">
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                   <button
-                                    className="p-1 sm:p-1.5 bg-white/90 shadow-sm rounded-full text-[#5F6368] hover:text-blue-600"
+                                    className="p-1 sm:p-1.5 bg-white/90 dark:bg-zinc-800/90 shadow-sm rounded-full text-[#5F6368] dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                                     onClick={(e) => {
                                       e.stopPropagation();
                                     }}
@@ -758,25 +758,25 @@ const DocsContent = ({
                               <Folder
                                 className={`w-10 h-10 sm:w-16 sm:h-16 transition-colors ${
                                   isSelected
-                                    ? 'text-blue-400 fill-blue-50'
-                                    : 'text-gray-200 fill-gray-100'
+                                    ? 'text-blue-400 dark:text-blue-500 fill-blue-50 dark:fill-blue-900/20'
+                                    : 'text-gray-200 dark:text-zinc-800 fill-gray-100 dark:fill-zinc-900'
                                 }`}
                               />
                             ) : (
                               <File
                                 className={`w-10 h-10 sm:w-16 sm:h-16 transition-colors ${
                                   isSelected
-                                    ? 'text-blue-400 fill-blue-50'
-                                    : 'text-gray-200 fill-gray-100'
+                                    ? 'text-blue-400 dark:text-blue-500 fill-blue-50 dark:fill-blue-900/20'
+                                    : 'text-gray-200 dark:text-zinc-800 fill-gray-100 dark:fill-zinc-900'
                                 }`}
                               />
                             )}
-                            <div className="absolute inset-x-0 bottom-0 p-1.5 sm:p-3 bg-linear-to-t from-black/5 to-transparent flex items-center justify-center">
+                            <div className="absolute inset-x-0 bottom-0 p-1.5 sm:p-3 bg-linear-to-t from-black/5 dark:from-black/20 to-transparent flex items-center justify-center">
                               <span
                                 className={`text-[8px] sm:text-[10px] font-bold uppercase px-1.5 py-0.5 rounded shadow-sm border transition-colors ${
                                   isSelected
-                                    ? 'text-blue-600 bg-white border-blue-100'
-                                    : 'text-gray-400 bg-white border-gray-100'
+                                    ? 'text-blue-600 dark:text-blue-400 bg-white dark:bg-zinc-800 border-blue-100 dark:border-blue-900'
+                                    : 'text-gray-400 dark:text-zinc-500 bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800'
                                 }`}
                               >
                                 {item.nodeType === 'folder'
@@ -789,19 +789,19 @@ const DocsContent = ({
                             {item.nodeType === 'folder' ? (
                               <Folder
                                 className={`w-3 h-3 sm:w-4 sm:h-4 shrink-0 ${
-                                  isSelected ? 'text-blue-600' : 'text-gray-400'
+                                  isSelected ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-zinc-500'
                                 }`}
                               />
                             ) : (
                               <File
                                 className={`w-3 h-3 sm:w-4 sm:h-4 shrink-0 ${
-                                  isSelected ? 'text-blue-600' : 'text-gray-400'
+                                  isSelected ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-zinc-500'
                                 }`}
                               />
                             )}
                             <span
                               className={`text-xs sm:text-sm font-medium truncate flex-1 transition-colors ${
-                                isSelected ? 'text-blue-700' : 'text-[#1F1F1F]'
+                                isSelected ? 'text-blue-700 dark:text-blue-300' : 'text-[#1F1F1F] dark:text-zinc-200'
                               }`}
                             >
                               {item.name}
@@ -852,14 +852,14 @@ const DocsContent = ({
           initial={{ y: 100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 100, opacity: 0 }}
-          className="fixed bottom-4 sm:bottom-8 left-1/2 -translate-x-1/2 bg-white border border-[#E0E0E0] rounded-xl sm:rounded-2xl shadow-2xl px-3 sm:px-6 py-2 sm:py-3 flex items-center gap-3 sm:gap-6 z-50 max-w-[95vw] sm:max-w-none"
+          className="fixed bottom-4 sm:bottom-8 left-1/2 -translate-x-1/2 bg-white dark:bg-zinc-900 border border-[#E0E0E0] dark:border-zinc-800 rounded-xl sm:rounded-2xl shadow-2xl px-3 sm:px-6 py-2 sm:py-3 flex items-center gap-3 sm:gap-6 z-50 max-w-[95vw] sm:max-w-none transition-colors"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex items-center gap-2 sm:gap-3 pr-3 sm:pr-6 border-r border-gray-100">
+          <div className="flex items-center gap-2 sm:gap-3 pr-3 sm:pr-6 border-r border-gray-100 dark:border-zinc-800">
             <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white text-[10px] sm:text-xs font-bold">
               {selectedIds.length}
             </div>
-            <span className="text-xs sm:text-sm font-semibold text-gray-700 hidden sm:block">
+            <span className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-zinc-300 hidden sm:block">
               {selectedIds.length === 1 ? 'Selecionado' : 'Selecionados'}
             </span>
           </div>
@@ -874,10 +874,10 @@ const DocsContent = ({
                     );
                     setModal({ type: 'moveNode', data: nodesToMove });
                   }}
-                  className="p-1 sm:p-2 hover:bg-gray-50 rounded-xl text-[#5F6368] hover:text-blue-600 transition-all flex flex-col items-center gap-0.5 sm:gap-1"
+                  className="p-1 sm:p-2 hover:bg-gray-50 dark:hover:bg-zinc-800 rounded-xl text-[#5F6368] dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 transition-all flex flex-col items-center gap-0.5 sm:gap-1 group"
                   title="Mover"
                 >
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg bg-gray-50 group-hover:bg-blue-50 transition-colors">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg bg-gray-50 dark:bg-zinc-800 group-hover:bg-blue-50 dark:group-hover:bg-blue-900/20 transition-colors">
                     <Grid className="w-4 h-4 sm:w-5 sm:h-5" />
                   </div>
                   <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wider hidden sm:block">
@@ -887,10 +887,10 @@ const DocsContent = ({
 
                 <button
                   onClick={handleBulkFavorite}
-                  className="p-1 sm:p-2 hover:bg-gray-50 rounded-xl text-[#5F6368] hover:text-blue-600 transition-all flex flex-col items-center gap-0.5 sm:gap-1"
+                  className="p-1 sm:p-2 hover:bg-gray-50 dark:hover:bg-zinc-800 rounded-xl text-[#5F6368] dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 transition-all flex flex-col items-center gap-0.5 sm:gap-1 group"
                   title="Favoritar"
                 >
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg bg-gray-50">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg bg-gray-50 dark:bg-zinc-800 group-hover:bg-blue-50 dark:group-hover:bg-blue-900/20 transition-colors">
                     <Star className="w-4 h-4 sm:w-5 sm:h-5" />
                   </div>
                   <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wider hidden sm:block">
@@ -901,10 +901,10 @@ const DocsContent = ({
             ) : (
               <button
                 onClick={handleBulkRestore}
-                className="p-1 sm:p-2 hover:bg-blue-50 rounded-xl text-[#5F6368] hover:text-blue-600 transition-all flex flex-col items-center gap-0.5 sm:gap-1"
+                className="p-1 sm:p-2 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-xl text-[#5F6368] dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 transition-all flex flex-col items-center gap-0.5 sm:gap-1 group"
                 title="Restaurar"
               >
-                <div className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg bg-blue-50/0 hover:bg-blue-50">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg bg-blue-50/0 group-hover:bg-blue-50 dark:group-hover:bg-blue-900/20 transition-colors">
                   <RotateCcw className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
                 <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wider hidden sm:block">
@@ -915,10 +915,10 @@ const DocsContent = ({
 
             <button
               onClick={handleBulkDelete}
-              className={`p-1 sm:p-2 rounded-xl transition-all flex flex-col items-center gap-0.5 sm:gap-1 ${
+              className={`p-1 sm:p-2 rounded-xl transition-all flex flex-col items-center gap-0.5 sm:gap-1 group ${
                 type === 'trash'
-                  ? 'hover:bg-red-50 text-red-600'
-                  : 'hover:bg-red-50 text-[#5F6368] hover:text-red-600'
+                  ? 'hover:bg-red-50 dark:hover:bg-red-950/20 text-red-600'
+                  : 'hover:bg-red-50 dark:hover:bg-red-950/20 text-[#5F6368] dark:text-zinc-400 hover:text-red-600 dark:hover:text-red-500'
               }`}
               title={
                 type === 'trash'
@@ -928,28 +928,28 @@ const DocsContent = ({
             >
               <div
                 className={`w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg ${
-                  type === 'trash' ? 'bg-red-50' : 'bg-red-50/0 hover:bg-red-50'
-                }`}
+                  type === 'trash' ? 'bg-red-50 dark:bg-red-950/20' : 'bg-red-50/0 group-hover:bg-red-50 dark:group-hover:bg-red-950/20'
+                } transition-colors`}
               >
                 <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
               <span
                 className={`text-[8px] sm:text-[10px] font-bold uppercase tracking-wider hidden sm:block ${
-                  type === 'trash' ? 'text-red-600' : 'text-red-600/70'
+                  type === 'trash' ? 'text-red-600' : 'text-red-600/70 dark:text-zinc-500 group-hover:text-red-500'
                 }`}
               >
                 {type === 'trash' ? 'Excluir' : 'Excluir'}
               </span>
             </button>
 
-            <div className="w-px h-6 sm:h-8 bg-gray-100 mx-1 sm:mx-2" />
+            <div className="w-px h-6 sm:h-8 bg-gray-100 dark:border-zinc-800 mx-1 sm:mx-2" />
 
             <button
               onClick={clearSelection}
-              className="p-1 sm:p-2 hover:bg-gray-50 rounded-xl text-gray-400 hover:text-gray-600 transition-all flex flex-col items-center gap-0.5 sm:gap-1"
+              className="p-1 sm:p-2 hover:bg-gray-50 dark:hover:bg-zinc-800 rounded-xl text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:hover:text-zinc-300 transition-all flex flex-col items-center gap-0.5 sm:gap-1 group"
               title="Cancelar"
             >
-              <div className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg transition-colors">
                 <X className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
               <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wider hidden sm:block">

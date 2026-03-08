@@ -33,38 +33,40 @@ export default function AdminTowns({
         {towns.map((town) => (
           <div
             key={town.townId}
-            className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col gap-3 hover:border-blue-200 transition"
+            className="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm p-5 flex flex-col gap-3 hover:border-blue-200 dark:hover:border-blue-800 transition"
           >
-            <Image
-              className="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center"
-              src={town.imageUrl}
-              alt={'town_logo'}
-              width={11}
-              height={11}
-            />
+            <div className="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center overflow-hidden">
+              <Image
+                src={town.imageUrl}
+                alt={'town_logo'}
+                width={44}
+                height={44}
+                className="object-cover"
+              />
+            </div>
 
             <div>
-              <h3 className="text-base font-bold text-gray-900">{town.name}</h3>
-              <div className="flex items-center gap-1 text-xs text-gray-500 mt-0.5">
+              <h3 className="text-base font-bold text-gray-900 dark:text-zinc-100">{town.name}</h3>
+              <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-zinc-500 mt-0.5">
                 <MapPin size={11} />
                 {town.uf}
               </div>
             </div>
-            <div className="flex items-center justify-between pt-2 border-t border-gray-100 mt-auto">
-              <div className="flex items-center gap-1.5 text-sm text-gray-600">
-                <Users size={13} className="text-gray-400" />
+            <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-zinc-800 mt-auto">
+              <div className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-zinc-400">
+                <Users size={13} className="text-gray-400 dark:text-zinc-500" />
                 <span className="font-medium">{town.totalUsers} Usuários</span>
               </div>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => onEdit(town)}
-                  className="p-1.5 text-gray-400 hover:text-blue-600 transition rounded-lg hover:bg-blue-50"
+                  className="p-1.5 text-gray-400 dark:text-zinc-500 hover:text-blue-600 dark:hover:text-blue-400 transition rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20"
                 >
                   <Pencil size={14} />
                 </button>
                 <button
                   onClick={() => onDelete(town)}
-                  className="p-1.5 text-gray-400 hover:text-red-500 transition rounded-lg hover:bg-red-50"
+                  className="p-1.5 text-gray-400 dark:text-zinc-500 hover:text-red-500 dark:hover:text-red-400 transition rounded-lg hover:bg-red-50 dark:hover:bg-red-950/20"
                 >
                   <Trash2 size={14} />
                 </button>

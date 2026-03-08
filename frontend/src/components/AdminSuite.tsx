@@ -129,21 +129,21 @@ function DashboardPage({ users, towns, me }: DashboardPageProps) {
   ];
 
   const colorMap: Record<StatCard['color'], string> = {
-    blue: 'bg-blue-50 text-blue-500',
-    purple: 'bg-purple-50 text-purple-500',
-    green: 'bg-green-50 text-green-500',
-    orange: 'bg-orange-50 text-orange-500',
+    blue: 'bg-blue-50 dark:bg-blue-900/20 text-blue-500',
+    purple: 'bg-purple-50 dark:bg-purple-900/20 text-purple-500',
+    green: 'bg-green-50 dark:bg-green-900/20 text-green-500',
+    orange: 'bg-orange-50 dark:bg-orange-900/20 text-orange-500',
   };
 
   return (
     <div className="flex flex-col gap-6">
       {/* Header Contextual */}
-      <div className="flex items-center justify-between bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
+      <div className="flex items-center justify-between bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm">
         <div>
-          <h2 className="text-lg font-bold text-gray-900">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white">
             {isManager ? `Visão Geral: ${userTown}` : 'Visão Geral Global'}
           </h2>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-gray-500 dark:text-zinc-400">
             {isManager
               ? 'Estatísticas e métricas exclusivas do seu município.'
               : 'Métricas consolidadas de todos os municípios e usuários.'}
@@ -152,8 +152,8 @@ function DashboardPage({ users, towns, me }: DashboardPageProps) {
         <div
           className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
             isManager
-              ? 'bg-amber-100 text-amber-700'
-              : 'bg-blue-100 text-blue-700'
+              ? 'bg-amber-100 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400'
+              : 'bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400'
           }`}
         >
           {isManager ? 'Acesso Gerente' : 'Acesso Total'}
@@ -169,7 +169,7 @@ function DashboardPage({ users, towns, me }: DashboardPageProps) {
         {statCards.map(({ label, value, icon: Icon, color }) => (
           <div
             key={label}
-            className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex items-center gap-4 hover:border-gray-200 transition-colors"
+            className="bg-white dark:bg-zinc-900 rounded-2xl p-5 border border-gray-100 dark:border-zinc-800 shadow-sm flex items-center gap-4 hover:border-gray-200 dark:hover:border-zinc-700 transition-colors"
           >
             <div
               className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${colorMap[color]}`}
@@ -177,8 +177,8 @@ function DashboardPage({ users, towns, me }: DashboardPageProps) {
               <Icon size={20} />
             </div>
             <div>
-              <p className="text-xs text-gray-500 mb-0.5">{label}</p>
-              <p className="text-2xl font-bold text-gray-900">{value}</p>
+              <p className="text-xs text-gray-500 dark:text-zinc-400 mb-0.5">{label}</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
             </div>
           </div>
         ))}
@@ -186,17 +186,17 @@ function DashboardPage({ users, towns, me }: DashboardPageProps) {
 
       {/* Charts */}
       <div className="grid grid-cols-1 gap-4">
-        <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 border border-gray-100 dark:border-zinc-800 shadow-sm">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="font-semibold text-gray-900">
+            <h3 className="font-semibold text-gray-900 dark:text-white">
               {isManager
                 ? 'Distribuição por Cargos'
                 : 'Usuários por Município (Top 5)'}
             </h3>
             {isManager ? (
-              <Users size={16} className="text-gray-400" />
+              <Users size={16} className="text-gray-400 dark:text-zinc-500" />
             ) : (
-              <MapPin size={16} className="text-gray-400" />
+              <MapPin size={16} className="text-gray-400 dark:text-zinc-500" />
             )}
           </div>
           <ResponsiveContainer width="100%" height={300}>
@@ -220,10 +220,11 @@ function DashboardPage({ users, towns, me }: DashboardPageProps) {
                 width={100}
               />
               <Tooltip
-                cursor={{ fill: '#f9fafb' }}
+                cursor={{ fill: '#f9fafb', opacity: 0.1 }}
                 contentStyle={{
+                  backgroundColor: 'var(--card)',
                   borderRadius: '12px',
-                  border: 'none',
+                  border: '1px solid var(--border)',
                   boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                 }}
               />
@@ -393,19 +394,19 @@ export default function AdminSuite({
       : null;
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50 font-sans overflow-hidden">
+    <div className="h-screen flex flex-col bg-gray-50 dark:bg-black font-sans overflow-hidden transition-colors duration-300">
       {/* Header */}
-      <div className="bg-white border-b border-gray-100 shrink-0 z-30">
+      <div className="bg-white dark:bg-zinc-900 border-b border-gray-100 dark:border-zinc-800 shrink-0 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
               Painel administrativo
             </h1>
-            <p className="text-xs text-gray-500 hidden sm:block">
+            <p className="text-xs text-gray-500 dark:text-zinc-400 hidden sm:block">
               Gerenciar usuários, municípios e organizações de sistemas.
             </p>
           </div>
-          <button className="flex items-center gap-2 border border-gray-200 rounded-xl px-3 sm:px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
+          <button className="flex items-center gap-2 border border-gray-200 dark:border-zinc-700 rounded-xl px-3 sm:px-4 py-2 text-sm font-medium text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 transition">
             <Download size={15} />
             <span className="hidden sm:inline">Baixar logs</span>
           </button>
@@ -420,8 +421,8 @@ export default function AdminSuite({
                 onClick={() => setTab(id)}
                 className={`flex items-center gap-1.5 px-3 sm:px-4 py-2.5 text-sm font-medium rounded-t-xl border transition whitespace-nowrap ${
                   tab === id
-                    ? 'bg-white text-blue-600 border-gray-200 border-b-white -mb-px z-10'
-                    : 'text-gray-500 hover:text-gray-700 border-transparent'
+                    ? 'bg-white dark:bg-black text-blue-600 dark:text-blue-400 border-gray-200 dark:border-zinc-800 border-b-white dark:border-b-black -mb-px z-10'
+                    : 'text-gray-500 dark:text-zinc-500 hover:text-gray-700 dark:hover:text-zinc-300 border-transparent'
                 }`}
               >
                 <Icon size={15} />

@@ -3,30 +3,30 @@ import React from 'react';
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className="min-h-screen w-full bg-[#F8F9FA] flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen w-full bg-[#F8F9FA] dark:bg-zinc-950 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 transition-colors duration-300">
       {/* Background decoration for desktop */}
       <div className="hidden lg:block fixed top-0 left-0 w-full h-full pointer-events-none overflow-hidden">
-        <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-50 rounded-full blur-3xl opacity-60" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-50 rounded-full blur-3xl opacity-60" />
+        <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-50 dark:bg-blue-900/10 rounded-full blur-3xl opacity-60" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-50 dark:bg-blue-900/10 rounded-full blur-3xl opacity-60" />
       </div>
 
-      <div className="w-full max-w-md bg-white rounded-[24px] sm:rounded-[32px] sm:shadow-[0_8px_30px_rgb(0,0,0,0.04)] sm:border border-[#E0E0E0] p-6 sm:p-10 relative z-10">
+      <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-[24px] sm:rounded-[32px] sm:shadow-[0_8px_30px_rgb(0,0,0,0.04)] sm:border border-[#E0E0E0] dark:border-zinc-800 p-6 sm:p-10 relative z-10">
         {/* Logo & Header */}
         <div className="flex flex-col items-center mb-8">
-          <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-blue-200">
+          <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-blue-200 dark:shadow-blue-900/20">
             <Cloud className="text-white w-7 h-7" />
           </div>
-          <h1 className="text-[#5F6368]">DocSeq</h1>
+          <h1 className="text-[#5F6368] dark:text-zinc-400">DocSeq</h1>
         </div>
 
         {children}
       </div>
 
       {/* Policies */}
-      <div className="policies-content">
-        <button className="policies-btn">Privacidade</button>
-        <button className="policies-btn">Termos</button>
-        <button className="policies-btn">Ajuda</button>
+      <div className="policies-content dark:text-zinc-500">
+        <button className="policies-btn dark:hover:text-white">Privacidade</button>
+        <button className="policies-btn dark:hover:text-white">Termos</button>
+        <button className="policies-btn dark:hover:text-white">Ajuda</button>
       </div>
     </div>
   );

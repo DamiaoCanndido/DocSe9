@@ -10,17 +10,17 @@ export default function ModalActions({
   confirmLabel,
 }: ModalActionsProps) {
   return (
-    <div className="flex items-center justify-between pt-2 border-t border-gray-100 -mx-6 -mb-2 px-6 pb-0">
+    <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-zinc-800 -mx-6 -mb-2 px-6 pb-0">
       <button
         type="button"
         onClick={onCancel}
-        className="text-sm font-medium text-gray-600 hover:text-gray-900 transition py-2"
+        className="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition py-2"
       >
         Cancelar
       </button>
       <button
         type="submit"
-        className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-6 py-2.5 rounded-xl transition"
+        className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-6 py-2.5 rounded-xl transition shadow-lg shadow-blue-100 dark:shadow-none"
       >
         {confirmLabel}
       </button>

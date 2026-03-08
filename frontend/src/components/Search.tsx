@@ -77,30 +77,30 @@ const SearchFoldersAndFiles = () => {
         </div>
         <input
           type="text"
-          className="block w-full bg-[#EDF2FC] border-none rounded-full py-2.5 sm:py-3 pl-10 sm:pl-12 pr-10 sm:pr-12 text-[#1F1F1F] placeholder-[#5F6368] focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all outline-none text-sm sm:text-base"
+          className="block w-full bg-[#EDF2FC] dark:bg-zinc-900 border-none rounded-full py-2.5 sm:py-3 pl-10 sm:pl-12 pr-10 sm:pr-12 text-[#1F1F1F] dark:text-zinc-100 placeholder-[#5F6368] dark:placeholder-zinc-500 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 focus:bg-white dark:focus:bg-zinc-800 transition-all outline-none text-sm sm:text-base"
           placeholder="Search in Drive"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
         {open && (
-          <div className="absolute left-0 top-16 z-50 flex w-full flex-col gap-3 rounded-4xl bg-white p-4">
+          <div className="absolute left-0 top-16 z-50 flex w-full flex-col gap-3 rounded-4xl bg-white dark:bg-zinc-900 border dark:border-zinc-800 p-4 shadow-xl">
             {/* Folders */}
             {results.folders.length > 0 &&
               results.folders.map((folder) => (
                 <li
-                  className="flex items-center justify-between"
+                  className="flex items-center justify-between p-2 rounded-xl hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
                   key={folder.id}
                   onClick={() => handleNodeClick(folder)}
                 >
-                  <div className="flex cursor-pointer items-center gap-4">
-                    <Folder className="h-4 w-4" />
-                    <p className="subtitle-2 line-clamp-1 text-light-100">
+                  <div className="flex items-center gap-4">
+                    <Folder className="h-4 w-4 text-gray-400" />
+                    <p className="subtitle-2 line-clamp-1 text-[#1F1F1F] dark:text-zinc-200">
                       {folder.name}
                     </p>
                   </div>
                   <FormattedDateTime
                     date={folder.createdAt}
-                    className="caption line-clamp-1 text-light-200"
+                    className="caption line-clamp-1 text-[#5F6368] dark:text-zinc-500"
                   />
                 </li>
               ))}
@@ -108,25 +108,25 @@ const SearchFoldersAndFiles = () => {
             {results.files.length > 0 &&
               results.files.map((file) => (
                 <li
-                  className="flex items-center justify-between"
+                  className="flex items-center justify-between p-2 rounded-xl hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
                   key={file.id}
                   onClick={() => handleNodeClick(file)}
                 >
-                  <div className="flex cursor-pointer items-center gap-4">
-                    <File className="h-4 w-4" />
-                    <p className="subtitle-2 line-clamp-1 text-light-100">
+                  <div className="flex items-center gap-4">
+                    <File className="h-4 w-4 text-gray-400" />
+                    <p className="subtitle-2 line-clamp-1 text-[#1F1F1F] dark:text-zinc-200">
                       {file.name}
                     </p>
                   </div>
                   <FormattedDateTime
                     date={file.createdAt}
-                    className="caption line-clamp-1 text-light-200"
+                    className="caption line-clamp-1 text-[#5F6368] dark:text-zinc-500"
                   />
                 </li>
               ))}
             {!results.folders.length && !results.files.length && (
               <p
-                className="p-4 text-center text-light-200 cursor-pointer"
+                className="p-4 text-center text-[#5F6368] dark:text-zinc-500 cursor-pointer"
                 onClick={() => {
                   setOpen(false);
                   setQuery('');
@@ -138,7 +138,7 @@ const SearchFoldersAndFiles = () => {
           </div>
         )}
         <div className="absolute inset-y-0 right-0 pr-2 sm:pr-3 flex items-center">
-          <button className="p-1.5 sm:p-2 hover:bg-[#F1F3F4] rounded-full text-[#5F6368] transition-colors">
+          <button className="p-1.5 sm:p-2 hover:bg-[#F1F3F4] dark:hover:bg-zinc-800 rounded-full text-[#5F6368] dark:text-zinc-400 transition-colors">
             <Filter className="h-4 w-4 sm:h-5 sm:w-5" />
           </button>
         </div>

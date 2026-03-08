@@ -36,13 +36,13 @@ const SearchTowns = () => {
     <div className="relative flex-1">
       <Search
         size={15}
-        className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+        className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500"
       />
       <input
         placeholder="Procure pelo município"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        className="w-full border border-gray-200 rounded-xl pl-9 pr-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-200"
+        className="w-full border border-gray-200 dark:border-zinc-800 rounded-xl pl-9 pr-3 py-2.5 text-sm bg-white dark:bg-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-900/20 transition-all"
       />
     </div>
   );

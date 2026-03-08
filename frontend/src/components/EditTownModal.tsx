@@ -83,7 +83,7 @@ export default function EditTownModal({
           )}
         />
         {count > 0 && (
-          <div className="flex items-start gap-2 bg-blue-50 rounded-xl p-3 text-xs text-blue-700">
+          <div className="flex items-start gap-2 bg-blue-50 dark:bg-blue-900/20 rounded-xl p-3 text-xs text-blue-700 dark:text-blue-400 border border-transparent dark:border-blue-900/50">
             <AlertCircle size={14} className="mt-0.5 shrink-0" />
             <span>
               Alterar o nome do município atualizará o registro para todos os{' '}

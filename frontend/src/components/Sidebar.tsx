@@ -41,15 +41,15 @@ export const Sidebar: React.FC<{ currentUser: UserResProps }> = ({
           <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
             <Cloud className="text-white w-5 h-5" />
           </div>
-          <span className="font-semibold text-xl tracking-tight text-[#444746]">
+          <span className="font-semibold text-xl tracking-tight text-[#444746] dark:text-zinc-200">
             DocSeq
           </span>
         </div>
         <button
           onClick={toggleSidebar}
-          className="lg:hidden p-2 hover:bg-gray-100 rounded-full"
+          className="lg:hidden p-2 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full"
         >
-          <X className="w-5 h-5 text-[#5F6368]" />
+          <X className="w-5 h-5 text-[#5F6368] dark:text-zinc-400" />
         </button>
       </div>
 
@@ -62,7 +62,7 @@ export const Sidebar: React.FC<{ currentUser: UserResProps }> = ({
             setIsUploadModalOpen(true);
             toggleSidebar();
           }}
-          className="flex items-center gap-3 px-4 py-4 bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow mb-8 text-[#1F1F1F] font-medium border border-[#E0E0E0]"
+          className="flex items-center gap-3 px-4 py-4 bg-white dark:bg-zinc-900 rounded-2xl shadow-sm hover:shadow-md transition-shadow mb-8 text-[#1F1F1F] dark:text-zinc-100 font-medium border border-[#E0E0E0] dark:border-zinc-800"
         >
           <Plus className="w-6 h-6 text-blue-600" />
           <span>Novo</span>
@@ -124,13 +124,13 @@ export const Sidebar: React.FC<{ currentUser: UserResProps }> = ({
                 }}
                 className={`w-full flex items-center gap-4 px-4 py-3 rounded-full transition-colors text-sm font-medium ${
                   isActive
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-[#444746] hover:bg-[#F1F3F4]'
+                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400'
+                    : 'text-[#444746] dark:text-zinc-400 hover:bg-[#F1F3F4] dark:hover:bg-zinc-900'
                 }`}
               >
                 <Icon
                   className={`w-5 h-5 ${
-                    isActive ? 'text-blue-700' : 'text-[#444746]'
+                    isActive ? 'text-blue-700 dark:text-blue-400' : 'text-[#444746] dark:text-zinc-400'
                   }`}
                 />
                 {item.label}
@@ -140,20 +140,20 @@ export const Sidebar: React.FC<{ currentUser: UserResProps }> = ({
       </nav>
 
       {/* Storage Indicator */}
-      <div className="mt-auto pt-6 border-t border-[#E0E0E0]">
+      <div className="mt-auto pt-6 border-t border-[#E0E0E0] dark:border-zinc-800">
         <div className="px-4 mb-4">
-          <div className="flex justify-between text-xs text-[#444746] mb-2 font-medium">
+          <div className="flex justify-between text-xs text-[#444746] dark:text-zinc-400 mb-2 font-medium">
             <span>Storage</span>
             <span>75% used</span>
           </div>
-          <div className="h-2 w-full bg-[#E0E0E0] rounded-full overflow-hidden">
+          <div className="h-2 w-full bg-[#E0E0E0] dark:bg-zinc-800 rounded-full overflow-hidden">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: '75%' }}
               className="h-full bg-blue-600 rounded-full"
             />
           </div>
-          <p className="mt-2 text-[11px] text-[#444746]">
+          <p className="mt-2 text-[11px] text-[#444746] dark:text-zinc-500">
             11.2 GB of 15 GB used
           </p>
         </div>
@@ -164,7 +164,7 @@ export const Sidebar: React.FC<{ currentUser: UserResProps }> = ({
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex w-64 flex-col h-full bg-[#F8F9FA] border-r border-[#E0E0E0] shrink-0">
+      <aside className="hidden lg:flex w-64 flex-col h-full bg-[#F8F9FA] dark:bg-zinc-950 border-r border-[#E0E0E0] dark:border-zinc-800 shrink-0 transition-colors">
         <SidebarContent />
       </aside>
 
@@ -184,7 +184,7 @@ export const Sidebar: React.FC<{ currentUser: UserResProps }> = ({
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed top-0 left-0 bottom-0 w-70 bg-[#F8F9FA] z-70 shadow-2xl lg:hidden"
+              className="fixed top-0 left-0 bottom-0 w-70 bg-[#F8F9FA] dark:bg-zinc-950 z-70 shadow-2xl lg:hidden transition-colors"
             >
               <SidebarContent />
             </motion.div>
@@ -193,7 +193,7 @@ export const Sidebar: React.FC<{ currentUser: UserResProps }> = ({
       </AnimatePresence>
 
       {/* Bottom Nav for Mobile */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-[#E0E0E0] z-50 flex items-center">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 h-16 bg-white dark:bg-zinc-900 border-t border-[#E0E0E0] dark:border-zinc-800 z-50 flex items-center transition-colors">
         {navItems.slice(0, 4).map((item) => {
           const isActive =
             (item.id === 'dashboard' && pathname === '/dashboard') ||

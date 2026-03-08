@@ -34,12 +34,12 @@ export default function AdminModal({ title, onClose, children }: ModalProps) {
         className="absolute inset-0 bg-black/30 backdrop-blur-sm"
         onClick={onClose}
       />
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md">
-        <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-100">
-          <h2 className="text-lg font-bold text-gray-900">{title}</h2>
+      <div className="relative bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-full max-w-md border border-transparent dark:border-zinc-800">
+        <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-100 dark:border-zinc-800">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-zinc-100">{title}</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition"
+            className="text-gray-400 hover:text-gray-600 dark:text-zinc-500 dark:hover:text-zinc-300 transition"
           >
             <X size={20} />
           </button>

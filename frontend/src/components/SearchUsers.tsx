@@ -59,7 +59,7 @@ const SearchUsers = (props: {
           onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
             setName(e.target.value)
           }
-          className="w-full border border-gray-200 rounded-xl pl-9 pr-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-200"
+          className="w-full border border-gray-200 dark:border-zinc-800 rounded-xl pl-9 pr-3 py-2.5 text-sm bg-white dark:bg-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-900 transition-colors"
         />
       </div>
       <div className="flex gap-2 flex-wrap">
@@ -70,7 +70,7 @@ const SearchUsers = (props: {
               onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
                 setTownFilter(e.target.value)
               }
-              className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white appearance-none pr-7 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              className="border border-gray-200 dark:border-zinc-800 rounded-xl px-3 py-2.5 text-sm bg-white dark:bg-zinc-900 dark:text-zinc-100 appearance-none pr-7 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-900 transition-colors"
             >
               <option value="">Todos</option>
               {props.towns.map((t) => (
@@ -81,11 +81,11 @@ const SearchUsers = (props: {
             </select>
             <ChevronDown
               size={13}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500 pointer-events-none"
             />
           </div>
         ) : (
-          <div className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-gray-100 text-gray-500">
+          <div className="border border-gray-200 dark:border-zinc-800 rounded-xl px-3 py-2.5 text-sm bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-zinc-400">
             {props.me.town?.name}
           </div>
         )}
@@ -95,7 +95,7 @@ const SearchUsers = (props: {
             onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
               setRoleFilter(e.target.value)
             }
-            className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white appearance-none pr-7 focus:outline-none focus:ring-2 focus:ring-blue-200"
+            className="border border-gray-200 dark:border-zinc-800 rounded-xl px-3 py-2.5 text-sm bg-white dark:bg-zinc-900 dark:text-zinc-100 appearance-none pr-7 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-900 transition-colors"
           >
             <option value="">Todas</option>
             <option value="basic">Básico</option>
@@ -106,7 +106,7 @@ const SearchUsers = (props: {
           </select>
           <ChevronDown
             size={13}
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500 pointer-events-none"
           />
         </div>
         <button

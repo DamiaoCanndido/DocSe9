@@ -215,10 +215,10 @@ export default function EditUserModal({
           name="active"
           control={control}
           render={({ field }) => (
-            <div className="flex items-center justify-between bg-gray-50 rounded-xl p-3 border border-gray-100">
+            <div className="flex items-center justify-between bg-gray-50 dark:bg-zinc-950 rounded-xl p-3 border border-gray-100 dark:border-zinc-800 transition-colors">
               <div>
-                <p className="text-sm font-medium text-gray-800">Ativo</p>
-                <p className="text-xs text-gray-500">
+                <p className="text-sm font-medium text-gray-800 dark:text-zinc-200">Ativo</p>
+                <p className="text-xs text-gray-500 dark:text-zinc-500">
                   Alternar disponibilidade do usuário
                 </p>
               </div>
