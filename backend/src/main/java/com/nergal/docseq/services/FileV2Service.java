@@ -37,6 +37,7 @@ public class FileV2Service {
     private final StorageService storageService;
     private final PermissionV2Service permissionService;
     private final com.nergal.docseq.repositories.NodeUserMetadataRepository nodeUserMetadataRepository;
+    private final AuditLogService auditLogService;
 
     public FileV2Service(
             FileV2Repository fileRepository,
@@ -44,13 +45,15 @@ public class FileV2Service {
             UserV2Repository userRepository,
             StorageService storageService,
             PermissionV2Service permissionService,
-            com.nergal.docseq.repositories.NodeUserMetadataRepository nodeUserMetadataRepository) {
+            com.nergal.docseq.repositories.NodeUserMetadataRepository nodeUserMetadataRepository,
+            AuditLogService auditLogService) {
         this.fileRepository = fileRepository;
         this.nodeRepository = nodeRepository;
         this.userRepository = userRepository;
         this.storageService = storageService;
         this.permissionService = permissionService;
         this.nodeUserMetadataRepository = nodeUserMetadataRepository;
+        this.auditLogService = auditLogService;
     }
 
     @Transactional
@@ -90,6 +93,9 @@ public class FileV2Service {
         // upload físico
         String storageKey = storageService.upload(file, entity.getNodeId());
         entity.setObjectKey(storageKey);
+
+        auditLogService.saveLog(user, "UPLOAD_FILE", "NODE", entity.getNodeId(), "File uploaded: " + entity.getName(),
+                null);
 
         return NodeMapper.toDTO(entity);
     }
@@ -252,7 +258,8 @@ public class FileV2Service {
         UserV2 user = getUser(token);
 
         Pageable pageable = PageRequest.of(0, 20);
-        List<NodeUserMetadata> recentMetadata = nodeUserMetadataRepository.findRecentFilesByUser(user.getUserId(), pageable);
+        List<NodeUserMetadata> recentMetadata = nodeUserMetadataRepository.findRecentFilesByUser(user.getUserId(),
+                pageable);
 
         return recentMetadata.stream()
                 .filter(m -> permissionService.checkPermission(m.getNode().getNodeId(), PermissionType.READ, token))

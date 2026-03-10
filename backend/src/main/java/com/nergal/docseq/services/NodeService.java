@@ -48,18 +48,21 @@ public class NodeService {
     private final StorageService storageService;
     private final PermissionV2Service permissionServiceV2;
     private final NodeUserMetadataRepository nodeUserMetadataRepository;
+    private final AuditLogService auditLogService;
 
     public NodeService(
             NodeRepository nodeRepository,
             UserV2Repository userV2Repository,
             StorageService storageService,
             PermissionV2Service permissionServiceV2,
-            NodeUserMetadataRepository nodeUserMetadataRepository) {
+            NodeUserMetadataRepository nodeUserMetadataRepository,
+            AuditLogService auditLogService) {
         this.nodeRepository = nodeRepository;
         this.userV2Repository = userV2Repository;
         this.storageService = storageService;
         this.permissionServiceV2 = permissionServiceV2;
         this.nodeUserMetadataRepository = nodeUserMetadataRepository;
+        this.auditLogService = auditLogService;
     }
 
     @Transactional(readOnly = true)
@@ -245,6 +248,9 @@ public class NodeService {
         node.setCreatedBy(user);
 
         nodeRepository.save(node);
+
+        auditLogService.saveLog(user, "CREATE_FOLDER", "NODE", node.getNodeId(), "Folder created: " + node.getName(),
+                null);
     }
 
     @Transactional

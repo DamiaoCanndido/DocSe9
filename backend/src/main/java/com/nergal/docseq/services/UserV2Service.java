@@ -44,19 +44,22 @@ public class UserV2Service {
     private final TownV2Repository townRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final JwtEncoder jwtEncoder;
+    private final AuditLogService auditLogService;
 
     public UserV2Service(
             UserV2Repository userRepository,
             RoleRepository roleRepository,
             TownV2Repository townRepository,
             BCryptPasswordEncoder passwordEncoder,
-            JwtEncoder jwtEncoder) {
+            JwtEncoder jwtEncoder,
+            AuditLogService auditLogService) {
 
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.townRepository = townRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtEncoder = jwtEncoder;
+        this.auditLogService = auditLogService;
     }
 
     @Transactional
@@ -131,6 +134,9 @@ public class UserV2Service {
                 .build();
 
         var jwtValue = jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
+
+        auditLogService.saveLog(user.get(), "LOGIN", "USER", user.get().getUserId(), "User logged in successfully",
+                null);
 
         return new LoginResponse(jwtValue, expiresIn);
     }
