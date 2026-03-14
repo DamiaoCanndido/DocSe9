@@ -1,5 +1,21 @@
 package com.nergal.docseq.services;
 
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.nergal.docseq.dto.nodes.NodeContentResponse;
 import com.nergal.docseq.dto.nodes.NodeRequestDTO;
 import com.nergal.docseq.dto.nodes.NodeResponseDTO;
@@ -22,22 +38,8 @@ import com.nergal.docseq.helpers.specifications.FolderV2Specifications;
 import com.nergal.docseq.repositories.NodeRepository;
 import com.nergal.docseq.repositories.NodeUserMetadataRepository;
 import com.nergal.docseq.repositories.UserV2Repository;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Pageable;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
-import java.util.UUID;
-import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
@@ -289,11 +291,14 @@ public class NodeService {
         }
         node.setUpdatedBy(user);
         nodeRepository.save(node);
+
+        auditLogService.saveLog(user, "UPDATE_FOLDER", "NODE", nodeId, "Folder updated: " + node.getName(), null);
     }
 
     @Transactional
     public void move(UUID nodeId, UUID targetNodeId, JwtAuthenticationToken token) {
         UUID townId = getTownId(token);
+        UserV2 user = getUser(token);
 
         Node nodeToMove = nodeRepository
                 .findByNodeIdAndTownTownIdAndNodeTypeAndDeletedAtIsNull(
@@ -335,8 +340,11 @@ public class NodeService {
         }
 
         nodeToMove.setParent(targetNode);
-        nodeToMove.setUpdatedBy(getUser(token)); // Using getUser(token) directly
+        nodeToMove.setUpdatedBy(user);
         nodeRepository.save(nodeToMove);
+
+        auditLogService.saveLog(user, "MOVE_FOLDER", "NODE", nodeId,
+                "Folder moved to: " + targetNode.getName(), null);
     }
 
     private boolean isDescendant(Node source, Node target) {
@@ -369,6 +377,9 @@ public class NodeService {
         }
 
         softDeleteRecursively(node, user);
+
+        auditLogService.saveLog(user, "DELETE_FOLDER", "NODE", nodeId, "Folder moved to trash: " + node.getName(),
+                null);
     }
 
     @Transactional
@@ -427,6 +438,9 @@ public class NodeService {
         }
 
         permanentDeleteRecursively(node);
+
+        auditLogService.saveLog(getUser(token), "PERMANENT_DELETE_FOLDER", "NODE", nodeId,
+                "Folder permanently deleted: " + node.getName(), null);
     }
 
     @Transactional
@@ -512,6 +526,8 @@ public class NodeService {
         }
 
         restoreRecursively(node, user);
+
+        auditLogService.saveLog(user, "RESTORE_FOLDER", "NODE", nodeId, "Folder restored: " + node.getName(), null);
     }
 
     @Transactional
@@ -573,6 +589,9 @@ public class NodeService {
 
         metadata.setFavorite(!metadata.getFavorite());
         nodeUserMetadataRepository.save(metadata);
+
+        auditLogService.saveLog(user, "TOGGLE_FAVORITE_FOLDER", "NODE", nodeId,
+                "Folder favorite toggled: " + (metadata.getFavorite() ? "favorited" : "unfavorited"), null);
     }
 
     private UserV2 getUser(JwtAuthenticationToken token) {

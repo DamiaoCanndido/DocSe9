@@ -108,6 +108,9 @@ public class UserV2Service {
         user.setTown(town);
 
         userRepository.save(user);
+
+        auditLogService.saveLog(currentUser, "REGISTER_USER", "USER", user.getUserId(),
+                "User registered: " + user.getUsername(), null);
     }
 
     @Transactional
@@ -239,6 +242,9 @@ public class UserV2Service {
         if (isAdmin || isManager || userToUpdate.getUserId().equals(UUID.fromString(token.getName()))) {
             applyUpdates(userToUpdate, dto);
             userRepository.save(userToUpdate);
+
+            auditLogService.saveLog(user, "UPDATE_USER", "USER", userToUpdate.getUserId(),
+                    "User updated: " + userToUpdate.getUsername(), null);
         } else {
             throw new ForbiddenException("You do not have permission to update this user.");
         }
@@ -263,6 +269,9 @@ public class UserV2Service {
 
         if (isAdmin || isManager || userToDelete.getUserId().equals(UUID.fromString(token.getName()))) {
             userRepository.deleteById(userId);
+
+            auditLogService.saveLog(user, "DELETE_USER", "USER", userId,
+                    "User deleted: " + userToDelete.getUsername(), null);
         } else {
             throw new ForbiddenException("You do not have permission to delete this user.");
         }
@@ -298,6 +307,8 @@ public class UserV2Service {
         user.setResetTokenExpiry(null);
 
         userRepository.save(user);
+
+        auditLogService.saveLog(user, "RESET_PASSWORD", "USER", user.getUserId(), "Password reset successfully", null);
     }
 
     @Transactional
@@ -310,6 +321,9 @@ public class UserV2Service {
 
         user.setPassword(passwordEncoder.encode(dto.newPassword()));
         userRepository.save(user);
+
+        auditLogService.saveLog(user, "CHANGE_PASSWORD", "USER", user.getUserId(), "Password changed successfully",
+                null);
     }
 
     // Auxiliary methods

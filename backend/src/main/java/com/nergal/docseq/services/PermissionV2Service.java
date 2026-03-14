@@ -29,15 +29,18 @@ public class PermissionV2Service {
     private final UserV2Repository userV2Repository;
     private final NodeRepository nodeRepository;
     private final PermissionsCheckV2Service permissionsCheckV2Service;
+    private final AuditLogService auditLogService;
 
     public PermissionV2Service(PermissionV2Repository permissionV2Repository,
             UserV2Repository userV2Repository,
             NodeRepository nodeRepository,
-            PermissionsCheckV2Service permissionsCheckV2Service) {
+            PermissionsCheckV2Service permissionsCheckV2Service,
+            AuditLogService auditLogService) {
         this.permissionV2Repository = permissionV2Repository;
         this.userV2Repository = userV2Repository;
         this.nodeRepository = nodeRepository;
         this.permissionsCheckV2Service = permissionsCheckV2Service;
+        this.auditLogService = auditLogService;
     }
 
     @Transactional
@@ -75,6 +78,9 @@ public class PermissionV2Service {
             }
         }
 
+        auditLogService.saveLog(managerUser, "GRANT_PERMISSION", "NODE", node.getNodeId(),
+                "Permission " + dto.permissionType() + " granted to user: " + targetUser.getUsername(), null);
+
         return result;
     }
 
@@ -91,6 +97,7 @@ public class PermissionV2Service {
         }
 
         Node node = permission.getNode();
+        UserV2 targetUser = permission.getUser();
 
         removePermission(node, userId);
 
@@ -103,6 +110,9 @@ public class PermissionV2Service {
         }
 
         permissionV2Repository.delete(permission);
+
+        auditLogService.saveLog(currentUser, "REVOKE_PERMISSION", "NODE", nodeId,
+                "Permission revoked from user: " + targetUser.getUsername(), null);
     }
 
     @Transactional(readOnly = true)

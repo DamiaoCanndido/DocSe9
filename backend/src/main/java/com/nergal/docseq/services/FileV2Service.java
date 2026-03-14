@@ -115,6 +115,8 @@ public class FileV2Service {
         file.setDeletedAt(Instant.now());
         file.setDeletedBy(user);
         fileRepository.save(file);
+
+        auditLogService.saveLog(user, "DELETE_FILE", "NODE", fileId, "File moved to trash: " + file.getName(), null);
     }
 
     @Transactional
@@ -142,6 +144,8 @@ public class FileV2Service {
         file.setRestoredBy(user);
         file.setUpdatedBy(user);
         fileRepository.save(file);
+
+        auditLogService.saveLog(user, "RESTORE_FILE", "NODE", fileId, "File restored: " + file.getName(), null);
     }
 
     private void restoreFolderAncestors(Node folder, UserV2 user) {
@@ -189,6 +193,9 @@ public class FileV2Service {
 
         storageService.delete(file.getObjectKey());
         fileRepository.delete(file);
+
+        auditLogService.saveLog(user, "PERMANENT_DELETE_FILE", "NODE", fileId,
+                "File permanently deleted: " + file.getName(), null);
     }
 
     @Transactional
@@ -206,6 +213,8 @@ public class FileV2Service {
             file.setName(dto.name() + file.getContentType().replace("application/", "."));
             file.setUpdatedBy(user);
             fileRepository.save(file);
+
+            auditLogService.saveLog(user, "RENAME_FILE", "NODE", fileId, "File renamed to: " + file.getName(), null);
         }
     }
 
@@ -232,6 +241,8 @@ public class FileV2Service {
         file.setParent(targetFolder);
         file.setUpdatedBy(user);
         fileRepository.save(file);
+
+        auditLogService.saveLog(user, "MOVE_FILE", "NODE", fileId, "File moved to: " + targetFolder.getName(), null);
     }
 
     @Transactional
@@ -251,6 +262,9 @@ public class FileV2Service {
 
         metadata.setFavorite(!metadata.getFavorite());
         nodeUserMetadataRepository.save(metadata);
+
+        auditLogService.saveLog(user, "TOGGLE_FAVORITE_FILE", "NODE", fileId,
+                "File favorite toggled: " + (metadata.getFavorite() ? "favorited" : "unfavorited"), null);
     }
 
     @Transactional(readOnly = true)
@@ -284,6 +298,8 @@ public class FileV2Service {
 
         metadata.setLastSeen(Instant.now());
         nodeUserMetadataRepository.save(metadata);
+
+        auditLogService.saveLog(user, "VIEW_FILE", "NODE", fileId, "File viewed: " + file.getName(), null);
 
         return storageService.generateTemporaryUrl(file.getObjectKey());
     }

@@ -5,6 +5,7 @@ import java.util.UUID;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -40,20 +41,21 @@ public class TownV2Controller {
     }
 
     @PostMapping
-    public ResponseEntity<Void> createTown(@Valid @RequestBody TownRequestDTO dto) {
-        townService.createTown(dto);
+    public ResponseEntity<Void> createTown(@Valid @RequestBody TownRequestDTO dto, JwtAuthenticationToken token) {
+        townService.createTown(dto, token);
         return ResponseEntity.ok().build();
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<Void> updateTown(@PathVariable UUID id, @Valid @RequestBody TownUpdateDTO dto) {
-        townService.updateTown(id, dto);
+    public ResponseEntity<Void> updateTown(@PathVariable UUID id, @Valid @RequestBody TownUpdateDTO dto,
+            JwtAuthenticationToken token) {
+        townService.updateTown(id, dto, token);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteTown(@PathVariable UUID id) {
-        townService.deleteTown(id);
+    public ResponseEntity<Void> deleteTown(@PathVariable UUID id, JwtAuthenticationToken token) {
+        townService.deleteTown(id, token);
         return ResponseEntity.ok().build();
     }
 }
