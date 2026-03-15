@@ -23,6 +23,7 @@ import com.nergal.docseq.dto.users.RegisterUserDTO;
 import com.nergal.docseq.dto.users.ResetPasswordRequest;
 import com.nergal.docseq.dto.users.UserContentResponse;
 import com.nergal.docseq.dto.users.UserItemDTO;
+import com.nergal.docseq.dto.users.UserProfileUpdateDTO;
 import com.nergal.docseq.dto.users.UserUpdateDTO;
 import com.nergal.docseq.entities.Role;
 import com.nergal.docseq.entities.TownV2;
@@ -200,14 +201,39 @@ public class UserV2Service {
                 user.getCreatedAt());
     }
 
-    protected void applyUpdates(UserV2 entity, UserUpdateDTO dto) {
+    @Transactional
+    public void updateProfile(UserProfileUpdateDTO dto, JwtAuthenticationToken token) {
+        UUID userId = UUID.fromString(token.getName());
+        var user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+        UserUpdateDTO updateDTO = new UserUpdateDTO(
+                dto.username(),
+                dto.email(),
+                null,
+                dto.password(),
+                dto.confirmPassword(),
+                null);
+
+        applyUpdates(user, updateDTO, false, false);
+        userRepository.save(user);
+
+        auditLogService.saveLog(user, "UPDATE_PROFILE", "USER", userId,
+                "User updated their own profile", null);
+    }
+
+    protected void applyUpdates(UserV2 entity, UserUpdateDTO dto, boolean isPrivileged, boolean isAdmin) {
         if (dto.username() != null) {
             entity.setUsername(dto.username());
         }
         if (dto.email() != null) {
             entity.setEmail(dto.email());
         }
-        if (dto.role() != null) {
+        if (isPrivileged && dto.role() != null) {
+            // Prevent non-admins from promoting to admin
+            if (dto.role() == Role.Values.admin && !isAdmin) {
+                throw new ForbiddenException("Only admins can assign the admin role.");
+            }
             var newRole = roleRepository.findByName(dto.role())
                     .orElseThrow(() -> new NotFoundException("Role not found"));
             entity.setRole(newRole);
@@ -215,7 +241,7 @@ public class UserV2Service {
         if (dto.password() != null && !dto.password().isEmpty()) {
             entity.setPassword(passwordEncoder.encode(dto.password()));
         }
-        if (dto.townId() != null) {
+        if (isAdmin && dto.townId() != null) {
             var town = townRepository.findByTownId(dto.townId())
                     .orElseThrow(() -> new NotFoundException("Town not found"));
             entity.setTown(town);
@@ -239,8 +265,11 @@ public class UserV2Service {
                 && userToUpdate.getRole().getName() != Role.Values.admin
                 && userToUpdate.getTown().getTownId().equals(townId);
 
-        if (isAdmin || isManager || userToUpdate.getUserId().equals(UUID.fromString(token.getName()))) {
-            applyUpdates(userToUpdate, dto);
+        boolean isSelf = userToUpdate.getUserId().equals(UUID.fromString(token.getName()));
+
+        if (isAdmin || isManager || isSelf) {
+            boolean isPrivileged = isAdmin || isManager;
+            applyUpdates(userToUpdate, dto, isPrivileged, isAdmin);
             userRepository.save(userToUpdate);
 
             auditLogService.saveLog(user, "UPDATE_USER", "USER", userToUpdate.getUserId(),

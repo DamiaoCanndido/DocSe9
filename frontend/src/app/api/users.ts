@@ -108,6 +108,35 @@ export async function getUsers({
   }
 }
 
+export const updateProfile = async ({
+  form,
+  path,
+}: {
+  form: {
+    username?: string;
+    email?: string;
+    password?: string;
+    confirmPassword?: string;
+  };
+  path: string;
+}) => {
+  try {
+    const token = await getToken();
+    await apiServer.patch('/v2/update-profile', form, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    revalidatePath(path);
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        return redirect('/login');
+      }
+      throw new Error(error.response?.data?.message || 'Erro ao atualizar perfil.');
+    }
+    throw error;
+  }
+};
+
 export const updateUser = async ({
   userId,
   form,

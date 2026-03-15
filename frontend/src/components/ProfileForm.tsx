@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { User, Mail, Save } from 'lucide-react';
 import AdminInput from '@/components/AdminInput';
 import { toast } from 'sonner';
-import { updateUser } from '@/app/api/users';
+import { updateProfile } from '@/app/api/users';
 import { useState } from 'react';
 
 const profileSchema = z.object({
@@ -38,21 +38,16 @@ export default function ProfileForm({ user }: ProfileFormProps) {
   const onSubmit = async (data: ProfileFormData) => {
     setIsLoading(true);
     try {
-      await updateUser({
-        userId: user.userId,
+      await updateProfile({
         form: {
           username: data.username,
           email: data.email,
-          role: user.role.name as 'basic' | 'manager' | 'admin',
-          townId: user.town?.townId || null,
-          password: undefined,
-          confirmPassword: undefined,
         },
         path: '/profile',
       });
       toast.success('Perfil atualizado com sucesso!');
-    } catch (error) {
-      toast.error('Erro ao atualizar perfil.');
+    } catch (error: any) {
+      toast.error(error.message || 'Erro ao atualizar perfil.');
       console.error(error);
     } finally {
       setIsLoading(false);

@@ -24,6 +24,7 @@ import com.nergal.docseq.dto.users.RegisterUserDTO;
 import com.nergal.docseq.dto.users.ResetPasswordRequest;
 import com.nergal.docseq.dto.users.UserContentResponse;
 import com.nergal.docseq.dto.users.UserItemDTO;
+import com.nergal.docseq.dto.users.UserProfileUpdateDTO;
 import com.nergal.docseq.dto.users.UserUpdateDTO;
 import com.nergal.docseq.services.UserV2Service;
 
@@ -85,6 +86,14 @@ public class UserV2Controller {
             @Valid @RequestBody ChangePasswordRequest dto,
             JwtAuthenticationToken token) {
         userService.changePassword(dto, token);
+        return ResponseEntity.ok().build();
+    }
+
+    @PatchMapping("/update-profile")
+    public ResponseEntity<Void> updateProfile(
+            @Valid @RequestBody UserProfileUpdateDTO dto,
+            JwtAuthenticationToken token) {
+        userService.updateProfile(dto, token);
         return ResponseEntity.ok().build();
     }
 

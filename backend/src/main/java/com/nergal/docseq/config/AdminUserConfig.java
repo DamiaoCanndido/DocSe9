@@ -18,10 +18,10 @@ import lombok.extern.slf4j.Slf4j;
 @Configuration
 public class AdminUserConfig implements CommandLineRunner {
 
-    private RoleRepository roleRepository;
-    private UserRepository userRepository;
-    private BCryptPasswordEncoder passwordEncoder;
-    private AdminEnvsConfig adminEnvConfig;
+    private final RoleRepository roleRepository;
+    private final UserRepository userRepository;
+    private final BCryptPasswordEncoder passwordEncoder;
+    private final AdminEnvsConfig adminEnvConfig;
 
     public AdminUserConfig(
             RoleRepository roleRepository,

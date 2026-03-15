@@ -224,6 +224,62 @@ const API_BASE_URL =
 - Sanitizar inputs do usuário
 - CORS configurado adequadamente
 
+### Vulnerabilidades
+
+1.  Mass Assignment (Atribuição em Massa) - Risco: Crítico
+    Identifiquei que o UserUpdateDTO permite alterar campos sensíveis sem a devida validação de quem está fazendo a
+    alteração.
+
+- Ataque: Um usuário comum (basic) pode enviar uma requisição PATCH /user/{meu_id} com o campo "role": "admin".
+- Vulnerabilidade: No UserService.java, o método updateUser permite que o próprio usuário atualize seu perfil, e o
+  método applyUpdates aceita o role e townId do DTO sem verificar se o solicitante tem permissão para alterar esses
+  campos específicos.
+- Correção: Crie DTOs separados para atualização de perfil (usuário comum) e administração (admin/manager), ou
+  adicione verificaciones manuais no applyUpdates para ignorar role e townId se o usuário logado não for admin.
+
+2. Broken Object Level Authorization (BOLA/IDOR) - Risco: Alto
+   Embora a maioria dos endpoints valide o townId, encontrei uma inconsistência na versão V1 do FileService.
+
+- Ataque: Confirmação de existência de arquivos de outras organizações.
+- Vulnerabilidade: No FileService.java, o método getRootFolderId chama fileRepository.findById(fileId) antes de
+  verificar se o arquivo pertence à town do usuário. Isso permite que um atacante descubra se um UUID de arquivo
+  existe em qualquer prefeitura do sistema.
+- Correção: Sempre valide o townId na primeira consulta ao banco de dados, utilizando métodos como
+  findByFileIdAndTownTownId....
+
+3. Falha de Integridade no Upload - Risco: Médio
+   O sistema confia cegamente no cabeçalho Content-Type enviado pelo cliente.
+
+- Ataque: Um atacante pode enviar um script malicioso renomeado para .pdf e forçar o cabeçalho Content-Type:
+  application/pdf.
+- Vulnerabilidade: No FileV2Service.upload, a validação validatePdf verifica apenas se o arquivo está vazio e o tipo
+  MIME retornado pelo MultipartFile.
+- Correção: Utilize uma biblioteca como o Apache Tika para verificar os "Magic Bytes" do arquivo e garantir que ele é
+  realmente um PDF antes de salvá-lo.
+
+4. Força Bruta e DoS (Negação de Serviço) - Risco: Médio
+   Não há mecanismos de proteção contra múltiplas tentativas de acesso.
+
+- Ataque: Brute Force no endpoint /login ou /v2/reset-password. Além disso, um usuário pode subir milhares de
+  arquivos pequenos para esgotar o storage (R2/Disco).
+- Vulnerabilidade: A SecurityConfig não implementa Rate Limiting.
+- Correção: Implemente o Spring Cloud Gateway RateLimiter ou uma biblioteca como Bucket4j para limitar requisições
+  por IP ou usuário.
+
+5. Configuração de Chaves JWT
+   Atualmente, as chaves RSA são carregadas do classpath.
+
+- Risco: Se o código-fonte for vazado ou o .jar for comprometido, as chaves de assinatura dos tokens são expostas.
+- Correção: Em produção, mova app.key e app.pub para um serviço de segredos (como AWS Secrets Manager ou Vault) ou
+  use variáveis de ambiente para injetar o conteúdo das chaves.
+
+Resumo de Ações Recomendadas:
+
+1.  Remover role e townId do UserUpdateDTO principal.
+2.  Sincronizar a segurança da V1 com a V2, garantindo que todas as consultas ao FileRepository incluam o townId.
+3.  Adicionar Rate Limiting nos endpoints de autenticação.
+4.  Validar o conteúdo real (Magic Bytes) nos uploads de arquivos.
+
 ## 🎯 Próximos Passos / Roadmap
 
 - **Backend**

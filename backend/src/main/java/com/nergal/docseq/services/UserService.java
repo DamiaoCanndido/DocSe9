@@ -20,6 +20,7 @@ import com.nergal.docseq.dto.users.LoginResponse;
 import com.nergal.docseq.dto.users.RegisterUserDTO;
 import com.nergal.docseq.dto.users.UserContentResponse;
 import com.nergal.docseq.dto.users.UserItemDTO;
+import com.nergal.docseq.dto.users.UserProfileUpdateDTO;
 import com.nergal.docseq.dto.users.UserUpdateDTO;
 import com.nergal.docseq.entities.Role;
 import com.nergal.docseq.entities.Town;
@@ -172,7 +173,7 @@ public class UserService {
                 new RoleItemDTO(
                         user.getRole().getRoleId(),
                         user.getRole().getName()),
-                user.getRole().getName().name() != "admin"
+                !"admin".equals(user.getRole().getName().name())
                         ? new TownItemDTO(
                                 user.getTown().getTownId(),
                                 user.getTown().getName(),
@@ -183,14 +184,36 @@ public class UserService {
                 user.getCreatedAt());
     }
 
-    protected void applyUpdates(User entity, UserUpdateDTO dto) {
+    @Transactional
+    public void updateProfile(UserProfileUpdateDTO dto, JwtAuthenticationToken token) {
+        UUID userId = UUID.fromString(token.getName());
+        var user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+        UserUpdateDTO updateDTO = new UserUpdateDTO(
+                dto.username(),
+                dto.email(),
+                null,
+                dto.password(),
+                dto.confirmPassword(),
+                null);
+
+        applyUpdates(user, updateDTO, false, false);
+        userRepository.save(user);
+    }
+
+    protected void applyUpdates(User entity, UserUpdateDTO dto, boolean isPrivileged, boolean isAdmin) {
         if (dto.username() != null) {
             entity.setUsername(dto.username());
         }
         if (dto.email() != null) {
             entity.setEmail(dto.email());
         }
-        if (dto.role() != null) {
+        if (isPrivileged && dto.role() != null) {
+            // Prevent non-admins from promoting to admin
+            if (dto.role() == Role.Values.admin && !isAdmin) {
+                throw new ForbiddenException("Only admins can assign the admin role.");
+            }
             var newRole = roleRepository.findByName(dto.role())
                     .orElseThrow(() -> new NotFoundException("Role not found"));
             entity.setRole(newRole);
@@ -198,7 +221,7 @@ public class UserService {
         if (dto.password() != null && !dto.password().isEmpty()) {
             entity.setPassword(passwordEncoder.encode(dto.password()));
         }
-        if (dto.townId() != null) {
+        if (isAdmin && dto.townId() != null) {
             var town = townRepository.findByTownId(dto.townId())
                     .orElseThrow(() -> new NotFoundException("Town not found"));
             entity.setTown(town);
@@ -222,8 +245,12 @@ public class UserService {
                 && userToUpdate.getRole().getName() != Role.Values.admin
                 && userToUpdate.getTown().getTownId().equals(townId);
 
-        if (isAdmin || isManager || userToUpdate.getUserId().equals(UUID.fromString(token.getName()))) {
-            applyUpdates(userToUpdate, dto);
+        boolean isSelf = userToUpdate.getUserId().equals(UUID.fromString(token.getName()));
+
+        if (isAdmin || isManager || isSelf) {
+            // isPrivileged allows role changes (with restrictions inside applyUpdates)
+            boolean isPrivileged = isAdmin || isManager;
+            applyUpdates(userToUpdate, dto, isPrivileged, isAdmin);
             userRepository.save(userToUpdate);
         } else {
             throw new ForbiddenException("You do not have permission to update this user.");

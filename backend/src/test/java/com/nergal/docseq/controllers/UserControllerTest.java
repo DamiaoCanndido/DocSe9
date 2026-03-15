@@ -1,10 +1,22 @@
 package com.nergal.docseq.controllers;
 
+import java.util.UUID;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.http.MediaType;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -12,24 +24,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.util.UUID;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.http.MediaType;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
-
 import com.nergal.docseq.dto.users.LoginRequest;
 import com.nergal.docseq.dto.users.RegisterUserDTO;
 import com.nergal.docseq.dto.users.UserUpdateDTO;
-import com.nergal.docseq.entities.Role;
 import com.nergal.docseq.services.UserService;
 
 import tools.jackson.databind.ObjectMapper;
@@ -54,43 +51,6 @@ public class UserControllerTest {
         private LoginRequest loginRequest;
         private LoginRequest invalidLoginRequest;
         private UUID userId;
-        private UUID townId;
-
-        @BeforeEach
-        void setUp() {
-                userId = UUID.randomUUID();
-                townId = UUID.randomUUID();
-                registerUserDTO = new RegisterUserDTO(
-                                "testuser",
-                                "test@example.com",
-                                Role.Values.basic,
-                                "password",
-                                "password",
-                                townId);
-                invalidRegisterUserDTO = new RegisterUserDTO(
-                                "",
-                                "invalid-email",
-                                Role.Values.basic,
-                                "pass",
-                                "differentpass",
-                                null);
-                userUpdateDTO = new UserUpdateDTO(
-                                "newuser",
-                                "new@example.com",
-                                Role.Values.basic,
-                                "newpassword",
-                                "newpassword",
-                                townId);
-                userUpdateInvalidDTO = new UserUpdateDTO(
-                                "",
-                                "invalid-email",
-                                Role.Values.basic,
-                                "short",
-                                "diffpass",
-                                null);
-                loginRequest = new LoginRequest("test@example.com", "password");
-                invalidLoginRequest = new LoginRequest("invalid-email", "123");
-        }
 
         @Test
         @DisplayName("Should register a new user")
@@ -232,7 +192,7 @@ public class UserControllerTest {
                                 .with(jwt().authorities(new SimpleGrantedAuthority("SCOPE_admin"))))
                                 .andExpect(status().isOk());
 
-                verify(userService).deleteUser(eq(userId), any());
+                verify(userService).deleteUser(eq(userId), any(JwtAuthenticationToken.class));
         }
 
         @Test
