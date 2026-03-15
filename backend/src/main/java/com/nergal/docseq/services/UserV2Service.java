@@ -189,7 +189,7 @@ public class UserV2Service {
                 new RoleItemDTO(
                         user.getRole().getRoleId(),
                         user.getRole().getName()),
-                user.getRole().getName().name() != "admin"
+                !"admin".equals(user.getRole().getName().name())
                         ? new TownItemDTO(
                                 user.getTown().getTownId(),
                                 user.getTown().getName(),

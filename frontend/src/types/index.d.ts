@@ -126,3 +126,16 @@ declare interface UsersQueries {
   size?: string;
   sort?: string;
 }
+
+declare interface LogResProps {
+  logId: string;
+  timestamp: string;
+  userId: string;
+  username: string;
+  townName: string | null;
+  action: string;
+  resourceType: string;
+  resourceId: string;
+  details: string;
+  ipAddress: string;
+}

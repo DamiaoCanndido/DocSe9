@@ -51,11 +51,17 @@ public class AuditLogService {
     }
 
     private AuditLogResponseDTO toDTO(AuditLog log) {
+        String townName = null;
+        if (log.getUser() != null && log.getUser().getTown() != null) {
+            townName = log.getUser().getTown().getName();
+        }
+
         return new AuditLogResponseDTO(
                 log.getLogId(),
                 log.getTimestamp(),
                 log.getUser() != null ? log.getUser().getUserId() : null,
                 log.getUser() != null ? log.getUser().getUsername() : "SYSTEM",
+                townName,
                 log.getAction(),
                 log.getResourceType(),
                 log.getResourceId(),

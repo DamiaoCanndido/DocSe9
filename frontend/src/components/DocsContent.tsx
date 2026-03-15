@@ -1,25 +1,14 @@
 'use client';
 
-import { ContextMenu, ContextMenuTrigger } from '@/components/ui/context-menu';
 import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
-  ChevronRight,
-  EllipsisVertical,
-  File,
-  Folder,
-  Grid,
-  List,
-  RotateCcw,
-  Star,
-  Trash2,
-  X,
-} from 'lucide-react';
-import FolderCtxMenu from '@/components/FolderCtxMenu';
-import EmptyAreaContextMenu from '@/components/EmptyAreaContextMenu';
-import { ViewDocsType } from '@/components/DocsLoad';
+  deleteFile,
+  favoriteFile,
+  getViewUrl,
+  moveFile,
+  permanentDeleteFile,
+  restoreFile,
+  updateFile,
+} from '@/app/api/files';
 import {
   createFolder,
   deleteFolder,
@@ -33,26 +22,37 @@ import {
   restoreFolder,
   updateFolder,
 } from '@/app/api/folders';
-import {
-  deleteFile,
-  favoriteFile,
-  getViewUrl,
-  moveFile,
-  permanentDeleteFile,
-  restoreFile,
-  updateFile,
-} from '@/app/api/files';
-import { usePathname, useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
-import { useApp } from '@/contexts/AppContext';
-import { useCallback, useEffect, useRef, useState } from 'react';
 import { ModalState } from '@/components/AdminModal';
-import FolderModal from './FolderModal';
+import { ViewDocsType } from '@/components/DocsLoad';
+import EmptyAreaContextMenu from '@/components/EmptyAreaContextMenu';
+import FolderCtxMenu from '@/components/FolderCtxMenu';
+import { ContextMenu, ContextMenuTrigger } from '@/components/ui/context-menu';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { useApp } from '@/contexts/AppContext';
+import { formatBytes } from '@/lib/utils';
+import { motion } from 'framer-motion';
+import {
+  ChevronRight,
+  EllipsisVertical,
+  File,
+  Folder,
+  Grid,
+  List,
+  RotateCcw,
+  Star,
+  Trash2,
+  X,
+} from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
 import DeleteNodeModal from './DeleteNodeModal';
+import FolderModal from './FolderModal';
 import MoveModal from './MoveModal';
 import PermissionsModal from './PermissionsModal';
-import { toast } from 'sonner';
-import { formatBytes } from '@/lib/utils';
 
 export type DisplayMode = 'grid' | 'list';
 
@@ -190,7 +190,7 @@ const DocsContent = ({
       (type === 'my-docs' || type === 'starred' || type === 'recent') &&
       item.nodeType == 'folder'
     ) {
-      router.replace(`/my-docs/${item.id}`);
+      router.push(`/my-docs/${item.id}`);
     }
     if (type === 'trash' && item.nodeType == 'file') return;
     if (

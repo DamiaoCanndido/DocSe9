@@ -8,6 +8,7 @@ public record AuditLogResponseDTO(
                 Instant timestamp,
                 UUID userId,
                 String username,
+                String townName,
                 String action,
                 String resourceType,
                 UUID resourceId,

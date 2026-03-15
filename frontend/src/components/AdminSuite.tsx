@@ -1,42 +1,43 @@
 'use client';
 
-import { useState } from 'react';
-import {
-  LayoutDashboard,
-  Users,
-  Building2,
-  Settings,
-  Download,
-  MapPin,
-  HelpCircle,
-  CheckCircle2,
-} from 'lucide-react';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts';
-import AdminSettings from '@/components/AdminSettings';
-import { usePathname } from 'next/navigation';
 import { deleteTown, newTown, updateTown } from '@/app/api/towns';
 import { deleteUser, registerUser, updateUser } from '@/app/api/users';
-import { toast } from 'sonner';
-import AdminTowns from '@/components/AdminTowns';
 import AddTownModal, { TownFormData } from '@/components/AddTownModal';
-import EditTownModal from '@/components/EditTownModal';
-import DeleteTownModal from '@/components/DeleteTownModal';
-import AdminUsers from '@/components/AdminUsers';
 import AddUserModal, { AddUserFormData } from '@/components/AddUserModal';
-import EditUserModal, { EditUserFormData } from '@/components/EditUserModal';
-import DeleteUserModal from '@/components/DeleteUserModal';
+import AdminLogs from '@/components/AdminLogs';
 import { ModalState } from '@/components/AdminModal';
+import AdminSettings from '@/components/AdminSettings';
+import AdminTowns from '@/components/AdminTowns';
+import AdminUsers from '@/components/AdminUsers';
+import DeleteTownModal from '@/components/DeleteTownModal';
+import DeleteUserModal from '@/components/DeleteUserModal';
+import EditTownModal from '@/components/EditTownModal';
+import EditUserModal, { EditUserFormData } from '@/components/EditUserModal';
+import {
+  Building2,
+  CheckCircle2,
+  HelpCircle,
+  LayoutDashboard,
+  MapPin,
+  ScrollText,
+  Settings,
+  Users
+} from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import { useState } from 'react';
+import {
+  Bar,
+  BarChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
+import { toast } from 'sonner';
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
-type TabId = 'dashboard' | 'users' | 'towns' | 'settings';
+type TabId = 'dashboard' | 'users' | 'towns' | 'settings' | 'logs';
 
 interface TabItem {
   id: TabId;
@@ -284,12 +285,16 @@ export default function AdminSuite({
     { id: 'dashboard', label: 'Painel', icon: LayoutDashboard },
     { id: 'users', label: 'Usuários', icon: Users },
     { id: 'towns', label: 'Municípios', icon: Building2 },
+    { id: 'logs', label: 'Logs', icon: ScrollText },
     { id: 'settings', label: 'Configurações', icon: Settings },
   ];
 
-  const tabs = baseTabs.filter((tab) =>
-    user.role.name === 'manager' ? tab.id !== 'towns' : true
-  );
+  const tabs = baseTabs.filter((tab) => {
+    if (user.role.name === 'manager') {
+      return tab.id !== 'towns' && tab.id !== 'logs';
+    }
+    return true;
+  });
 
   const handleAddTown = async (form: TownFormData): Promise<void> => {
     try {
@@ -410,10 +415,6 @@ export default function AdminSuite({
               Gerenciar usuários, municípios e organizações de sistemas.
             </p>
           </div>
-          <button className="flex items-center gap-2 border border-gray-200 dark:border-zinc-700 rounded-xl px-3 sm:px-4 py-2 text-sm font-medium text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 transition">
-            <Download size={15} />
-            <span className="hidden sm:inline">Baixar logs</span>
-          </button>
         </div>
 
         {/* Tabs */}
@@ -466,6 +467,7 @@ export default function AdminSuite({
               onDelete={(town) => setModal({ type: 'deleteTown', data: town })}
             />
           )}
+          {tab === 'logs' && <AdminLogs />}
           {tab === 'settings' && <AdminSettings />}
         </div>
       </main>
