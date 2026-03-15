@@ -32,6 +32,10 @@ public interface PermissionV2Repository
 
     Optional<PermissionV2> findByUserUserIdAndNodeNodeId(UUID userId, UUID nodeId);
 
+    @Query("SELECT p FROM PermissionV2 p WHERE p.user.userId = :userId AND p.node.nodeId = :nodeId AND p.node.town.townId = :townId")
+    Optional<PermissionV2> findByUserUserIdAndNodeNodeIdAndTownId(
+            @Param("userId") UUID userId, @Param("nodeId") UUID nodeId, @Param("townId") UUID townId);
+
     List<PermissionV2> findByNodeNodeId(UUID nodeId);
 
     void deleteByUserUserIdAndNodeNodeIdAndPermissionType(

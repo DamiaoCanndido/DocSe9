@@ -1,13 +1,7 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Eye, EyeOff, Lock, Mail, UserPlus2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { toast } from 'sonner';
+import { login } from '@/app/api/users';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Form,
   FormControl,
@@ -17,7 +11,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
   SelectContent,
@@ -25,7 +18,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { login } from '@/app/api/users';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { motion } from 'framer-motion';
+import { Eye, EyeOff, Lock, Mail, UserPlus2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import { z } from 'zod';
 
 type FormType = 'login' | 'register';
 
@@ -131,7 +131,7 @@ const AuthForm = ({ type }: { type: FormType }) => {
     },
   });
 
-  const currentRole = form.watch('role');
+  const currentRole = form.watch('role') ?? 'basic';
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);

@@ -1,26 +1,31 @@
 package com.nergal.docseq.services;
 
-import com.nergal.docseq.dto.permissions.PermissionRequestDTO;
-import com.nergal.docseq.dto.permissions.PermissionResponseDTO;
-import com.nergal.docseq.entities.*;
-import com.nergal.docseq.exception.BadRequestException;
-import com.nergal.docseq.exception.ConflictException;
-import com.nergal.docseq.exception.ForbiddenException;
-import com.nergal.docseq.exception.NotFoundException;
-import com.nergal.docseq.repositories.NodeRepository;
-import com.nergal.docseq.repositories.PermissionV2Repository;
-import com.nergal.docseq.repositories.UserV2Repository;
-import com.nergal.docseq.helpers.specifications.PermissionV2Specifications; // Assuming this will be created or handled
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.stream.Collectors;
+import com.nergal.docseq.dto.permissions.PermissionRequestDTO;
+import com.nergal.docseq.dto.permissions.PermissionResponseDTO;
+import com.nergal.docseq.entities.Node;
+import com.nergal.docseq.entities.NodeType;
+import com.nergal.docseq.entities.PermissionType;
+import com.nergal.docseq.entities.PermissionV2;
+import com.nergal.docseq.entities.Role;
+import com.nergal.docseq.entities.UserV2;
+import com.nergal.docseq.exception.BadRequestException;
+import com.nergal.docseq.exception.ConflictException;
+import com.nergal.docseq.exception.ForbiddenException;
+import com.nergal.docseq.exception.NotFoundException;
+import com.nergal.docseq.helpers.specifications.PermissionV2Specifications; // Assuming this will be created or handled
+import com.nergal.docseq.repositories.NodeRepository;
+import com.nergal.docseq.repositories.PermissionV2Repository;
+import com.nergal.docseq.repositories.UserV2Repository;
 
 @Service
 public class PermissionV2Service {
@@ -48,7 +53,7 @@ public class PermissionV2Service {
         UserV2 managerUser = getUser(token);
         validateManagerUser(managerUser);
 
-        UserV2 targetUser = userV2Repository.findById(dto.userId())
+        UserV2 targetUser = userV2Repository.findByUserIdAndTownTownId(dto.userId(), managerUser.getTown().getTownId())
                 .orElseThrow(() -> new NotFoundException("Target user not found"));
         validateBasicUser(targetUser);
         validateSameTown(managerUser, targetUser);
@@ -57,7 +62,7 @@ public class PermissionV2Service {
                 .findByNodeIdAndTownTownIdAndDeletedAtIsNull(
                         dto.nodeId(),
                         managerUser.getTown().getTownId())
-                .orElseThrow(() -> new NotFoundException("Node not found or does not belong to your town"));
+                .orElseThrow(() -> new NotFoundException("Node not found"));
 
         boolean permissionExists = permissionV2Repository.findByUserUserIdAndNodeNodeIdAndPermissionType(
                 targetUser.getUserId(), node.getNodeId(), dto.permissionType()).isPresent();
@@ -88,8 +93,16 @@ public class PermissionV2Service {
     public void revokePermission(UUID userId, UUID nodeId, JwtAuthenticationToken token) {
         UserV2 currentUser = getUser(token);
 
-        PermissionV2 permission = permissionV2Repository.findByUserUserIdAndNodeNodeId(userId, nodeId)
-                .orElseThrow(() -> new NotFoundException("Permission not found for this user and resource"));
+        Optional<PermissionV2> permissionOpt;
+        if (currentUser.getRole().getName().equals(Role.Values.admin)) {
+            permissionOpt = permissionV2Repository.findByUserUserIdAndNodeNodeId(userId, nodeId);
+        } else {
+            permissionOpt = permissionV2Repository.findByUserUserIdAndNodeNodeIdAndTownId(userId, nodeId,
+                    currentUser.getTown().getTownId());
+        }
+
+        PermissionV2 permission = permissionOpt
+                .orElseThrow(() -> new NotFoundException("Permission not found"));
 
         if (!currentUser.getRole().getName().equals(Role.Values.admin) &&
                 !permission.getGrantedBy().getUserId().equals(currentUser.getUserId())) {
@@ -120,44 +133,43 @@ public class PermissionV2Service {
         UserV2 currentUser = getUser(token);
         Specification<PermissionV2> spec = PermissionV2Specifications.withEagerLoading();
 
-        if (currentUser.getRole().getName().equals(Role.Values.admin)) {
-            if (targetUserId != null) {
-                spec = spec.and(PermissionV2Specifications.byUserId(targetUserId));
-            }
-            if (nodeId != null) {
-                spec = spec.and(PermissionV2Specifications.byNodeId(nodeId));
-            }
-        } else if (currentUser.getRole().getName().equals(Role.Values.manager)) {
-            if (targetUserId != null) {
-                UserV2 targetUser = userV2Repository.findById(targetUserId)
-                        .orElseThrow(() -> new NotFoundException("Target user not found"));
-                validateBasicUser(targetUser);
-                validateSameTown(currentUser, targetUser);
-                spec = spec.and(PermissionV2Specifications.byUserId(targetUserId));
-            }
-
-            if (nodeId != null) {
-                Node node = nodeRepository.findById(nodeId)
-                        .orElseThrow(() -> new NotFoundException("Node not found"));
-                if (!node.getTown().getTownId().equals(currentUser.getTown().getTownId())) {
-                    throw new ForbiddenException("Node does not belong to your town");
+        switch (currentUser.getRole().getName()) {
+            case admin -> {
+                if (targetUserId != null) {
+                    spec = spec.and(PermissionV2Specifications.byUserId(targetUserId));
                 }
-                spec = spec.and(PermissionV2Specifications.byNodeId(nodeId));
+                if (nodeId != null) {
+                    spec = spec.and(PermissionV2Specifications.byNodeId(nodeId));
+                }
             }
-
-            // If no filters are provided, default to permissions granted by this manager
-            if (targetUserId == null && nodeId == null) {
-                spec = spec.and(PermissionV2Specifications.byGrantedByUserId(currentUser.getUserId()));
+            case manager -> {
+                if (targetUserId != null) {
+                    userV2Repository.findByUserIdAndTownTownId(targetUserId, currentUser.getTown().getTownId())
+                            .orElseThrow(() -> new NotFoundException("Target user not found"));
+                    spec = spec.and(PermissionV2Specifications.byUserId(targetUserId));
+                }
+                if (nodeId != null) {
+                    nodeRepository
+                            .findByNodeIdAndTownTownIdAndDeletedAtIsNull(nodeId, currentUser.getTown().getTownId())
+                            .orElseThrow(() -> new NotFoundException("Node not found"));
+                    spec = spec.and(PermissionV2Specifications.byNodeId(nodeId));
+                } // If no filters are provided, default to permissions granted by this manager
+                if (targetUserId == null && nodeId == null) {
+                    spec = spec.and(PermissionV2Specifications.byGrantedByUserId(currentUser.getUserId()));
+                }
             }
-        } else {
-            // Basic users can only list their own permissions
-            if (targetUserId != null && !targetUserId.equals(currentUser.getUserId())) {
-                throw new ForbiddenException("Basic users can only view their own permissions.");
-            }
-            spec = spec.and(PermissionV2Specifications.byUserId(currentUser.getUserId()));
-
-            if (nodeId != null) {
-                spec = spec.and(PermissionV2Specifications.byNodeId(nodeId));
+            default -> {
+                // Basic users can only list their own permissions
+                if (targetUserId != null && !targetUserId.equals(currentUser.getUserId())) {
+                    throw new ForbiddenException("Basic users can only view their own permissions.");
+                }
+                spec = spec.and(PermissionV2Specifications.byUserId(currentUser.getUserId()));
+                if (nodeId != null) {
+                    nodeRepository
+                            .findByNodeIdAndTownTownIdAndDeletedAtIsNull(nodeId, currentUser.getTown().getTownId())
+                            .orElseThrow(() -> new NotFoundException("Node not found"));
+                    spec = spec.and(PermissionV2Specifications.byNodeId(nodeId));
+                }
             }
         }
 
@@ -176,9 +188,9 @@ public class PermissionV2Service {
         }
 
         if (user.getRole().getName().equals(Role.Values.manager)) {
-            Node node = nodeRepository.findById(nodeId)
-                    .orElse(null);
-            if (node != null && node.getTown().getTownId().equals(user.getTown().getTownId())) {
+            Optional<Node> nodeOpt = nodeRepository.findByNodeIdAndTownTownIdAndDeletedAtIsNull(nodeId,
+                    user.getTown().getTownId());
+            if (nodeOpt.isPresent()) {
                 return true;
             }
         }
@@ -210,7 +222,7 @@ public class PermissionV2Service {
                     user.getUserId(),
                     user.getUsername(),
                     user.getEmail(),
-                    node != null ? node.getNodeId() : null,
+                    node.getNodeId(),
                     node.getName(),
                     existingPermission.get().getPermissionType(),
                     grantedBy.getUserId(),
@@ -235,7 +247,7 @@ public class PermissionV2Service {
                 user.getUserId(),
                 user.getUsername(),
                 user.getEmail(),
-                node != null ? node.getNodeId() : null,
+                node.getNodeId(),
                 node.getName(),
                 newPermission.getPermissionType(),
                 grantedBy.getUserId(),

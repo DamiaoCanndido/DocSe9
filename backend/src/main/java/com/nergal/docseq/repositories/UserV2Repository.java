@@ -18,4 +18,6 @@ public interface UserV2Repository extends JpaRepository<UserV2, UUID>, JpaSpecif
 
     Optional<UserV2> findByResetToken(String resetToken);
 
+    Optional<UserV2> findByUserIdAndTownTownId(UUID userId, UUID townId);
+
 }

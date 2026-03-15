@@ -251,19 +251,19 @@ public class UserV2Service {
     @Transactional
     public void updateUser(UUID userId, UserUpdateDTO dto, JwtAuthenticationToken token) {
         var user = getUser(token);
-        UUID townId = null;
+        UserV2 userToUpdate;
 
-        if (user.getRole().getName() != Role.Values.admin) {
-            townId = user.getTown().getTownId();
+        if (user.getRole().getName().equals(Role.Values.admin)) {
+            userToUpdate = userRepository.findById(userId)
+                    .orElseThrow(() -> new NotFoundException("User not found"));
+        } else {
+            userToUpdate = userRepository.findByUserIdAndTownTownId(userId, user.getTown().getTownId())
+                    .orElseThrow(() -> new NotFoundException("User not found"));
         }
-
-        var userToUpdate = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User not found"));
 
         boolean isAdmin = user.getRole().getName().name().equalsIgnoreCase(Role.Values.admin.name());
         boolean isManager = user.getRole().getName().name().equalsIgnoreCase(Role.Values.manager.name())
-                && userToUpdate.getRole().getName() != Role.Values.admin
-                && userToUpdate.getTown().getTownId().equals(townId);
+                && userToUpdate.getRole().getName() != Role.Values.admin;
 
         boolean isSelf = userToUpdate.getUserId().equals(UUID.fromString(token.getName()));
 
@@ -282,19 +282,19 @@ public class UserV2Service {
     @Transactional
     public void deleteUser(UUID userId, JwtAuthenticationToken token) {
         var user = getUser(token);
-        UUID townId = null;
+        UserV2 userToDelete;
 
-        if (user.getRole().getName() != Role.Values.admin) {
-            townId = user.getTown().getTownId();
+        if (user.getRole().getName().equals(Role.Values.admin)) {
+            userToDelete = userRepository.findById(userId)
+                    .orElseThrow(() -> new NotFoundException("User not found"));
+        } else {
+            userToDelete = userRepository.findByUserIdAndTownTownId(userId, user.getTown().getTownId())
+                    .orElseThrow(() -> new NotFoundException("User not found"));
         }
-
-        var userToDelete = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User not found"));
 
         boolean isAdmin = user.getRole().getName().name().equalsIgnoreCase(Role.Values.admin.name());
         boolean isManager = user.getRole().getName().name().equalsIgnoreCase(Role.Values.manager.name())
-                && userToDelete.getRole().getName() != Role.Values.admin
-                && userToDelete.getTown().getTownId().equals(townId);
+                && userToDelete.getRole().getName() != Role.Values.admin;
 
         if (isAdmin || isManager || userToDelete.getUserId().equals(UUID.fromString(token.getName()))) {
             userRepository.deleteById(userId);
