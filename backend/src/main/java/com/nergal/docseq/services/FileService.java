@@ -1,10 +1,12 @@
 package com.nergal.docseq.services;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import org.apache.tika.Tika;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -261,8 +263,16 @@ public class FileService {
             throw new BadRequestException("File is empty");
         }
 
-        if (!"application/pdf".equalsIgnoreCase(file.getContentType())) {
-            throw new BadRequestException("Only PDF allowed");
+        Tika tika = new Tika();
+        try {
+            String mimeType = tika.detect(file.getInputStream());
+            if (!"application/pdf".equalsIgnoreCase(mimeType)) {
+                throw new BadRequestException("Only PDF allowed. Detected type: " + mimeType);
+            }
+        } catch (BadRequestException e) {
+            throw e;
+        } catch (IOException e) {
+            throw new BadRequestException("Could not verify file integrity");
         }
     }
 
