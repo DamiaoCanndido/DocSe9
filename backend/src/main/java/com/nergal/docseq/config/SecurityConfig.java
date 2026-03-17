@@ -39,11 +39,20 @@ public class SecurityConfig {
     @Value("${jwt.private.key}")
     private RSAPrivateKey privateKey;
 
+    private final RateLimitingFilter rateLimitingFilter;
+
+    public SecurityConfig(RateLimitingFilter rateLimitingFilter) {
+        this.rateLimitingFilter = rateLimitingFilter;
+    }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                .addFilterBefore(rateLimitingFilter,
+                        org.springframework.security.web.session.DisableEncodeUrlFilter.class)
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(HttpMethod.POST, "/login", "/v2/login", "/v2/forgot-password", "/v2/reset-password")
+                        .requestMatchers(HttpMethod.POST, "/login", "/v2/login", "/v2/forgot-password",
+                                "/v2/reset-password")
                         .permitAll()
                         .requestMatchers(HttpMethod.GET, "/uploads/**")
                         .permitAll()
