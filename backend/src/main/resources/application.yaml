@@ -33,9 +33,9 @@ spring:
 
 jwt:
   public:
-    key: classpath:app.pub
+    key: ${JWT_PUBLIC_KEY:classpath:app.pub}
   private:
-    key: classpath:app.key
+    key: ${JWT_PRIVATE_KEY:classpath:app.key}
 
 admin:
   username: ${ADM_USERNAME}
