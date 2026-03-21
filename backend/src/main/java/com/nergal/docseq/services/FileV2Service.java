@@ -1,13 +1,11 @@
 package com.nergal.docseq.services;
 
-import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.apache.tika.Tika;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -21,6 +19,7 @@ import com.nergal.docseq.entities.Node;
 import com.nergal.docseq.entities.NodeType;
 import com.nergal.docseq.entities.NodeUserMetadata;
 import com.nergal.docseq.entities.PermissionType;
+import com.nergal.docseq.entities.Role;
 import com.nergal.docseq.entities.UserV2;
 import com.nergal.docseq.exception.BadRequestException;
 import com.nergal.docseq.exception.ForbiddenException;
@@ -63,8 +62,6 @@ public class FileV2Service {
             MultipartFile file,
             UUID folderId,
             JwtAuthenticationToken token) {
-
-        validatePdf(file);
 
         UserV2 user = getUser(token);
 
@@ -189,7 +186,8 @@ public class FileV2Service {
         }
 
         // New permission check
-        if (!permissionService.checkPermission(file.getNodeId(), PermissionType.DELETE, token)) {
+        if (!user.getRole().getName().equals(Role.Values.manager)
+                && !permissionService.checkPermission(file.getNodeId(), PermissionType.DELETE, token)) {
             throw new ForbiddenException("You do not have delete permission to permanently delete this file.");
         }
 
@@ -309,25 +307,6 @@ public class FileV2Service {
     /* ========================= */
     /* Helpers */
     /* ========================= */
-
-    private void validatePdf(MultipartFile file) {
-
-        if (file.isEmpty()) {
-            throw new BadRequestException("File is empty");
-        }
-
-        Tika tika = new Tika();
-        try {
-            String mimeType = tika.detect(file.getInputStream());
-            if (!"application/pdf".equalsIgnoreCase(mimeType)) {
-                throw new BadRequestException("Only PDF allowed. Detected type: " + mimeType);
-            }
-        } catch (BadRequestException e) {
-            throw e;
-        } catch (IOException e) {
-            throw new BadRequestException("Could not verify file integrity");
-        }
-    }
 
     private Node getFileBelongsOrganization(UUID fileId, UUID townId) {
         return fileRepository

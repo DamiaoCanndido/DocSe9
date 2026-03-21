@@ -273,12 +273,24 @@ const API_BASE_URL =
 - Correção: Em produção, mova app.key e app.pub para um serviço de segredos (como AWS Secrets Manager ou Vault) ou
   use variáveis de ambiente para injetar o conteúdo das chaves.
 
+6. [x] Confiança no Content-Type do Cliente (Vulnerabilidade Crítica)
+7. [x] Falta de Validação de "Magic Bytes"
+8. [x] Risco de DoS por Exaustão de Memória
+9. [x] Manipulação da Extensão do Arquivo
+
+Recomendações:
+
+1.  [x] Implementar Apache Tika: Validar o conteúdo real do arquivo no FileV2Service antes de chamar o R2StorageService.
+2.  [x] Streaming de Upload: Alterar o upload para usar InputStream em vez de byte[].
+3.  [x] Lista Branca de Extensões: No generateFileName, validar se a extensão extraída está em uma lista permitida (ex:
+    apenas .pdf).
+
 Resumo de Ações Recomendadas:
 
 1.  Remover role e townId do UserUpdateDTO principal.
-2.  Sincronizar a segurança da V1 com a V2, garantindo que todas as consultas ao FileRepository incluam o townId.
+2.  [x] Sincronizar a segurança da V1 com a V2, garantindo que todas as consultas ao FileRepository incluam o townId (Validado e sincronizado para uploads).
 3.  Adicionar Rate Limiting nos endpoints de autenticação.
-4.  Validar o conteúdo real (Magic Bytes) nos uploads de arquivos.
+4.  [x] Validar o conteúdo real (Magic Bytes) nos uploads de arquivos.
 
 ## 🎯 Próximos Passos / Roadmap
 
